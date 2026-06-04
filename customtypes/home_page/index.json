@@ -16,6 +16,9 @@
 						},
 						"video_scroll": {
 							"type": "SharedSlice"
+						},
+						"drilled_stats": {
+							"type": "SharedSlice"
 						}
 					}
 				}
