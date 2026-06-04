@@ -27,16 +27,15 @@
 <script setup>
 import { components } from '~/slices'
 
-// Press quotes are global footer content, so they live on the `settings` single
-// type's slice zone (not a page). Each quote is one `press_quotes` slice.
+// The footer is driven by a single `footer` page document in Prismic: each
+// press quote is a `press_quotes` slice in its slice zone.
 const prismic = usePrismic()
-const { data: settings } = await useAsyncData('settings', () =>
-  prismic.client.getSingle('settings').catch(() => null),
+const { data: footer } = await useAsyncData('footer', () =>
+  prismic.client.getSingle('footer').catch(() => null),
 )
 
-// Fallback in the same shape the SliceZone expects, so the footer keeps
-// rendering before the `settings` document is published. Remove once content
-// is live in Prismic.
+// Fallback in the SliceZone's shape, so the footer keeps rendering before the
+// `footer` document is published. Remove once content is live in Prismic.
 const fallbackPress = [
   {
     slice_type: 'press_quotes',
@@ -71,11 +70,11 @@ const fallbackPress = [
 ]
 
 const press = computed(() => {
-  const slices = settings.value?.data?.press_quotes
+  const slices = footer.value?.data?.slices
   return slices?.length ? slices : fallbackPress
 })
 
-// TODO: move these into the `settings` single type too.
+// TODO: move these into the `footer` page document too.
 const legal = [
   { label: 'Privacy Policy',   href: '#privacy' },
   { label: 'Terms of Service', href: '#terms' },

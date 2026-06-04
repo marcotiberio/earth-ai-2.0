@@ -1,14 +1,14 @@
 {
-	"format": "custom",
-	"id": "settings",
-	"label": "Settings",
+	"format": "page",
+	"id": "footer",
+	"label": "Footer",
 	"repeatable": false,
 	"status": true,
 	"json": {
-		"Footer": {
-			"press_quotes": {
+		"Main": {
+			"slices": {
 				"type": "Slices",
-				"fieldset": "Press quotes",
+				"fieldset": "Slice Zone",
 				"config": {
 					"choices": {
 						"press_quotes": {

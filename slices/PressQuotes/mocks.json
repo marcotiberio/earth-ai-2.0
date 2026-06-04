@@ -5,31 +5,18 @@
 		"primary": {
 			"image": {
 				"__TYPE__": "ImageContent",
-				"provider": "imgix",
-				"url": "https://images.unsplash.com/photo-1511688878353-3a2f5be94cd7?crop=entropy&cs=srgb&fm=jpg&ixid=M3wzMzc0NjN8MHwxfHNlYXJjaHwxMHx8Y2l0cnVzJTIwZnJ1aXR8ZW58MHx8fHwxNzgwNTEwNTU5fDA&ixlib=rb-4.1.0&q=85",
-				"alt": "assorted sliced citrus fruits on brown wooden chopping board",
-				"origin": {
-					"id": "1CsaVdwfIew",
-					"url": "https://images.unsplash.com/photo-1511688878353-3a2f5be94cd7?crop=entropy&cs=srgb&fm=jpg&ixid=M3wzMzc0NjN8MHwxfHNlYXJjaHwxMHx8Y2l0cnVzJTIwZnJ1aXR8ZW58MHx8fHwxNzgwNTEwNTU5fDA&ixlib=rb-4.1.0&q=85",
-					"width": 3709,
-					"height": 5563
-				},
-				"width": 3709,
-				"height": 5563,
-				"edit": {
-					"background": "transparent",
-					"zoom": 1,
-					"crop": {
-						"x": 0,
-						"y": 0
-					}
-				},
-				"thumbnails": {}
+				"url": "https://images.unsplash.com/photo-1504711434969-e33886168f5c",
+				"origin": { "id": "main", "url": "https://images.unsplash.com/photo-1504711434969-e33886168f5c", "width": 900, "height": 500 },
+				"width": 900,
+				"height": 500,
+				"edit": { "zoom": 1, "crop": { "x": 0, "y": 0 }, "background": "transparent" },
+				"thumbnails": {},
+				"alt": "TechCrunch"
 			},
 			"date": {
 				"__TYPE__": "FieldContent",
 				"type": "Date",
-				"value": "2026-06-03"
+				"value": "2025-08-07"
 			},
 			"title": {
 				"__TYPE__": "StructuredTextContent",
@@ -37,7 +24,7 @@
 					{
 						"type": "paragraph",
 						"content": {
-							"text": "“Earth AI is vertically integrating the search for critical minerals.”",
+							"text": "Earth AI is vertically integrating the search for critical minerals.",
 							"spans": []
 						},
 						"direction": "ltr"
@@ -46,14 +33,12 @@
 			},
 			"link": {
 				"__TYPE__": "LinkContent",
-				"key": "b2cc7970-92a5-49ab-a887-0dda3dfc86c4",
 				"value": {
-					"__TYPE__": "ExternalLink",
-					"url": "https://www.billabong-store.nl/sunrise-to-sunset-2-roze-t-shirt-met-korte-mouwen-voor-dames/EBJZT00585-MLY0.html?dwvar_EBJZT00585-MLY0_size=s%2F8&dwvar_EBJZT00585-MLY0_color=mly0&sizeSelectorReset=false",
+					"__TYPE__": "ExternalLinkContent",
+					"url": "https://techcrunch.com",
 					"target": "_blank"
 				}
 			}
-		},
-		"items": []
+		}
 	}
 ]

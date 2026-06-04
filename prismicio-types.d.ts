@@ -123,7 +123,86 @@ export type HomePageDocument<Lang extends string = string> =
     Lang
   >;
 
-export type AllDocumentTypes = HomePageDocument;
+/**
+ * Item in *Settings → Press quotes*
+ */
+export interface SettingsDocumentDataPressQuotesItem {
+  /**
+   * Image field in *Settings → Press quotes*
+   *
+   * - **Field Type**: Image
+   * - **Placeholder**: *None*
+   * - **API ID Path**: settings.press_quotes[].image
+   * - **Documentation**: https://prismic.io/docs/fields/image
+   */
+  image: prismic.ImageField<never>;
+
+  /**
+   * Date field in *Settings → Press quotes*
+   *
+   * - **Field Type**: Date
+   * - **Placeholder**: Publication date
+   * - **API ID Path**: settings.press_quotes[].date
+   * - **Documentation**: https://prismic.io/docs/fields/date
+   */
+  date: prismic.DateField;
+
+  /**
+   * Title field in *Settings → Press quotes*
+   *
+   * - **Field Type**: Rich Text
+   * - **Placeholder**: Quote or headline
+   * - **API ID Path**: settings.press_quotes[].title
+   * - **Documentation**: https://prismic.io/docs/fields/rich-text
+   */
+  title: prismic.RichTextField;
+
+  /**
+   * Link field in *Settings → Press quotes*
+   *
+   * - **Field Type**: Link
+   * - **Placeholder**: Link to the article
+   * - **API ID Path**: settings.press_quotes[].link
+   * - **Documentation**: https://prismic.io/docs/fields/link
+   */
+  link: prismic.LinkField<string, string, unknown, prismic.FieldState, never>;
+}
+
+/**
+ * Content for Settings documents
+ */
+interface SettingsDocumentData {
+  /**
+   * Press quotes field in *Settings*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: settings.press_quotes[]
+   * - **Tab**: Footer
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  press_quotes: prismic.GroupField<
+    Simplify<SettingsDocumentDataPressQuotesItem>
+  >;
+}
+
+/**
+ * Settings document from Prismic
+ *
+ * - **API ID**: `settings`
+ * - **Repeatable**: `false`
+ * - **Documentation**: https://prismic.io/docs/content-modeling
+ *
+ * @typeParam Lang - Language API ID of the document.
+ */
+export type SettingsDocument<Lang extends string = string> =
+  prismic.PrismicDocumentWithoutUID<
+    Simplify<SettingsDocumentData>,
+    "settings",
+    Lang
+  >;
+
+export type AllDocumentTypes = HomePageDocument | SettingsDocument;
 
 /**
  * Primary content in *HeroImage → Default → Primary*
@@ -327,6 +406,9 @@ declare module "@prismicio/client" {
       HomePageDocument,
       HomePageDocumentData,
       HomePageDocumentDataSlicesSlice,
+      SettingsDocument,
+      SettingsDocumentData,
+      SettingsDocumentDataPressQuotesItem,
       AllDocumentTypes,
       HeroImageSlice,
       HeroImageSliceDefaultPrimary,
