@@ -9,11 +9,19 @@ export default {
   ],
   theme: {
     extend: {
+      aspectRatio: {
+        '4/3': '4 / 3',
+        '3/4': '3 / 4',
+      },
       fontFamily: {
         // Body / UI grotesk
         sans:  ['"Beausite Classic"', 'system-ui', 'sans-serif'],
         // Editorial display face used for all headlines (the italic "New Industrial Era").
         serif: ['"TWK Ghost"', 'Georgia', 'Times New Roman', 'serif'],
+      },
+      borderRadius: {
+        none: '0',
+        DEFAULT: '7px'
       },
       colors: {
         // Earth AI palette

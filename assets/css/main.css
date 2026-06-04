@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Lenis smooth scroll (plugins/lenis.client.js). Recommended base styles:
+   keep native scroll-behaviour off while Lenis drives, let [data-lenis-prevent]
+   regions scroll independently (e.g. modals), and freeze the page when stopped. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
 /* Earth AI licensed typefaces (served from /public/fonts). */
 @font-face {
   font-family: 'Beausite Classic';
@@ -47,5 +67,23 @@
   .wysiwyg em,
   .ea-display em {
     @apply italic font-normal;
+  }
+
+  /* Reusable button. Base + variants (.btn-primary / .btn-outline). */
+  .btn {
+    @apply inline-flex items-start justify-start gap-2 w-fit
+           rounded px-6 py-3
+           font-sans text-sm tracking-tight leading-none
+           transition-colors duration-200
+           cursor-pointer select-none
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-beige/50
+           disabled:opacity-50 disabled:pointer-events-none
+           no-underline hover:no-underline !important;
+  }
+  .btn-primary {
+    @apply bg-red-400 text-darkblue hover:bg-red-400/60 hover:no-underline !important;
+  }
+  .btn-outline {
+    @apply border border-beige/40 text-beige hover:bg-beige/10;
   }
 }

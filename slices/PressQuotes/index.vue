@@ -4,7 +4,7 @@
       v-if="imageUrl"
       :src="imageUrl"
       :alt="imageAlt"
-      class="h-auto w-full aspect-video self-start object-cover"
+      class="h-auto w-full aspect-4/3 self-start object-cover rounded"
     />
 
     <component
@@ -15,10 +15,10 @@
       class="flex flex-1 flex-col gap-4"
       :class="linkHref ? 'group' : ''"
     >
-      <div class="mt-auto flex flex-col items-start justify-start text-xs text-darkblue">
+      <div class="mt-auto flex flex-col items-start justify-start text-xs text-beige">
         <time v-if="dateValue" :datetime="dateValue">{{ dateValue }}</time>
         <p
-          class="font-serif text-darkblue text-lg md:text-xl leading-snug"
+          class="font-serif text-beige text-lg md:text-xl leading-snug"
           :class="linkHref ? 'transition-colors group-hover:text-grey' : ''"
         >
           &ldquo;<span v-html="titleHtml" />&rdquo;
@@ -29,7 +29,7 @@
         :href="linkHref"
         :target="linkTarget || undefined"
         :rel="linkTarget === '_blank' ? 'noopener noreferrer' : undefined"
-        class="mt-auto text-sm text-darkblue hover:underline"
+        class="btn btn-primary mt-auto text-sm text-darkblue hover:underline"
       >Read more</a>
     </component>
   </article>
