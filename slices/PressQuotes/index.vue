@@ -4,7 +4,7 @@
       v-if="imageUrl"
       :src="imageUrl"
       :alt="imageAlt"
-      class="h-8 w-auto self-start object-contain"
+      class="h-auto w-full aspect-video self-start object-cover"
     />
 
     <component
@@ -15,15 +15,22 @@
       class="flex flex-1 flex-col gap-4"
       :class="linkHref ? 'group' : ''"
     >
-      <p
-        class="font-serif text-darkblue text-lg md:text-xl leading-snug"
-        :class="linkHref ? 'transition-colors group-hover:text-grey' : ''"
-      >
-        &ldquo;<span v-html="titleHtml" />&rdquo;
-      </p>
-      <div class="mt-auto flex items-center justify-end text-xs text-darkblue">
+      <div class="mt-auto flex flex-col items-start justify-start text-xs text-darkblue">
         <time v-if="dateValue" :datetime="dateValue">{{ dateValue }}</time>
+        <p
+          class="font-serif text-darkblue text-lg md:text-xl leading-snug"
+          :class="linkHref ? 'transition-colors group-hover:text-grey' : ''"
+        >
+          &ldquo;<span v-html="titleHtml" />&rdquo;
+        </p>
       </div>
+      <a
+        v-if="linkHref"
+        :href="linkHref"
+        :target="linkTarget || undefined"
+        :rel="linkTarget === '_blank' ? 'noopener noreferrer' : undefined"
+        class="mt-auto text-sm text-darkblue hover:underline"
+      >Read more</a>
     </component>
   </article>
 </template>
