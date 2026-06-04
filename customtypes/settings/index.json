@@ -1,0 +1,22 @@
+{
+	"format": "custom",
+	"id": "settings",
+	"label": "Settings",
+	"repeatable": false,
+	"status": true,
+	"json": {
+		"Footer": {
+			"press_quotes": {
+				"type": "Slices",
+				"fieldset": "Press quotes",
+				"config": {
+					"choices": {
+						"press_quotes": {
+							"type": "SharedSlice"
+						}
+					}
+				}
+			}
+		}
+	}
+}
