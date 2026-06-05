@@ -8,8 +8,14 @@
     :scrub-start="slice.primary.scrub_start || ''"
     :align="slice.primary.title_align_vertical || 'bottom'"
     :align-x="slice.primary.title_align_horizontal || 'left'"
-    overlay-class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent"
+    overlay-class=""
   >
+    <!-- Top and bottom fades (each a quarter of the section height) so the
+         pinned video feathers into the sections above and below. -->
+    <template #pinned>
+      <div class="bg-gradient-to-b from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 top-0 h-1/4 pointer-events-none" />
+      <div class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
+    </template>
     <h2
       class="ea-display font-serif text-beige text-4xl md:text-6xl font-normal leading-[1.05] max-w-2xl"
       v-html="titleHtml"
@@ -18,7 +24,7 @@
 
   <!-- variation: "default" — media band with the headline set beneath it -->
   <section v-else ref="rootRef" class="relative w-full bg-darkblue px-6 py-20 md:px-10 md:py-28">
-    <div class="w-full overflow-hidden">
+    <div class="relative w-full overflow-hidden">
       <video
         v-if="videoUrl"
         ref="videoRef"
@@ -34,6 +40,11 @@
         :alt="slice.primary.image.alt || ''"
         class="w-full h-[40vh] md:h-[55vh] object-cover"
       />
+      <!-- Top and bottom fades (each a quarter of the band height) so the media
+           band feathers into the darkblue page background, blending each section
+           into its neighbours. -->
+      <div class="bg-gradient-to-b from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 top-0 h-1/4 pointer-events-none" />
+      <div class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
     </div>
 
     <div class="mt-12 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">

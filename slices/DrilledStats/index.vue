@@ -9,15 +9,15 @@
   <section
     ref="rootRef"
     class="relative w-full bg-darkblue text-beige"
-    :class="tall ? 'h-[220vh]' : ''"
+    :class="tall ? 'h-[270vh]' : ''"
   >
     <div
       class="w-full overflow-hidden px-6 md:px-10"
       :class="tall ? 'sticky top-0 flex h-screen items-center' : 'flex min-h-screen items-center py-24'"
     >
-      <div class="flex w-full flex-col gap-12 lg:flex-row lg:items-center lg:gap-16">
+      <div class="flex h-full w-full flex-col gap-0 lg:flex-row lg:items-stretch lg:gap-16">
         <!-- Text column -->
-        <div class="w-full lg:w-5/12">
+        <div class="w-full h-full flex flex-col justify-evenly gap-lg lg:w-5/12 pt-[6rem] lg:py-10">
           <h2
             class="ea-display font-serif text-4xl md:text-5xl xl:text-6xl font-normal leading-[1.05] tracking-tight"
             v-html="titleHtml"
@@ -25,21 +25,23 @@
 
           <ul class="mt-14 grid max-w-[550px] grid-cols-2 gap-x-10 gap-y-12 lg:mt-20 xl:gap-x-20">
             <li v-for="(stat, i) in stats" :key="i" class="relative flex flex-col">
-              <hr class="absolute inset-x-0 top-0 border-0 border-t border-dashed border-darkblue/40" />
-              <span class="mt-5 mb-2 font-serif text-[44px] leading-none tabular-nums tracking-tight md:text-[50px] xl:text-[54px]">
+              <svg width="238" height="2" viewBox="0 0 238 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 1H237" stroke="#FAF3E4" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15"/>
+              </svg>
+              <h2 class="mt-5 mb-2 font-serif text-4xl md:text-5xl xl:text-6xl font-normal leading-[1.05] tracking-tight tabular-nums">
                 {{ counter(stat.value) }}
-              </span>
+              </h2>
               <span class="text-xs font-medium tracking-wide md:text-sm">{{ stat.label }}</span>
             </li>
           </ul>
         </div>
 
         <!-- Drilling viz -->
-        <div class="flex w-full items-center justify-center lg:w-7/12 lg:justify-end">
+        <div class="flex w-full items-end justify-center lg:w-7/12 lg:justify-end">
           <svg
             viewBox="0 0 800 1000"
             preserveAspectRatio="xMidYMid meet"
-            class="h-auto max-h-[520px] w-[120%] lg:max-h-[850px] lg:w-full"
+            class="h-auto max-h-[650px] w-[120%] lg:max-h-[850px] lg:w-full"
             role="img"
             :aria-label="`${counter(feetValue)} ${feetLabel}`"
           >
@@ -49,22 +51,22 @@
                 <stop offset="100%" :stop-color="ORANGE" stop-opacity="0" />
               </linearGradient>
               <clipPath id="ds-arc-clip">
-                <rect x="0" y="0" width="800" height="900" />
+                <rect x="0" y="0" width="800" :height="START_Y" />
               </clipPath>
             </defs>
 
-            <!-- Concentric "ground" arcs, centred below the frame -->
-            <g clip-path="url(#ds-arc-clip)" stroke="#050F23" stroke-opacity="0.2" stroke-width="2" stroke-dasharray="4 12" fill="none">
-              <circle cx="400" cy="900" r="200" />
-              <circle cx="400" cy="900" r="400" />
-              <circle cx="400" cy="900" r="600" />
+            <!-- Concentric "ground" arcs, radiating from the baseline -->
+            <g clip-path="url(#ds-arc-clip)" stroke="#FAF3E4" stroke-opacity="0.2" stroke-width="2" stroke-dasharray="4 12" fill="none">
+              <circle cx="400" :cy="START_Y" r="200" />
+              <circle cx="400" :cy="START_Y" r="400" />
+              <circle cx="400" :cy="START_Y" r="600" />
             </g>
 
             <!-- Soft trail to the right of the line -->
-            <rect x="400" :y="lineY" width="60" :height="830 - lineY" fill="url(#ds-fade)" />
+            <rect x="400" :y="lineY" width="60" :height="START_Y - lineY" fill="url(#ds-fade)" />
 
             <!-- Vertical drill line -->
-            <line x1="400" y1="830" x2="400" :y2="lineY" :stroke="ORANGE" stroke-width="2.5" />
+            <line x1="400" :y1="START_Y" x2="400" :y2="lineY" :stroke="ORANGE" stroke-width="2.5" />
 
             <!-- Arrow head -->
             <path
@@ -78,7 +80,7 @@
             />
 
             <!-- Start dot -->
-            <circle cx="400" cy="830" r="4.5" :fill="ORANGE" />
+            <circle cx="400" :cy="START_Y" r="4.5" :fill="ORANGE" />
 
             <!-- Number + label, anchored to the arrow tip -->
             <text x="400" :y="lineY - 45" text-anchor="middle" :fill="ORANGE" class="font-serif tabular-nums" font-size="64" font-weight="400">
@@ -161,8 +163,11 @@ const progress = ref(0)
 // drop it to a normal-height section in onMounted, after the first paint.
 const tall = ref(true)
 
-// Drill line travels from the start dot (y=830) up to y=250 as progress fills.
-const START_Y = 830
+// Drill line rises from the section's bottom edge (the viewBox foot, y=1000) up
+// to y=250 as progress fills. The start dot and the "ground" arcs share this
+// baseline, and the SVG is bottom-aligned (items-end) so y=1000 lands on the
+// section's bottom edge.
+const START_Y = 1000
 const END_Y   = 250
 const lineY     = computed(() => START_Y - (START_Y - END_Y) * progress.value)
 const arrowPath = computed(() => `M 388 ${lineY.value + 12} L 400 ${lineY.value} L 412 ${lineY.value + 12}`)
@@ -193,9 +198,14 @@ onMounted(async () => {
       p: 1,
       ease: 'none',
       scrollTrigger: {
+        // Begin the scrub when the section's top reaches the middle of the
+        // viewport, and finish it 50vh before the panel unpins — that trailing
+        // 50vh keeps the section pinned so the completed stats sit on screen
+        // before the next section scrolls in. (Section height carries +50vh to
+        // fund this dwell; keep the two in step if you tune it.)
         trigger,
-        start: 'top top',
-        end: 'bottom bottom',
+        start: 'top center',
+        end: () => `bottom bottom+=${window.innerHeight * 0.5}`,
         scrub: 1,
       },
       onUpdate: () => { progress.value = state.p },

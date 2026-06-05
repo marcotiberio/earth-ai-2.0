@@ -75,20 +75,22 @@ export const homePage = {
         },
       },
 
-      // ── Slide 5.4 · Incumbents comparison ─────────────────────────────────
+      // ── Slide 5.4 · Incumbents comparison (animated race bars) ────────────
+      // Bars grow left→right and the numbers count up the first time the
+      // section scrolls into view. Same data as the static `comparison_bars`.
       {
-        slice_type: 'comparison_bars',
+        slice_type: 'race_bars',
         variation: 'default',
         primary: {
-          heading: 'Incumbents created the problem, but they won’t be the ones to <em>solve it</em>.',
+          heading: 'Incumbents created the problem, but they won’t be <em>the ones to solve</em> it.',
         },
         items: [
           {
-            metric: 'SPEED OF DISCOVERY',
+            metric: 'DISCOVERY TIMELINE',
             unit: 'YEARS',
             rows: [
-              { label: 'Other Explorers', value: 15 },
               { label: 'EARTH AI', value: 3, highlight: true },
+              { label: 'Other Explorers', value: 15 },
             ],
           },
           {

@@ -69,7 +69,44 @@ type ContentRelationshipFieldWithData<
   >;
 }[Exclude<TCustomType[number], string>["id"]];
 
-type HomePageDocumentDataSlicesSlice = HeroImageSlice | VideoScrollSlice;
+type FooterDocumentDataSlicesSlice = PressQuotesSlice;
+
+/**
+ * Content for Footer documents
+ */
+interface FooterDocumentData {
+  /**
+   * Slice Zone field in *Footer*
+   *
+   * - **Field Type**: Slice Zone
+   * - **Placeholder**: *None*
+   * - **API ID Path**: footer.slices[]
+   * - **Tab**: Main
+   * - **Documentation**: https://prismic.io/docs/slices
+   */
+  slices: prismic.SliceZone<FooterDocumentDataSlicesSlice>;
+}
+
+/**
+ * Footer document from Prismic
+ *
+ * - **API ID**: `footer`
+ * - **Repeatable**: `false`
+ * - **Documentation**: https://prismic.io/docs/content-modeling
+ *
+ * @typeParam Lang - Language API ID of the document.
+ */
+export type FooterDocument<Lang extends string = string> =
+  prismic.PrismicDocumentWithoutUID<
+    Simplify<FooterDocumentData>,
+    "footer",
+    Lang
+  >;
+
+type HomePageDocumentDataSlicesSlice =
+  | HeroImageSlice
+  | VideoScrollSlice
+  | DrilledStatsSlice;
 
 /**
  * Content for Home Page documents
@@ -123,86 +160,107 @@ export type HomePageDocument<Lang extends string = string> =
     Lang
   >;
 
+export type AllDocumentTypes = FooterDocument | HomePageDocument;
+
 /**
- * Item in *Settings → Press quotes*
+ * Item in *DrilledStats → Default → Primary → Stats (max 4)*
  */
-export interface SettingsDocumentDataPressQuotesItem {
+export interface DrilledStatsSliceDefaultPrimaryStatsItem {
   /**
-   * Image field in *Settings → Press quotes*
+   * Title field in *DrilledStats → Default → Primary → Stats (max 4)*
    *
-   * - **Field Type**: Image
-   * - **Placeholder**: *None*
-   * - **API ID Path**: settings.press_quotes[].image
-   * - **Documentation**: https://prismic.io/docs/fields/image
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. Deposits
+   * - **API ID Path**: drilled_stats.default.primary.stats[].label
+   * - **Documentation**: https://prismic.io/docs/fields/text
    */
-  image: prismic.ImageField<never>;
+  label: prismic.KeyTextField;
 
   /**
-   * Date field in *Settings → Press quotes*
+   * Number field in *DrilledStats → Default → Primary → Stats (max 4)*
    *
-   * - **Field Type**: Date
-   * - **Placeholder**: Publication date
-   * - **API ID Path**: settings.press_quotes[].date
-   * - **Documentation**: https://prismic.io/docs/fields/date
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. 6 or 4.1 mil (counts up on scroll)
+   * - **API ID Path**: drilled_stats.default.primary.stats[].value
+   * - **Documentation**: https://prismic.io/docs/fields/text
    */
-  date: prismic.DateField;
+  value: prismic.KeyTextField;
+}
 
+/**
+ * Primary content in *DrilledStats → Default → Primary*
+ */
+export interface DrilledStatsSliceDefaultPrimary {
   /**
-   * Title field in *Settings → Press quotes*
+   * Title field in *DrilledStats → Default → Primary*
    *
    * - **Field Type**: Rich Text
-   * - **Placeholder**: Quote or headline
-   * - **API ID Path**: settings.press_quotes[].title
+   * - **Placeholder**: Headline (e.g. We drilled through the stratosphere.)
+   * - **API ID Path**: drilled_stats.default.primary.title
    * - **Documentation**: https://prismic.io/docs/fields/rich-text
    */
   title: prismic.RichTextField;
 
   /**
-   * Link field in *Settings → Press quotes*
+   * Feet drilled — value field in *DrilledStats → Default → Primary*
    *
-   * - **Field Type**: Link
-   * - **Placeholder**: Link to the article
-   * - **API ID Path**: settings.press_quotes[].link
-   * - **Documentation**: https://prismic.io/docs/fields/link
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. 96,000 (counts up on scroll)
+   * - **API ID Path**: drilled_stats.default.primary.feet_value
+   * - **Documentation**: https://prismic.io/docs/fields/text
    */
-  link: prismic.LinkField<string, string, unknown, prismic.FieldState, never>;
-}
+  feet_value: prismic.KeyTextField;
 
-/**
- * Content for Settings documents
- */
-interface SettingsDocumentData {
   /**
-   * Press quotes field in *Settings*
+   * Feet drilled — label field in *DrilledStats → Default → Primary*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. Feet Drilled
+   * - **API ID Path**: drilled_stats.default.primary.feet_label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  feet_label: prismic.KeyTextField;
+
+  /**
+   * Stats (max 4) field in *DrilledStats → Default → Primary*
    *
    * - **Field Type**: Group
    * - **Placeholder**: *None*
-   * - **API ID Path**: settings.press_quotes[]
-   * - **Tab**: Footer
+   * - **API ID Path**: drilled_stats.default.primary.stats[]
    * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
    */
-  press_quotes: prismic.GroupField<
-    Simplify<SettingsDocumentDataPressQuotesItem>
-  >;
+  stats: prismic.GroupField<Simplify<DrilledStatsSliceDefaultPrimaryStatsItem>>;
 }
 
 /**
- * Settings document from Prismic
+ * Default variation for DrilledStats Slice
  *
- * - **API ID**: `settings`
- * - **Repeatable**: `false`
- * - **Documentation**: https://prismic.io/docs/content-modeling
- *
- * @typeParam Lang - Language API ID of the document.
+ * - **API ID**: `default`
+ * - **Description**: Default
+ * - **Documentation**: https://prismic.io/docs/slices
  */
-export type SettingsDocument<Lang extends string = string> =
-  prismic.PrismicDocumentWithoutUID<
-    Simplify<SettingsDocumentData>,
-    "settings",
-    Lang
-  >;
+export type DrilledStatsSliceDefault = prismic.SharedSliceVariation<
+  "default",
+  Simplify<DrilledStatsSliceDefaultPrimary>,
+  never
+>;
 
-export type AllDocumentTypes = HomePageDocument | SettingsDocument;
+/**
+ * Slice variation for *DrilledStats*
+ */
+type DrilledStatsSliceVariation = DrilledStatsSliceDefault;
+
+/**
+ * DrilledStats Shared Slice
+ *
+ * - **API ID**: `drilled_stats`
+ * - **Description**: Pinned light scene: a WYSIWYG title with count-up metrics beside a drilling arrow that grows skyward on scroll. Add up to 4 stat rows.
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type DrilledStatsSlice = prismic.SharedSlice<
+  "drilled_stats",
+  DrilledStatsSliceVariation
+>;
 
 /**
  * Primary content in *HeroImage → Default → Primary*
@@ -277,6 +335,81 @@ type HeroImageSliceVariation = HeroImageSliceDefault;
 export type HeroImageSlice = prismic.SharedSlice<
   "hero_image",
   HeroImageSliceVariation
+>;
+
+/**
+ * Primary content in *PressQuotes → Default → Primary*
+ */
+export interface PressQuotesSliceDefaultPrimary {
+  /**
+   * Image field in *PressQuotes → Default → Primary*
+   *
+   * - **Field Type**: Image
+   * - **Placeholder**: *None*
+   * - **API ID Path**: press_quotes.default.primary.image
+   * - **Documentation**: https://prismic.io/docs/fields/image
+   */
+  image: prismic.ImageField<never>;
+
+  /**
+   * Date field in *PressQuotes → Default → Primary*
+   *
+   * - **Field Type**: Date
+   * - **Placeholder**: Publication date
+   * - **API ID Path**: press_quotes.default.primary.date
+   * - **Documentation**: https://prismic.io/docs/fields/date
+   */
+  date: prismic.DateField;
+
+  /**
+   * Title field in *PressQuotes → Default → Primary*
+   *
+   * - **Field Type**: Rich Text
+   * - **Placeholder**: Quote or headline
+   * - **API ID Path**: press_quotes.default.primary.title
+   * - **Documentation**: https://prismic.io/docs/fields/rich-text
+   */
+  title: prismic.RichTextField;
+
+  /**
+   * Link field in *PressQuotes → Default → Primary*
+   *
+   * - **Field Type**: Link
+   * - **Placeholder**: Link to the article
+   * - **API ID Path**: press_quotes.default.primary.link
+   * - **Documentation**: https://prismic.io/docs/fields/link
+   */
+  link: prismic.LinkField<string, string, unknown, prismic.FieldState, never>;
+}
+
+/**
+ * Default variation for PressQuotes Slice
+ *
+ * - **API ID**: `default`
+ * - **Description**: Default
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type PressQuotesSliceDefault = prismic.SharedSliceVariation<
+  "default",
+  Simplify<PressQuotesSliceDefaultPrimary>,
+  never
+>;
+
+/**
+ * Slice variation for *PressQuotes*
+ */
+type PressQuotesSliceVariation = PressQuotesSliceDefault;
+
+/**
+ * PressQuotes Shared Slice
+ *
+ * - **API ID**: `press_quotes`
+ * - **Description**: A single press item — publication image, date, quote/title and a link to the article. Add one per quote.
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type PressQuotesSlice = prismic.SharedSlice<
+  "press_quotes",
+  PressQuotesSliceVariation
 >;
 
 /**
@@ -403,17 +536,26 @@ declare module "@prismicio/client" {
 
   namespace Content {
     export type {
+      FooterDocument,
+      FooterDocumentData,
+      FooterDocumentDataSlicesSlice,
       HomePageDocument,
       HomePageDocumentData,
       HomePageDocumentDataSlicesSlice,
-      SettingsDocument,
-      SettingsDocumentData,
-      SettingsDocumentDataPressQuotesItem,
       AllDocumentTypes,
+      DrilledStatsSlice,
+      DrilledStatsSliceDefaultPrimaryStatsItem,
+      DrilledStatsSliceDefaultPrimary,
+      DrilledStatsSliceVariation,
+      DrilledStatsSliceDefault,
       HeroImageSlice,
       HeroImageSliceDefaultPrimary,
       HeroImageSliceVariation,
       HeroImageSliceDefault,
+      PressQuotesSlice,
+      PressQuotesSliceDefaultPrimary,
+      PressQuotesSliceVariation,
+      PressQuotesSliceDefault,
       VideoScrollSlice,
       VideoScrollSliceOverlayPrimary,
       VideoScrollSliceVariation,

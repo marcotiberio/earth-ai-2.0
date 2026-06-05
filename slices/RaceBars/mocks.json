@@ -1,0 +1,107 @@
+[
+	{
+		"__TYPE__": "SharedSliceContent",
+		"variation": "default",
+		"primary": {
+			"heading": {
+				"__TYPE__": "StructuredTextContent",
+				"value": [
+					{
+						"type": "paragraph",
+						"content": {
+							"text": "Incumbents created the problem, but they won’t be the ones to solve it.",
+							"spans": []
+						},
+						"direction": "ltr"
+					}
+				]
+			},
+			"items": {
+				"__TYPE__": "GroupContentType",
+				"value": [
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"metric",
+								{ "__TYPE__": "FieldContent", "type": "Text", "value": "DISCOVERY TIMELINE" }
+							],
+							[
+								"unit",
+								{ "__TYPE__": "FieldContent", "type": "Text", "value": "YEARS" }
+							],
+							[
+								"rows",
+								{
+									"__TYPE__": "GroupContentType",
+									"value": [
+										{
+											"__TYPE__": "GroupItemContent",
+											"value": [
+												["label", { "__TYPE__": "FieldContent", "type": "Text", "value": "EARTH AI" }],
+												["value", { "__TYPE__": "FieldContent", "type": "Number", "value": 3 }],
+												["highlight", { "__TYPE__": "FieldContent", "type": "Boolean", "value": true }]
+											],
+											"key": "row-eai-discovery"
+										},
+										{
+											"__TYPE__": "GroupItemContent",
+											"value": [
+												["label", { "__TYPE__": "FieldContent", "type": "Text", "value": "Other Explorers" }],
+												["value", { "__TYPE__": "FieldContent", "type": "Number", "value": 15 }],
+												["highlight", { "__TYPE__": "FieldContent", "type": "Boolean", "value": false }]
+											],
+											"key": "row-other-discovery"
+										}
+									]
+								}
+							]
+						],
+						"key": "group-discovery"
+					},
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"metric",
+								{ "__TYPE__": "FieldContent", "type": "Text", "value": "SUCCESS RATE" }
+							],
+							[
+								"unit",
+								{ "__TYPE__": "FieldContent", "type": "Text", "value": "%" }
+							],
+							[
+								"rows",
+								{
+									"__TYPE__": "GroupContentType",
+									"value": [
+										{
+											"__TYPE__": "GroupItemContent",
+											"value": [
+												["label", { "__TYPE__": "FieldContent", "type": "Text", "value": "Other Explorers" }],
+												["value", { "__TYPE__": "FieldContent", "type": "Number", "value": 0.5 }],
+												["highlight", { "__TYPE__": "FieldContent", "type": "Boolean", "value": false }]
+											],
+											"key": "row-other-success"
+										},
+										{
+											"__TYPE__": "GroupItemContent",
+											"value": [
+												["label", { "__TYPE__": "FieldContent", "type": "Text", "value": "EARTH AI" }],
+												["value", { "__TYPE__": "FieldContent", "type": "Number", "value": 80 }],
+												["highlight", { "__TYPE__": "FieldContent", "type": "Boolean", "value": true }]
+											],
+											"key": "row-eai-success"
+										}
+									]
+								}
+							]
+						],
+						"key": "group-success"
+					}
+				]
+			}
+		},
+		"items": []
+	}
+]

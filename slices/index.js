@@ -11,6 +11,7 @@ export const components = defineSliceZoneComponents({
   video_scroll:    defineAsyncComponent(() => import("./VideoScroll/index.vue")),
   supply_chart:    defineAsyncComponent(() => import("./SupplyChart/index.vue")),
   comparison_bars: defineAsyncComponent(() => import("./ComparisonBars/index.vue")),
+  race_bars:       defineAsyncComponent(() => import("./RaceBars/index.vue")),
   stats_row:       defineAsyncComponent(() => import("./StatsRow/index.vue")),
   drilled_stats:   defineAsyncComponent(() => import("./DrilledStats/index.vue")),
   wysiwyg:         defineAsyncComponent(() => import("./Wysiwyg/index.vue")),

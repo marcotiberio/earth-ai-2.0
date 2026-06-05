@@ -1,0 +1,79 @@
+{
+  "id": "race_bars",
+  "type": "SharedSlice",
+  "name": "RaceBars",
+  "description": "Animated metric-vs-metric comparison: bars grow left→right and numbers count up the first time the section scrolls into view. Add metric groups, each with rows; mark the EARTH AI row as highlighted for the orange treatment.",
+  "variations": [
+    {
+      "id": "default",
+      "name": "Default",
+      "docURL": "...",
+      "version": "initial",
+      "description": "Default",
+      "imageUrl": "",
+      "primary": {
+        "heading": {
+          "type": "StructuredText",
+          "config": {
+            "label": "Heading",
+            "placeholder": "Headline (e.g. Incumbents created the problem…)",
+            "allowTargetBlank": true,
+            "single": "paragraph,strong,em"
+          }
+        },
+        "items": {
+          "type": "Group",
+          "config": {
+            "label": "Metric groups",
+            "fields": {
+              "metric": {
+                "type": "Text",
+                "config": {
+                  "label": "Metric label",
+                  "placeholder": "e.g. DISCOVERY TIMELINE"
+                }
+              },
+              "unit": {
+                "type": "Text",
+                "config": {
+                  "label": "Unit",
+                  "placeholder": "e.g. YEARS or %"
+                }
+              },
+              "rows": {
+                "type": "Group",
+                "config": {
+                  "label": "Rows",
+                  "fields": {
+                    "label": {
+                      "type": "Text",
+                      "config": {
+                        "label": "Row label",
+                        "placeholder": "e.g. EARTH AI"
+                      }
+                    },
+                    "value": {
+                      "type": "Number",
+                      "config": {
+                        "label": "Value (counts up on scroll)",
+                        "placeholder": "e.g. 3"
+                      }
+                    },
+                    "highlight": {
+                      "type": "Boolean",
+                      "config": {
+                        "label": "Highlight (orange treatment)",
+                        "default_value": false
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "items": {}
+    }
+  ]
+}

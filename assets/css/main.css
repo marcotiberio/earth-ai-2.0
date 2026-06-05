@@ -66,7 +66,7 @@ html.lenis body {
   }
   .wysiwyg em,
   .ea-display em {
-    @apply italic font-normal;
+    @apply font-serif;
   }
 
   /* Reusable button. Base + variants (.btn-primary / .btn-outline). */
@@ -75,13 +75,14 @@ html.lenis body {
            rounded px-6 py-3
            font-sans text-sm tracking-tight leading-none
            transition-colors duration-200
-           cursor-pointer select-none
+           cursor-pointer
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-beige/50
            disabled:opacity-50 disabled:pointer-events-none
            no-underline hover:no-underline !important;
   }
   .btn-primary {
-    @apply bg-red-400 text-darkblue hover:bg-red-400/60 hover:no-underline !important;
+    @apply text-beige hover:no-underline !important;
+    background: linear-gradient(178deg, rgba(233, 123, 57, 0.15) 27.16%, rgba(10, 8, 8, 0.15) 98.51%);
   }
   .btn-outline {
     @apply border border-beige/40 text-beige hover:bg-beige/10;

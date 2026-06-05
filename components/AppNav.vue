@@ -1,8 +1,8 @@
 <template>
   <header class="fixed top-0 left-0 w-full z-50 px-6 md:px-10">
     <!-- Thin rule under the bar, as in the NAV-STICK frame -->
-    <div class="flex flex-col items-start justify-start mt-8 gap-8">
-      <svg width="1640" height="2" viewBox="0 0 1640 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <div class="flex flex-col items-start justify-start mt-6 gap-6 lg:mt-8 lg:gap-8">
+      <svg class="s" width="1640" height="2" viewBox="0 0 1640 2" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M1 1H1639" stroke="#FAF3E4" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15"/>
       </svg>
       <!-- Logo -->
