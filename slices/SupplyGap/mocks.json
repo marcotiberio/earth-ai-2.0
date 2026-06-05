@@ -1,0 +1,71 @@
+[
+	{
+		"__TYPE__": "SharedSliceContent",
+		"variation": "default",
+		"primary": {
+			"heading": {
+				"__TYPE__": "StructuredTextContent",
+				"value": [
+					{
+						"type": "paragraph",
+						"content": {
+							"text": "Demand is set, but supply is completely uncertain.",
+							"spans": []
+						},
+						"direction": "ltr"
+					}
+				]
+			},
+			"body": {
+				"__TYPE__": "FieldContent",
+				"type": "Text",
+				"value": "A typical mine contains $10 billion of revenue. By 2040, there is a 643-mine deficit comprising a massive $6.5 trillion gap that remains unfulfilled."
+			},
+			"y_ticks": {
+				"__TYPE__": "GroupContentType",
+				"value": [
+					{ "__TYPE__": "GroupItemContent", "value": [["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "10" }]], "key": "yt-10" },
+					{ "__TYPE__": "GroupItemContent", "value": [["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "20" }]], "key": "yt-20" },
+					{ "__TYPE__": "GroupItemContent", "value": [["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "30" }]], "key": "yt-30" },
+					{ "__TYPE__": "GroupItemContent", "value": [["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "40" }]], "key": "yt-40" },
+					{ "__TYPE__": "GroupItemContent", "value": [["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "50" }]], "key": "yt-50" }
+				]
+			},
+			"x_labels": {
+				"__TYPE__": "GroupContentType",
+				"value": [
+					{ "__TYPE__": "GroupItemContent", "value": [["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "2030" }]], "key": "xl-2030" },
+					{ "__TYPE__": "GroupItemContent", "value": [["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "2035" }]], "key": "xl-2035" },
+					{ "__TYPE__": "GroupItemContent", "value": [["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "2040" }]], "key": "xl-2040" }
+				]
+			},
+			"demand": {
+				"__TYPE__": "GroupContentType",
+				"value": [
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							["label", { "__TYPE__": "FieldContent", "type": "Text", "value": "DEMAND" }],
+							["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "1270" }]
+						],
+						"key": "demand"
+					}
+				]
+			},
+			"supply": {
+				"__TYPE__": "GroupContentType",
+				"value": [
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							["label", { "__TYPE__": "FieldContent", "type": "Text", "value": "CURRENT AND DEVELOPING MINES" }],
+							["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "627" }]
+						],
+						"key": "supply"
+					}
+				]
+			}
+		},
+		"items": []
+	}
+]

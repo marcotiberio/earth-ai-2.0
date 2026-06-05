@@ -13,13 +13,13 @@
   >
     <div
       class="w-full overflow-hidden px-6 md:px-10"
-      :class="tall ? 'sticky top-0 flex h-screen items-center' : 'flex min-h-screen items-center py-24'"
+      :class="tall ? 'sticky top-0 flex h-screen items-center' : 'flex min-h-screen items-center py-lg'"
     >
-      <div class="flex h-full w-full flex-col gap-0 lg:flex-row lg:items-stretch lg:gap-16">
+      <div class="flex h-full w-full flex-col gap-0 lg:flex-row lg:items-stretch lg:gap-lg">
         <!-- Text column -->
-        <div class="w-full h-full flex flex-col justify-evenly gap-lg lg:w-5/12 pt-[6rem] lg:py-10">
+        <div class="w-full h-full flex flex-col justify-between gap-lg lg:w-5/12 pt-md lg:pt-lg md:pb-sm">
           <h2
-            class="ea-display font-serif text-4xl md:text-5xl xl:text-6xl font-normal leading-[1.05] tracking-tight"
+            class="ea-display font-serif text-h3 md:text-h2 font-normal leading-[1.05] tracking-tight"
             v-html="titleHtml"
           />
 
@@ -28,10 +28,10 @@
               <svg width="238" height="2" viewBox="0 0 238 2" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M1 1H237" stroke="#FAF3E4" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15"/>
               </svg>
-              <h2 class="mt-5 mb-2 font-serif text-4xl md:text-5xl xl:text-6xl font-normal leading-[1.05] tracking-tight tabular-nums">
+              <h2 class="mt-5 mb-2 font-serif text-h3 md:text-h2 font-normal leading-[1.05] tracking-tight tabular-nums">
                 {{ counter(stat.value) }}
               </h2>
-              <span class="text-xs font-medium tracking-wide md:text-sm">{{ stat.label }}</span>
+              <span class="text-caption font-medium tracking-wide">{{ stat.label }}</span>
             </li>
           </ul>
         </div>

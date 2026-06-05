@@ -17,7 +17,7 @@
       <div class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
     </template>
     <h2
-      class="ea-display font-serif text-beige text-4xl md:text-6xl font-normal leading-[1.05] max-w-2xl"
+      class="ea-display font-serif text-beige text-h2 w-full md:w-1/2"
       v-html="titleHtml"
     />
   </ScrubScene>
@@ -49,12 +49,12 @@
 
     <div class="mt-12 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
       <h2
-        class="ea-display font-serif text-beige text-3xl md:text-5xl font-normal leading-[1.1] max-w-2xl"
+        class="ea-display font-serif text-beige text-h3 md:text-h2 font-normal leading-[1.1] max-w-2xl"
         v-html="titleHtml"
       />
       <p
         v-if="slice.primary.body"
-        class="text-grey text-base leading-relaxed max-w-sm"
+        class="text-grey text-body leading-relaxed max-w-sm"
       >
         {{ slice.primary.body }}
       </p>

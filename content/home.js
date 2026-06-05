@@ -61,17 +61,19 @@ export const homePage = {
         },
       },
 
-      // ── Slide 4.4 · Demand vs supply chart ────────────────────────────────
+      // ── Slide 4.4 · Demand vs supply chart (animated, pinned) ─────────────
+      // Curves + fills wipe in left→right and the endpoint figures count up as
+      // the pinned section scrolls. Same data as the static `supply_chart`.
       {
-        slice_type: 'supply_chart',
+        slice_type: 'supply_gap',
         variation: 'default',
         primary: {
-          heading: 'Demand is set, but supply is <em>completely uncertain</em>.',
-          body: 'A typical mine contains $10 billion of revenue. By 2040 there is a 643-mine deficit comprising a massive $6.5 trillion gap that remains unfulfilled.',
+          heading: 'Demand is set, but supply is completely <em>uncertain</em>.',
+          body: 'A typical mine contains $10 billion of revenue. By 2040, there is a 643-mine deficit comprising a massive $6.5 trillion gap that remains unfulfilled.',
           y_ticks: ['10', '20', '30', '40', '50'],
           x_labels: ['2030', '2035', '2040'],
           demand: { label: 'DEMAND', value: '1270' },
-          supply: { label: 'current and developing mines', value: '627' },
+          supply: { label: 'CURRENT AND DEVELOPING MINES', value: '627' },
         },
       },
 
@@ -125,6 +127,23 @@ export const homePage = {
           },
           heading: 'We operate like no other mineral exploration company.',
           body: 'Mineral Targeting Platform (MTP) is our proprietary geology deep-learning system for hydrothermal mineralization discovery. Unlike conventional localized exploration, MTP provides continental-scale predictive capability that discovered 850 new targets at 80% precision.',
+        },
+      },
+
+      // ── Slide 7.4 · Mineral Targeting Platform (pinned target map) ────────
+      // Animated successor to the static `feature_media` slide above: the
+      // metrics count up and the continental target markers wipe in left→right
+      // as the pinned section scrolls.
+      {
+        slice_type: 'map_targets',
+        variation: 'default',
+        primary: {
+          title: 'We operate <em>like no other</em> mineral exploration company.',
+          body: 'Mineral Targeting Platform (MTP) is our proprietary geology deep learning system for hydrothermal mineralization discovery. Unlike conventional localized exploration, MTP provides continental-scale predictive capability that discovered 1,500 new targets at 83% precision.',
+          stats: [
+            { label: 'New Targets', value: '1,500' },
+            { label: 'Precision',   value: '83%' },
+          ],
         },
       },
 

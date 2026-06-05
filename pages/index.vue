@@ -1,6 +1,6 @@
 <template>
   <main>
-    <SliceZone v-if="page" :slices="page.data.slices" :components="components" />
+    <SliceZone v-if="page" :slices="visibleSlices(page.data.slices)" :components="components" />
   </main>
 </template>
 

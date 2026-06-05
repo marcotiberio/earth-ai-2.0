@@ -33,10 +33,17 @@ html.lenis body {
 
 @font-face {
   font-family: 'TWK Ghost';
-  src: url('/fonts/TWKGhost-Light.woff2') format('woff2'),
-       url('/fonts/TWKGhost-Light.woff') format('woff');
+  src: url('/fonts/TWKGhost-Light.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TWK Ghost Italic';
+  src: url('/fonts/TWKGhost-LightItalic.woff2') format('woff2');
+  font-weight: 300;
+  font-style: italic;
   font-display: swap;
 }
 
@@ -66,7 +73,7 @@ html.lenis body {
   }
   .wysiwyg em,
   .ea-display em {
-    @apply font-serif;
+    @apply font-serifItalic;
   }
 
   /* Reusable button. Base + variants (.btn-primary / .btn-outline). */

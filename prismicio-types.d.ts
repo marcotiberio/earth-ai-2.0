@@ -106,7 +106,10 @@ export type FooterDocument<Lang extends string = string> =
 type HomePageDocumentDataSlicesSlice =
   | HeroImageSlice
   | VideoScrollSlice
-  | DrilledStatsSlice;
+  | DrilledStatsSlice
+  | RaceBarsSlice
+  | SupplyGapSlice
+  | MapTargetsSlice;
 
 /**
  * Content for Home Page documents
@@ -192,6 +195,17 @@ export interface DrilledStatsSliceDefaultPrimaryStatsItem {
  */
 export interface DrilledStatsSliceDefaultPrimary {
   /**
+   * Hide slice field in *DrilledStats → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: drilled_stats.default.primary.is_hidden
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  is_hidden: prismic.BooleanField;
+
+  /**
    * Title field in *DrilledStats → Default → Primary*
    *
    * - **Field Type**: Rich Text
@@ -267,6 +281,17 @@ export type DrilledStatsSlice = prismic.SharedSlice<
  */
 export interface HeroImageSliceDefaultPrimary {
   /**
+   * Hide slice field in *HeroImage → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: hero_image.default.primary.is_hidden
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  is_hidden: prismic.BooleanField;
+
+  /**
    * Background video field in *HeroImage → Default → Primary*
    *
    * - **Field Type**: Link to Media
@@ -338,9 +363,121 @@ export type HeroImageSlice = prismic.SharedSlice<
 >;
 
 /**
+ * Item in *MapTargets → Default → Primary → Stats (max 4)*
+ */
+export interface MapTargetsSliceDefaultPrimaryStatsItem {
+  /**
+   * Title field in *MapTargets → Default → Primary → Stats (max 4)*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. New Targets
+   * - **API ID Path**: map_targets.default.primary.stats[].label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  label: prismic.KeyTextField;
+
+  /**
+   * Number field in *MapTargets → Default → Primary → Stats (max 4)*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. 1,500 or 83% (counts up on scroll)
+   * - **API ID Path**: map_targets.default.primary.stats[].value
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  value: prismic.KeyTextField;
+}
+
+/**
+ * Primary content in *MapTargets → Default → Primary*
+ */
+export interface MapTargetsSliceDefaultPrimary {
+  /**
+   * Hide slice field in *MapTargets → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: map_targets.default.primary.is_hidden
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  is_hidden: prismic.BooleanField;
+
+  /**
+   * Title field in *MapTargets → Default → Primary*
+   *
+   * - **Field Type**: Rich Text
+   * - **Placeholder**: Headline (e.g. We operate like no other mineral exploration company.)
+   * - **API ID Path**: map_targets.default.primary.title
+   * - **Documentation**: https://prismic.io/docs/fields/rich-text
+   */
+  title: prismic.RichTextField;
+
+  /**
+   * Body field in *MapTargets → Default → Primary*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Supporting paragraph shown at the bottom-left
+   * - **API ID Path**: map_targets.default.primary.body
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  body: prismic.KeyTextField;
+
+  /**
+   * Stats (max 4) field in *MapTargets → Default → Primary*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: map_targets.default.primary.stats[]
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  stats: prismic.GroupField<Simplify<MapTargetsSliceDefaultPrimaryStatsItem>>;
+}
+
+/**
+ * Default variation for MapTargets Slice
+ *
+ * - **API ID**: `default`
+ * - **Description**: Default
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type MapTargetsSliceDefault = prismic.SharedSliceVariation<
+  "default",
+  Simplify<MapTargetsSliceDefaultPrimary>,
+  never
+>;
+
+/**
+ * Slice variation for *MapTargets*
+ */
+type MapTargetsSliceVariation = MapTargetsSliceDefault;
+
+/**
+ * MapTargets Shared Slice
+ *
+ * - **API ID**: `map_targets`
+ * - **Description**: Pinned dark scene: a WYSIWYG title with count-up metrics and a supporting paragraph beside a continental target map whose orange markers wipe in left→right on scroll. Add up to 4 stat rows.
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type MapTargetsSlice = prismic.SharedSlice<
+  "map_targets",
+  MapTargetsSliceVariation
+>;
+
+/**
  * Primary content in *PressQuotes → Default → Primary*
  */
 export interface PressQuotesSliceDefaultPrimary {
+  /**
+   * Hide slice field in *PressQuotes → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: press_quotes.default.primary.is_hidden
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  is_hidden: prismic.BooleanField;
+
   /**
    * Image field in *PressQuotes → Default → Primary*
    *
@@ -413,9 +550,347 @@ export type PressQuotesSlice = prismic.SharedSlice<
 >;
 
 /**
+ * Item in *RaceBars → Default → Primary → Metric groups → Rows*
+ */
+export interface RaceBarsSliceDefaultPrimaryItemsRowsItem {
+  /**
+   * Row label field in *RaceBars → Default → Primary → Metric groups → Rows*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. EARTH AI
+   * - **API ID Path**: race_bars.default.primary.items[].rows[].label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  label: prismic.KeyTextField;
+
+  /**
+   * Value (counts up on scroll) field in *RaceBars → Default → Primary → Metric groups → Rows*
+   *
+   * - **Field Type**: Number
+   * - **Placeholder**: e.g. 3
+   * - **API ID Path**: race_bars.default.primary.items[].rows[].value
+   * - **Documentation**: https://prismic.io/docs/fields/number
+   */
+  value: prismic.NumberField;
+
+  /**
+   * Highlight (orange treatment) field in *RaceBars → Default → Primary → Metric groups → Rows*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: race_bars.default.primary.items[].rows[].highlight
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  highlight: prismic.BooleanField;
+}
+
+/**
+ * Item in *RaceBars → Default → Primary → Metric groups*
+ */
+export interface RaceBarsSliceDefaultPrimaryItemsItem {
+  /**
+   * Metric label field in *RaceBars → Default → Primary → Metric groups*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. DISCOVERY TIMELINE
+   * - **API ID Path**: race_bars.default.primary.items[].metric
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  metric: prismic.KeyTextField;
+
+  /**
+   * Unit field in *RaceBars → Default → Primary → Metric groups*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. YEARS or %
+   * - **API ID Path**: race_bars.default.primary.items[].unit
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  unit: prismic.KeyTextField;
+
+  /**
+   * Rows field in *RaceBars → Default → Primary → Metric groups*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: race_bars.default.primary.items[].rows[]
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  rows: prismic.NestedGroupField<
+    Simplify<RaceBarsSliceDefaultPrimaryItemsRowsItem>
+  >;
+}
+
+/**
+ * Primary content in *RaceBars → Default → Primary*
+ */
+export interface RaceBarsSliceDefaultPrimary {
+  /**
+   * Hide slice field in *RaceBars → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: race_bars.default.primary.is_hidden
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  is_hidden: prismic.BooleanField;
+
+  /**
+   * Heading field in *RaceBars → Default → Primary*
+   *
+   * - **Field Type**: Rich Text
+   * - **Placeholder**: Headline (e.g. Incumbents created the problem…)
+   * - **API ID Path**: race_bars.default.primary.heading
+   * - **Documentation**: https://prismic.io/docs/fields/rich-text
+   */
+  heading: prismic.RichTextField;
+
+  /**
+   * Metric groups field in *RaceBars → Default → Primary*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: race_bars.default.primary.items[]
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  items: prismic.GroupField<Simplify<RaceBarsSliceDefaultPrimaryItemsItem>>;
+}
+
+/**
+ * Default variation for RaceBars Slice
+ *
+ * - **API ID**: `default`
+ * - **Description**: Default
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type RaceBarsSliceDefault = prismic.SharedSliceVariation<
+  "default",
+  Simplify<RaceBarsSliceDefaultPrimary>,
+  never
+>;
+
+/**
+ * Slice variation for *RaceBars*
+ */
+type RaceBarsSliceVariation = RaceBarsSliceDefault;
+
+/**
+ * RaceBars Shared Slice
+ *
+ * - **API ID**: `race_bars`
+ * - **Description**: Animated metric-vs-metric comparison: bars grow left→right and numbers count up the first time the section scrolls into view. Add metric groups, each with rows; mark the EARTH AI row as highlighted for the orange treatment.
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type RaceBarsSlice = prismic.SharedSlice<
+  "race_bars",
+  RaceBarsSliceVariation
+>;
+
+/**
+ * Item in *SupplyGap → Default → Primary → Y-axis ticks (low → high)*
+ */
+export interface SupplyGapSliceDefaultPrimaryYTicksItem {
+  /**
+   * Tick field in *SupplyGap → Default → Primary → Y-axis ticks (low → high)*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. 10
+   * - **API ID Path**: supply_gap.default.primary.y_ticks[].value
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  value: prismic.KeyTextField;
+}
+
+/**
+ * Item in *SupplyGap → Default → Primary → X-axis labels (left → right)*
+ */
+export interface SupplyGapSliceDefaultPrimaryXLabelsItem {
+  /**
+   * Label field in *SupplyGap → Default → Primary → X-axis labels (left → right)*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. 2030
+   * - **API ID Path**: supply_gap.default.primary.x_labels[].value
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  value: prismic.KeyTextField;
+}
+
+/**
+ * Item in *SupplyGap → Default → Primary → Demand endpoint (counts up)*
+ */
+export interface SupplyGapSliceDefaultPrimaryDemandItem {
+  /**
+   * Label field in *SupplyGap → Default → Primary → Demand endpoint (counts up)*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. DEMAND
+   * - **API ID Path**: supply_gap.default.primary.demand[].label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  label: prismic.KeyTextField;
+
+  /**
+   * Value field in *SupplyGap → Default → Primary → Demand endpoint (counts up)*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. 1270
+   * - **API ID Path**: supply_gap.default.primary.demand[].value
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  value: prismic.KeyTextField;
+}
+
+/**
+ * Item in *SupplyGap → Default → Primary → Supply endpoint (counts up)*
+ */
+export interface SupplyGapSliceDefaultPrimarySupplyItem {
+  /**
+   * Label field in *SupplyGap → Default → Primary → Supply endpoint (counts up)*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. CURRENT AND DEVELOPING MINES
+   * - **API ID Path**: supply_gap.default.primary.supply[].label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  label: prismic.KeyTextField;
+
+  /**
+   * Value field in *SupplyGap → Default → Primary → Supply endpoint (counts up)*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. 627
+   * - **API ID Path**: supply_gap.default.primary.supply[].value
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  value: prismic.KeyTextField;
+}
+
+/**
+ * Primary content in *SupplyGap → Default → Primary*
+ */
+export interface SupplyGapSliceDefaultPrimary {
+  /**
+   * Hide slice field in *SupplyGap → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: supply_gap.default.primary.is_hidden
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  is_hidden: prismic.BooleanField;
+
+  /**
+   * Heading field in *SupplyGap → Default → Primary*
+   *
+   * - **Field Type**: Rich Text
+   * - **Placeholder**: Headline (e.g. Demand is set, but supply is uncertain.)
+   * - **API ID Path**: supply_gap.default.primary.heading
+   * - **Documentation**: https://prismic.io/docs/fields/rich-text
+   */
+  heading: prismic.RichTextField;
+
+  /**
+   * Body field in *SupplyGap → Default → Primary*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Supporting paragraph shown beside the heading
+   * - **API ID Path**: supply_gap.default.primary.body
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  body: prismic.KeyTextField;
+
+  /**
+   * Y-axis ticks (low → high) field in *SupplyGap → Default → Primary*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: supply_gap.default.primary.y_ticks[]
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  y_ticks: prismic.GroupField<Simplify<SupplyGapSliceDefaultPrimaryYTicksItem>>;
+
+  /**
+   * X-axis labels (left → right) field in *SupplyGap → Default → Primary*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: supply_gap.default.primary.x_labels[]
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  x_labels: prismic.GroupField<
+    Simplify<SupplyGapSliceDefaultPrimaryXLabelsItem>
+  >;
+
+  /**
+   * Demand endpoint (counts up) field in *SupplyGap → Default → Primary*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: supply_gap.default.primary.demand[]
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  demand: prismic.GroupField<Simplify<SupplyGapSliceDefaultPrimaryDemandItem>>;
+
+  /**
+   * Supply endpoint (counts up) field in *SupplyGap → Default → Primary*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: supply_gap.default.primary.supply[]
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  supply: prismic.GroupField<Simplify<SupplyGapSliceDefaultPrimarySupplyItem>>;
+}
+
+/**
+ * Default variation for SupplyGap Slice
+ *
+ * - **API ID**: `default`
+ * - **Description**: Default
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type SupplyGapSliceDefault = prismic.SharedSliceVariation<
+  "default",
+  Simplify<SupplyGapSliceDefaultPrimary>,
+  never
+>;
+
+/**
+ * Slice variation for *SupplyGap*
+ */
+type SupplyGapSliceVariation = SupplyGapSliceDefault;
+
+/**
+ * SupplyGap Shared Slice
+ *
+ * - **API ID**: `supply_gap`
+ * - **Description**: Pinned demand-vs-supply chart: both curves and their gradient fills wipe in left→right and the two endpoint figures count up as the section scrolls. The deficit reads as the band between the curves.
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type SupplyGapSlice = prismic.SharedSlice<
+  "supply_gap",
+  SupplyGapSliceVariation
+>;
+
+/**
  * Primary content in *VideoScroll → Overlay → Primary*
  */
 export interface VideoScrollSliceOverlayPrimary {
+  /**
+   * Hide slice field in *VideoScroll → Overlay → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: video_scroll.overlay.primary.is_hidden
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  is_hidden: prismic.BooleanField;
+
   /**
    * Background video field in *VideoScroll → Overlay → Primary*
    *
@@ -552,10 +1027,29 @@ declare module "@prismicio/client" {
       HeroImageSliceDefaultPrimary,
       HeroImageSliceVariation,
       HeroImageSliceDefault,
+      MapTargetsSlice,
+      MapTargetsSliceDefaultPrimaryStatsItem,
+      MapTargetsSliceDefaultPrimary,
+      MapTargetsSliceVariation,
+      MapTargetsSliceDefault,
       PressQuotesSlice,
       PressQuotesSliceDefaultPrimary,
       PressQuotesSliceVariation,
       PressQuotesSliceDefault,
+      RaceBarsSlice,
+      RaceBarsSliceDefaultPrimaryItemsRowsItem,
+      RaceBarsSliceDefaultPrimaryItemsItem,
+      RaceBarsSliceDefaultPrimary,
+      RaceBarsSliceVariation,
+      RaceBarsSliceDefault,
+      SupplyGapSlice,
+      SupplyGapSliceDefaultPrimaryYTicksItem,
+      SupplyGapSliceDefaultPrimaryXLabelsItem,
+      SupplyGapSliceDefaultPrimaryDemandItem,
+      SupplyGapSliceDefaultPrimarySupplyItem,
+      SupplyGapSliceDefaultPrimary,
+      SupplyGapSliceVariation,
+      SupplyGapSliceDefault,
       VideoScrollSlice,
       VideoScrollSliceOverlayPrimary,
       VideoScrollSliceVariation,

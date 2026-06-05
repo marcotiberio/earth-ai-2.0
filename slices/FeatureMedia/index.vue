@@ -10,12 +10,12 @@
   >
     <div class="w-full flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
       <h2
-        class="ea-display font-serif text-beige text-3xl md:text-6xl font-normal leading-[1.08] max-w-2xl"
+        class="ea-display font-serif text-beige text-h3 md:text-h2 font-normal leading-[1.08] max-w-2xl"
         v-html="slice.primary.heading"
       />
       <p
         v-if="slice.primary.body"
-        class="text-beige/80 text-base leading-relaxed max-w-md"
+        class="text-beige/80 text-body leading-relaxed max-w-md"
       >
         {{ slice.primary.body }}
       </p>

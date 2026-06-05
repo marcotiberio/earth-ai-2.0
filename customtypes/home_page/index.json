@@ -22,6 +22,12 @@
             },
             "race_bars": {
               "type": "SharedSlice"
+            },
+            "supply_gap": {
+              "type": "SharedSlice"
+            },
+            "map_targets": {
+              "type": "SharedSlice"
             }
           }
         }

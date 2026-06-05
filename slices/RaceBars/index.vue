@@ -14,28 +14,28 @@
   >
     <div
       class="w-full px-6 md:px-10"
-      :class="tall ? 'sticky top-0 flex h-screen flex-col justify-center overflow-hidden' : 'flex min-h-screen flex-col justify-center py-24'"
+      :class="tall ? 'sticky top-0 flex h-screen flex-col justify-between pt-md lg:pt-lg md:pb-sm overflow-hidden' : 'flex min-h-screen flex-col justify-between py-lg'"
     >
       <h2
-        class="ea-display font-serif text-beige text-4xl md:text-5xl xl:text-6xl font-normal leading-[1.05] tracking-tight max-w-2xl"
+        class="ea-display font-serif text-beige text-h3 md:text-h2 font-normal max-w-screen-lg"
         v-html="headingHtml"
       />
 
-      <div class="mt-16 flex flex-col gap-14 md:mt-20 md:gap-20">
+      <div class="mt-sm flex flex-col justify-end gap-sm">
         <div v-for="(group, gi) in groups" :key="gi">
           <!-- metric label + dotted rule -->
-          <div class="text-[11px] font-medium tracking-[0.25em] text-grey">{{ group.metric }}</div>
+          <div class="text-caption font-medium tracking-[0.25em] text-grey">{{ group.metric }}</div>
           <hr class="ea-rule mt-3" />
 
           <!-- bars -->
-          <div class="mt-8 flex flex-col gap-7 md:gap-9">
+          <div class="mt-sm flex flex-col gap-sm">
             <div
               v-for="(row, ri) in group.rows"
               :key="ri"
               class="grid grid-cols-[7rem_1fr] items-center gap-4 md:grid-cols-[12rem_1fr] md:gap-8"
             >
               <span
-                class="text-sm md:text-base"
+                class="text-label"
                 :class="row.highlight ? 'text-[#E66F3E]' : 'text-beige'"
               >
                 {{ row.label }}
@@ -44,7 +44,7 @@
               <div class="flex min-w-0 items-center">
                 <!-- the bar itself — width is the normalised target scaled by progress -->
                 <div
-                  class="h-14 shrink-0 rounded-[3px] md:h-20"
+                  class="h-sm shrink-0 rounded-[3px] md:h-md"
                   :style="[barStyle(row), { width: barWidth(group, row) }]"
                 />
 
@@ -53,12 +53,12 @@
                   class="ml-4 flex shrink-0 flex-col leading-none whitespace-nowrap md:ml-5"
                   :class="row.highlight ? 'text-[#E66F3E]' : 'text-beige'"
                 >
-                  <span class="font-serif text-4xl tabular-nums md:text-5xl xl:text-6xl">
+                  <span class="font-serif text-h3 tabular-nums md:text-h2">
                     {{ display(group, row.value) }}
                   </span>
                   <span
                     v-if="group.unit && group.unit !== '%'"
-                    class="mt-1 text-[11px] font-medium tracking-[0.2em]"
+                    class="mt-1 text-caption font-medium tracking-[0.2em]"
                   >
                     {{ group.unit }}
                   </span>

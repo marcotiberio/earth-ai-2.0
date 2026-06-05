@@ -75,8 +75,8 @@ let observer = null
 const alignClass = computed(() => ({
   top:    'items-start pt-[5vh]',
   center: 'items-center',
-  bottom: 'items-end pb-[5vh]',
-}[props.align] || 'items-end pb-[5vh]'))
+  bottom: 'items-end pb-md',
+}[props.align] || 'items-end pb-md'))
 
 // Horizontal resting position of the content along the main (row) axis.
 const alignXClass = computed(() => ({

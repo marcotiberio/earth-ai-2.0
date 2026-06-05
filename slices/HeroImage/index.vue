@@ -12,12 +12,12 @@
     <!-- Content that scrolls over the pinned hero video -->
     <div class="w-full flex flex-col gap-8 md:flex-row md:items-end md:justify-start">
       <h1
-        class="ea-display font-serif text-beige text-5xl md:text-8xl font-normal leading-[1.0] tracking-tight max-w-4xl"
+        class="ea-display font-serif text-beige text-h1 w-full md:w-1/2"
         v-html="titleHtml"
       />
       <p
         v-if="subtitleHtml"
-        class="text-beige/85 text-base md:text-lg max-w-sm md:mb-3"
+        class="text-beige/85 text-body max-w-sm md:mb-3 w-full md:w-1/2"
         v-html="subtitleHtml"
       />
     </div>

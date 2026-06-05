@@ -12,6 +12,15 @@
       "description": "Default",
       "imageUrl": "",
       "primary": {
+        "is_hidden": {
+          "type": "Boolean",
+          "config": {
+            "label": "Hide slice",
+            "placeholder_false": "Visible",
+            "placeholder_true": "Hidden",
+            "default_value": false
+          }
+        },
         "image": {
           "type": "Image",
           "config": {

@@ -12,6 +12,15 @@
       "description": "Pinned full-bleed background with an overlaid headline.",
       "imageUrl": "",
       "primary": {
+        "is_hidden": {
+          "type": "Boolean",
+          "config": {
+            "label": "Hide slice",
+            "placeholder_false": "Visible",
+            "placeholder_true": "Hidden",
+            "default_value": false
+          }
+        },
         "video_url": {
           "type": "Link",
           "config": {

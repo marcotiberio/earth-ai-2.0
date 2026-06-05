@@ -1,8 +1,8 @@
 {
-  "id": "drilled_stats",
+  "id": "map_targets",
   "type": "SharedSlice",
-  "name": "DrilledStats",
-  "description": "Pinned light scene: a WYSIWYG title with count-up metrics beside a drilling arrow that grows skyward on scroll. Add up to 4 stat rows.",
+  "name": "MapTargets",
+  "description": "Pinned dark scene: a WYSIWYG title with count-up metrics and a supporting paragraph beside a continental target map whose orange markers wipe in left→right on scroll. Add up to 4 stat rows.",
   "variations": [
     {
       "id": "default",
@@ -25,23 +25,16 @@
           "type": "StructuredText",
           "config": {
             "label": "Title",
-            "placeholder": "Headline (e.g. We drilled through the stratosphere.)",
+            "placeholder": "Headline (e.g. We operate like no other mineral exploration company.)",
             "allowTargetBlank": true,
             "single": "paragraph,strong,em"
           }
         },
-        "feet_value": {
+        "body": {
           "type": "Text",
           "config": {
-            "label": "Feet drilled — value",
-            "placeholder": "e.g. 96,000 (counts up on scroll)"
-          }
-        },
-        "feet_label": {
-          "type": "Text",
-          "config": {
-            "label": "Feet drilled — label",
-            "placeholder": "e.g. Feet Drilled"
+            "label": "Body",
+            "placeholder": "Supporting paragraph shown at the bottom-left"
           }
         },
         "stats": {
@@ -53,14 +46,14 @@
                 "type": "Text",
                 "config": {
                   "label": "Title",
-                  "placeholder": "e.g. Deposits"
+                  "placeholder": "e.g. New Targets"
                 }
               },
               "value": {
                 "type": "Text",
                 "config": {
                   "label": "Number",
-                  "placeholder": "e.g. 6 or 4.1 mil (counts up on scroll)"
+                  "placeholder": "e.g. 1,500 or 83% (counts up on scroll)"
                 }
               }
             }

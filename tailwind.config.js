@@ -14,11 +14,9 @@ export default {
         '3/4': '3 / 4',
       },
       fontFamily: {
-        // Body / UI grotesk
         sans:  ['"Beausite Classic"', 'system-ui', 'sans-serif'],
-        // Editorial display face used for all headlines (the italic "New Industrial Era").
         serif: ['"TWK Ghost"', 'Georgia', 'Times New Roman', 'serif'],
-        serifItalic: ['"TWK Ghost"', 'Georgia', 'Times New Roman', 'serif'],
+        serifItalic: ['"TWK Ghost Italic"', 'Georgia', 'Times New Roman', 'serif'],
       },
       borderRadius: {
         none: '0',
@@ -33,11 +31,23 @@ export default {
         'black': '#050F23',
         'white': '#FAF3E4',
       },
+      fontSize: {
+        // Semantic type scale. Each role: [size, { lineHeight, letterSpacing }].
+        // Display / headings use the editorial serif; tight leading + tracking.
+        'h1':       ['6.25rem',   { lineHeight: '1.15', letterSpacing: '-0.02em' }], // 100px
+        'h2':       ['3.75rem',      { lineHeight: '1.1', letterSpacing: '-0.015em' }], // 60px
+        'h3':       ['1.875rem',   { lineHeight: '1.1',  letterSpacing: '0' }], // 30px
+        // Body / UI grotesk; comfortable leading.
+        'body':     ['1.375rem',      { lineHeight: '1.1' }],  // 22px
+        // Small print / captions.
+        'label':    ['1rem', { lineHeight: '1',  letterSpacing: '0.01em' }], // 16px
+        'caption':  ['1rem', { lineHeight: '1',  letterSpacing: '0.04em' }], // 16px
+      },
       spacing: {
         // Spacing values using CSS variables from spacings.php
         xs: '0.5rem', // 8px, for tight UI elements
-        sm: '2rem', // 32px, for moderate gaps
-        md: '5rem', // 80px, for generous spacing
+        sm: '3rem', // 32px, for moderate gaps
+        md: '6rem', // 80px, for generous spacing
         lg: '8rem', // 128px, for large gaps
         xl: '12rem', // 192px, for extra large gaps
       } 

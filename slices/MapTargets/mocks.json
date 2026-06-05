@@ -1,0 +1,78 @@
+[
+	{
+		"__TYPE__": "SharedSliceContent",
+		"variation": "default",
+		"primary": {
+			"title": {
+				"__TYPE__": "StructuredTextContent",
+				"value": [
+					{
+						"type": "paragraph",
+						"content": {
+							"text": "We operate like no other mineral exploration company.",
+							"spans": [
+								{ "type": "em", "start": 11, "end": 24 }
+							]
+						},
+						"direction": "ltr"
+					}
+				]
+			},
+			"body": {
+				"__TYPE__": "FieldContent",
+				"type": "Text",
+				"value": "Mineral Targeting Platform (MTP) is our proprietary geology deep learning system for hydrothermal mineralization discovery. Unlike conventional localized exploration, MTP provides continental-scale predictive capability that discovered 1,500 new targets at 83% precision."
+			},
+			"stats": {
+				"__TYPE__": "GroupContentType",
+				"value": [
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"label",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "New Targets"
+								}
+							],
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "1,500"
+								}
+							]
+						],
+						"key": "b1a2c3d4-0001-4a00-8a00-000000000001"
+					},
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"label",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "Precision"
+								}
+							],
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "83%"
+								}
+							]
+						],
+						"key": "b1a2c3d4-0002-4a00-8a00-000000000002"
+					}
+				]
+			}
+		},
+		"items": []
+	}
+]

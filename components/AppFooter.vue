@@ -2,18 +2,18 @@
   <footer class="text-darkblue px-6 py-20 md:px-10">
     <!-- Press quotes -->
     <div class="flex items-center justify-between mb-10">
-      <span class="text-sm text-beige">Follow our journey.</span>
-      <a href="#contact" class="text-sm text-beige hover:text-grey transition-colors">
+      <span class="text-label text-beige">Follow our journey.</span>
+      <a href="#contact" class="text-label text-beige hover:text-grey transition-colors">
         Contact us
       </a>
     </div>
 
     <div class="grid gap-8 border-t border-beige pt-10 md:grid-cols-3">
-      <SliceZone :slices="press" :components="components" />
+      <SliceZone :slices="visibleSlices(press)" :components="components" />
     </div>
 
     <!-- Bottom bar -->
-    <div class="mt-16 flex flex-col gap-4 border-t border-beige pt-8 text-sm text-beige md:flex-row md:items-center md:justify-between">
+    <div class="mt-16 flex flex-col gap-4 border-t border-beige pt-8 text-label text-beige md:flex-row md:items-center md:justify-between">
       <span>© EARTH AI – {{ new Date().getFullYear() }}</span>
       <nav class="flex gap-8">
         <a v-for="link in legal" :key="link.label" :href="link.href" class="hover:text-grey transition-colors">
