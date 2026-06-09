@@ -62,6 +62,15 @@
                   "label": "Number",
                   "placeholder": "e.g. 1,500 or 83% (counts up on scroll)"
                 }
+              },
+              "orange": {
+                "type": "Boolean",
+                "config": {
+                  "label": "Orange",
+                  "placeholder_false": "Beige",
+                  "placeholder_true": "Orange",
+                  "default_value": false
+                }
               }
             }
           }

@@ -27,9 +27,14 @@
 
           <div class="flex flex-col justify-start md:justify-between gap-sm md:gap-md h-full md:h-1/2">
             <ul class="mt-xs md:mt-sm grid max-w-[550px] grid-cols-2 gap-x-10 gap-y-12 lg:mt-20 xl:gap-x-20">
-              <li v-for="(stat, i) in stats" :key="i" class="relative flex flex-col">
+              <li
+                v-for="(stat, i) in stats"
+                :key="i"
+                class="relative flex flex-col"
+                :class="stat.orange ? 'text-orange' : 'text-beige'"
+              >
                 <svg class="w-full" width="238" height="2" viewBox="0 0 238 2" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 1H237" stroke="#FAF3E4" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15"/>
+                  <path d="M1 1H237" :stroke="stat.orange ? ORANGE : '#FAF3E4'" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15"/>
                 </svg>
                 <h2 class="mt-5 mb-2 font-serif font-h2 tabular-nums">
                   {{ counter(stat.value) }}
@@ -100,6 +105,8 @@ const toHtml = (field) => {
     ? field
     : asHTML(field, { serializer: inlineSerializer }) || ''
 }
+
+const ORANGE = '#E97B39'
 
 const titleHtml = computed(() => toHtml(props.slice.primary.title))
 const body      = computed(() => props.slice.primary.body || '')

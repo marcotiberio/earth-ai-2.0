@@ -52,21 +52,21 @@
           <!-- gridlines + y labels -->
           <g>
             <g v-for="g in gridLines" :key="g.label">
-              <text :x="mapX(0)" :y="mapY(g.y) - 8" fill="#8A93A6" font-size="12" opacity="0.85">{{ g.label }}</text>
-              <line :x1="mapX(0)" :y1="mapY(g.y)" :x2="mapX(1000)" :y2="mapY(g.y)" stroke="#8A93A6" stroke-width="1.5" stroke-dasharray="2 6" opacity="0.3" />
+              <text :x="mapX(0)" :y="mapY(g.y) - 8" fill="#FAF3E4" font-size="12" opacity="1">{{ g.label }}</text>
+              <line :x1="mapX(0)" :y1="mapY(g.y)" :x2="mapX(1000)" :y2="mapY(g.y)" stroke="#FAF3E4" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15" />
             </g>
           </g>
 
           <!-- x axis + labels -->
-          <line :x1="mapX(0)" :y1="mapY(400)" :x2="mapX(1000)" :y2="mapY(400)" stroke="#8A93A6" stroke-width="1" opacity="0.35" />
+          <line :x1="mapX(0)" :y1="mapY(400)" :x2="mapX(1000)" :y2="mapY(400)" stroke="#FAF3E4" stroke-width="1" opacity="0.35" />
           <text
             v-for="(x, i) in xLabels"
             :key="`x-${i}`"
             :x="mapX((i / Math.max(xLabels.length - 1, 1)) * 1000)"
             :y="mapY(400) + 26"
-            fill="#8A93A6"
+            fill="#FAF3E4"
             font-size="13"
-            opacity="0.85"
+            opacity="1"
             :text-anchor="i === 0 ? 'start' : i === xLabels.length - 1 ? 'end' : 'middle'"
           >{{ x }}</text>
 
@@ -88,17 +88,17 @@
         <!-- endpoint figures (HTML overlay, counting up) -->
         <div
           class="absolute flex flex-col items-end text-right leading-none"
-          :style="{ top: `${mapY(8) - 32}px`, right: `${rightOffset}px`, opacity: fadeDemand, color: BEIGE }"
+          :style="{ top: `${mapY(8) - 50}px`, right: `${rightOffset}px`, opacity: fadeDemand, color: BEIGE }"
         >
           <div class="font-serif font-h3 tabular-nums tracking-tight md:font-h2">{{ demandTotal }}</div>
-          <div class="mt-2 font-caption font-semibold uppercase tracking-[0.18em] text-grey">{{ demand.label }}</div>
+          <div class="mt-1 font-body uppercase text-beige">{{ demand.label }}</div>
         </div>
         <div
           class="absolute flex max-w-[60%] flex-col items-end text-right leading-none"
-          :style="{ top: `${mapY(252) - 44}px`, right: `${rightOffset}px`, opacity: fadeSupply, color: ORANGE }"
+          :style="{ top: `${mapY(252) - 60}px`, right: `${rightOffset}px`, opacity: fadeSupply, color: ORANGE }"
         >
           <div class="font-serif font-h3 tabular-nums tracking-tight md:font-h2">{{ supplyTotal }}</div>
-          <div class="mt-2 font-caption font-semibold uppercase tracking-[0.18em]">{{ supply.label }}</div>
+          <div class="mt-1 font-body uppercase">{{ supply.label }}</div>
         </div>
       </div>
     </div>

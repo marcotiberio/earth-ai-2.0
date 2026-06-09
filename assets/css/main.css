@@ -64,11 +64,6 @@ html.lenis body {
     @apply pt-md lg:pt-lg md:pb-md px-xs md:px-sm;
   }
 
-  /* Dotted baseline grid used across every section in the Figma comp. */
-  .ea-rule {
-    @apply border-0 border-t border-dashed border-beige/15;
-  }
-
   /* Typography */
   .font-h1 {
     font-size: 2.5rem;

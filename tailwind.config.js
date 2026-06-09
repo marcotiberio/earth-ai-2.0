@@ -37,6 +37,7 @@ export default {
         'darkblue':  '#0D111B', // page background
         'beige': '#FAF3E4',
         'grey':  '#8A93A6', // muted captions on navy
+        'orange':  '#E97B39', // orange for supply bars and highlights
         // Back-compat aliases (older slices referenced these).
         'black': '#050F23',
         'white': '#FAF3E4',

@@ -24,11 +24,13 @@
       <div class="mt-sm flex flex-col justify-end gap-sm">
         <div v-for="(group, gi) in groups" :key="gi">
           <!-- metric label + dotted rule -->
-          <div class="font-caption font-medium tracking-[0.25em] text-grey">{{ group.metric }}</div>
-          <hr class="ea-rule mt-3" />
+          <div class="font-caption text-beige uppercase">{{ group.metric }}</div>
+          <svg class="hidden md:block w-full mt-3" width="1640" height="2" viewBox="0 0 1640 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 1H1639" stroke="#FAF3E4" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15"/>
+          </svg>
 
           <!-- bars -->
-          <div class="mt-sm flex flex-col gap-xs md:gap-sm">
+          <div class="mt-sm flex flex-col gap-xs md:gap-xs">
             <div
               v-for="(row, ri) in group.rows"
               :key="ri"
@@ -51,14 +53,14 @@
                 <!-- count-up number, sitting just past the bar's tip -->
                 <div
                   class="ml-4 flex shrink-0 flex-col leading-none whitespace-nowrap md:ml-5"
-                  :class="row.highlight ? 'text-[#E66F3E]' : 'text-beige'"
+                  :class="row.highlight ? 'text-orange' : 'text-beige'"
                 >
                   <span class="font-serif font-h3 tabular-nums md:font-h2">
                     {{ display(group, row.value) }}
                   </span>
                   <span
                     v-if="group.unit && group.unit !== '%'"
-                    class="mt-1 font-caption font-medium tracking-[0.2em]"
+                    class="mt-1 font-caption"
                   >
                     {{ group.unit }}
                   </span>
