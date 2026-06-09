@@ -3,12 +3,12 @@
     <!-- Heading + intro -->
     <div class="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
       <h2
-        class="ea-display font-serif text-beige text-h3 md:text-h2 font-normal leading-[1.1] max-w-xl"
+        class="ea-display font-serif text-beige font-h2 font-normal leading-[1.1] max-w-xl"
         v-html="slice.primary.heading"
       />
       <p
         v-if="slice.primary.body"
-        class="text-grey text-body leading-relaxed max-w-md"
+        class="text-grey font-body leading-relaxed max-w-md"
       >
         {{ slice.primary.body }}
       </p>
@@ -17,7 +17,7 @@
     <!-- Chart -->
     <div class="mt-16 flex gap-4 md:gap-8">
       <!-- Y axis ticks -->
-      <div class="flex flex-col-reverse justify-between text-caption text-grey py-1">
+      <div class="flex flex-col-reverse justify-between font-caption text-grey py-1">
         <span v-for="t in slice.primary.y_ticks" :key="t">{{ t }}</span>
       </div>
 
@@ -46,7 +46,7 @@
         </svg>
 
         <!-- X axis labels -->
-        <div class="mt-4 flex justify-between text-caption text-grey">
+        <div class="mt-4 flex justify-between font-caption text-grey">
           <span v-for="x in slice.primary.x_labels" :key="x">{{ x }}</span>
         </div>
       </div>
@@ -54,12 +54,12 @@
       <!-- Endpoint annotations -->
       <div class="flex flex-col justify-between w-28 md:w-44 py-1">
         <div>
-          <div class="font-serif text-beige text-h3 md:text-h2 leading-none">{{ demand.value }}</div>
-          <div class="mt-2 text-caption tracking-widest text-grey">{{ demand.label }}</div>
+          <div class="font-serif text-beige font-h2 leading-none">{{ demand.value }}</div>
+          <div class="mt-2 font-caption tracking-widest text-grey">{{ demand.label }}</div>
         </div>
         <div>
-          <div class="font-serif text-beige text-h3 md:text-h2 leading-none">{{ supply.value }}</div>
-          <div class="mt-2 text-caption tracking-widest text-grey">{{ supply.label }}</div>
+          <div class="font-serif text-beige font-h2 leading-none">{{ supply.value }}</div>
+          <div class="mt-2 font-caption tracking-widest text-grey">{{ supply.label }}</div>
         </div>
       </div>
     </div>

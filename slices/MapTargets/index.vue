@@ -13,34 +13,34 @@
     :class="tall ? 'h-[270vh]' : ''"
   >
     <div
-      class="w-full overflow-hidden px-6 md:px-10"
+      class="w-full overflow-hidden boxed"
       :class="tall ? 'sticky top-0 flex h-screen items-center' : 'flex min-h-screen items-center py-lg'"
     >
       <div class="flex h-full w-full flex-col gap-sm lg:flex-row lg:items-stretch lg:gap-0">
         <!-- Text column -->
-        <div class="flex h-full w-full flex-col justify-between gap-lg lg:w-6/12 pt-md lg:pt-lg md:pb-sm">
+        <div class="flex h-full w-full flex-col justify-start md:justify-between gap-xs md:gap-lg lg:w-6/12">
           
             <h2
-              class="ea-display font-serif text-h3 md:text-h2 font-normal leading-[1.05] tracking-tight"
+              class="ea-display font-serif font-h2"
               v-html="titleHtml"
             />
 
-          <div class="flex flex-col justify-between gap-md h-1/2">
-            <ul class="mt-14 grid max-w-[550px] grid-cols-2 gap-x-10 gap-y-12 lg:mt-20 xl:gap-x-20">
+          <div class="flex flex-col justify-start md:justify-between gap-sm md:gap-md h-full md:h-1/2">
+            <ul class="mt-xs md:mt-sm grid max-w-[550px] grid-cols-2 gap-x-10 gap-y-12 lg:mt-20 xl:gap-x-20">
               <li v-for="(stat, i) in stats" :key="i" class="relative flex flex-col">
-                <svg width="238" height="2" viewBox="0 0 238 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="w-full" width="238" height="2" viewBox="0 0 238 2" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M1 1H237" stroke="#FAF3E4" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15"/>
                 </svg>
-                <h2 class="mt-5 mb-2 font-serif text-h3 md:text-h2 font-normal leading-[1.05] tracking-tight tabular-nums">
+                <h2 class="mt-5 mb-2 font-serif font-h2 tabular-nums">
                   {{ counter(stat.value) }}
                 </h2>
-                <span class="text-caption">{{ stat.label }}</span>
+                <span class="font-caption">{{ stat.label }}</span>
               </li>
             </ul>
             <!-- Supporting paragraph, anchored bottom-left -->
             <p
               v-if="body"
-              class="mt-12 max-w-md text-body text-beige lg:mt-0"
+              class="mt-0 md:mt-sm max-w-md font-body text-beige lg:mt-0"
             >
               {{ body }}
             </p>

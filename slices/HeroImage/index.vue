@@ -12,7 +12,7 @@
     <template #pinned>
       <div
         ref="bandRef"
-        class="pointer-events-none absolute inset-x-6 md:inset-x-10 top-[22%] bottom-[14%] flex flex-col justify-between"
+        class="pointer-events-none absolute inset-x-xs md:inset-x-sm top-[22%] bottom-[14%] flex flex-col justify-between"
       >
         <!-- Each dashed guide line carries a strip of telemetry-style random
              numbers that streams left→right in sync with the hero scrub. -->
@@ -49,12 +49,12 @@
     <!-- Content that scrolls over the pinned hero video -->
     <div class="w-full flex flex-col gap-8 md:flex-row md:items-end md:justify-start">
       <h1
-        class="ea-display font-serif text-beige text-h2 md:text-h1 w-full md:w-1/2"
+        class="ea-display font-serif text-beige font-h1 w-full md:w-1/2"
         v-html="titleHtml"
       />
       <p
         v-if="subtitleHtml"
-        class="text-beige/85 text-body max-w-sm md:mb-3 w-full md:w-1/2"
+        class="text-beige font-body max-w-sm md:mb-3 w-full md:w-1/2"
         v-html="subtitleHtml"
       />
     </div>

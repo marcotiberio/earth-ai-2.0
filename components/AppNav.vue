@@ -1,12 +1,15 @@
 <template>
-  <header class="fixed top-0 left-0 w-full z-50 px-6 md:px-10">
+  <header class="fixed top-0 left-0 w-full z-50 px-xs md:px-sm">
     <!-- Thin rule under the bar, as in the NAV-STICK frame -->
     <div class="flex flex-col items-start justify-start mt-6 gap-6 lg:mt-8 lg:gap-8">
-      <svg class="w-full" width="1640" height="2" viewBox="0 0 1640 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg class="block md:hidden w-full" width="355" height="2" viewBox="0 0 355 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 1H354" stroke="#FAF3E4" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15"/>
+      </svg>
+      <svg class="hidden md:block w-full" width="1640" height="2" viewBox="0 0 1640 2" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M1 1H1639" stroke="#FAF3E4" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15"/>
       </svg>
       <!-- Logo -->
-      <NuxtLink to="/" aria-label="Earth AI home" class="text-beige">
+      <NuxtLink to="/" aria-label="Earth AI home" class="text-beige lg:pt-8rem">
         <svg class="h-7 w-auto" width="152" height="26" viewBox="0 0 152 26" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M76.5492 25.9803L72.9058 25.9783C72.7132 25.9783 72.5705 25.8179 72.5507 25.6343L72.0642 21.1771C72.0461 21.01 72.1753 20.8573 72.3451 20.8573H77.1488C77.3129 20.8577 77.4505 21.015 77.4327 21.1774L76.9471 25.6327C76.923 25.8538 76.7663 25.98 76.5495 25.98L76.5492 25.9803Z" fill="#FAF3E4"/>
           <path d="M106.466 25.9783L101.734 25.9793C101.531 25.9793 101.383 25.8145 101.383 25.6105V15.8122C101.383 15.6545 101.277 15.5105 101.113 15.5105H93.8244C93.6771 15.5109 93.5842 15.6662 93.5842 15.8025V25.6058C93.5842 25.8189 93.4345 25.9474 93.2453 25.98L88.4948 25.9783C88.2945 25.9783 88.1445 25.8182 88.1445 25.6042V0.609039C88.1442 0.254018 88.3684 0.000671069 88.7214 0.000671069L93.0154 0.00167783C93.3577 0.00167783 93.5842 0.266434 93.5842 0.604006V10.5033C93.5838 10.6708 93.7043 10.7919 93.8727 10.7919L101.067 10.7926C101.242 10.7926 101.344 10.6953 101.382 10.5248L101.382 0.604006C101.382 0.285896 101.588 0.00302016 101.921 0.0026846L106.301 0C106.595 0.042616 106.817 0.245629 106.817 0.565752V25.5572C106.817 25.7692 106.717 25.978 106.466 25.978L106.466 25.9783Z" fill="#FAF3E4"/>
@@ -27,7 +30,7 @@
           <li v-for="item in navItems" :key="item.label">
             <NuxtLink
               :to="item.href"
-              class="text-label text-beige/70 hover:text-beige transition-colors"
+              class="font-label text-beige/70 hover:text-beige transition-colors"
             >
               {{ item.label }}
             </NuxtLink>

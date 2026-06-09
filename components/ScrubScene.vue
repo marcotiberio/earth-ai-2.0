@@ -35,7 +35,7 @@
 
       <!-- Content: scrolls in with the section, then holds at bottom 5% (or the
            chosen alignment) while the video scrubs, then wipes away with it. -->
-      <div class="absolute inset-0 z-10 flex px-6 md:px-10" :class="[alignClass, alignXClass]">
+      <div class="absolute inset-0 z-10 flex px-xs md:px-sm" :class="[alignClass, alignXClass]">
         <slot />
       </div>
     </div>

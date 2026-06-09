@@ -10,13 +10,13 @@
   >
     <div class="w-full">
       <h2
-        class="ea-display font-serif text-beige text-h2 md:text-h1 font-normal leading-[1.0] tracking-tight max-w-4xl"
+        class="ea-display font-serif text-beige font-h1 font-normal leading-[1.0] tracking-tight max-w-4xl"
         v-html="slice.primary.title"
       />
       <a
         v-if="slice.primary.button_link?.url"
         :href="slice.primary.button_link.url"
-        class="mt-10 inline-block text-label tracking-wide text-beige border border-beige/40 px-8 py-4 hover:bg-beige hover:text-darkblue transition-colors"
+        class="mt-10 inline-block font-label tracking-wide text-beige border border-beige/40 px-8 py-4 hover:bg-beige hover:text-darkblue transition-colors"
       >
         {{ slice.primary.button_link.text }}
       </a>

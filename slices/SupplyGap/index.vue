@@ -14,18 +14,18 @@
     :class="tall ? 'h-[220vh]' : ''"
   >
     <div
-      class="w-full px-6 md:px-10"
-      :class="tall ? 'sticky top-0 flex h-screen flex-col justify-center overflow-hidden' : 'flex min-h-screen flex-col justify-center py-24'"
+      class="w-full boxed"
+      :class="tall ? 'sticky top-0 flex h-screen flex-col justify-between md:justify-center overflow-hidden' : 'flex min-h-screen flex-col justify-between md:justify-center py-24'"
     >
       <!-- Heading + intro -->
       <div class="flex shrink-0 flex-col gap-6 md:flex-row md:items-start md:justify-start md:gap-sm">
         <h2
-          class="ea-display font-serif text-beige text-h3 md:text-h2 w-full md:w-1/2"
+          class="ea-display font-serif text-beige font-h2 w-full md:w-1/2"
           v-html="headingHtml"
         />
         <p
           v-if="body"
-          class="text-beige text-body md:pt-2 w-full md:w-1/4"
+          class="text-beige font-body md:pt-2 w-full md:w-1/4"
         >
           {{ body }}
         </p>
@@ -90,15 +90,15 @@
           class="absolute flex flex-col items-end text-right leading-none"
           :style="{ top: `${mapY(8) - 32}px`, right: `${rightOffset}px`, opacity: fadeDemand, color: BEIGE }"
         >
-          <div class="font-serif text-h3 tabular-nums tracking-tight md:text-h2">{{ demandTotal }}</div>
-          <div class="mt-2 text-caption font-semibold uppercase tracking-[0.18em] text-grey">{{ demand.label }}</div>
+          <div class="font-serif font-h3 tabular-nums tracking-tight md:font-h2">{{ demandTotal }}</div>
+          <div class="mt-2 font-caption font-semibold uppercase tracking-[0.18em] text-grey">{{ demand.label }}</div>
         </div>
         <div
           class="absolute flex max-w-[60%] flex-col items-end text-right leading-none"
           :style="{ top: `${mapY(252) - 44}px`, right: `${rightOffset}px`, opacity: fadeSupply, color: ORANGE }"
         >
-          <div class="font-serif text-h3 tabular-nums tracking-tight md:text-h2">{{ supplyTotal }}</div>
-          <div class="mt-2 text-caption font-semibold uppercase tracking-[0.18em]">{{ supply.label }}</div>
+          <div class="font-serif font-h3 tabular-nums tracking-tight md:font-h2">{{ supplyTotal }}</div>
+          <div class="mt-2 font-caption font-semibold uppercase tracking-[0.18em]">{{ supply.label }}</div>
         </div>
       </div>
     </div>

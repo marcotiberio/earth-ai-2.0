@@ -15,10 +15,10 @@
       class="flex flex-1 flex-col gap-4"
       :class="linkHref ? 'group' : ''"
     >
-      <div class="mt-auto flex flex-col items-start justify-start text-caption text-beige">
+      <div class="mt-auto flex flex-col gap-xs items-start justify-start font-caption text-beige">
         <time v-if="dateValue" :datetime="dateValue">{{ dateValue }}</time>
         <p
-          class="font-serif text-beige text-body leading-snug"
+          class="text-beige font-h3"
           :class="linkHref ? 'transition-colors group-hover:text-grey' : ''"
         >
           &ldquo;<span v-html="titleHtml" />&rdquo;
@@ -29,7 +29,7 @@
         :href="linkHref"
         :target="linkTarget || undefined"
         :rel="linkTarget === '_blank' ? 'noopener noreferrer' : undefined"
-        class="btn btn-primary mt-auto text-label text-darkblue hover:underline"
+        class="btn btn-primary mt-auto font-label text-darkblue hover:underline"
       >Read more</a>
     </component>
   </article>

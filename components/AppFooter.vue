@@ -1,14 +1,14 @@
 <template>
-  <footer class="text-darkblue px-6 py-20 md:px-10">
+  <footer class="text-darkblue boxed">
     <!-- Top Bar -->
     <div class="flex flex-col items-start justify-between gap-sm mb-md w-full">
       <div class="flex flex-row items-start justify-between gap-sm w-full">
         <div class="flex flex-col items-start justify-between gap-sm w-full md:w-1/2">
-          <span class="text-h2 font-serif text-beige">{{ mainTitle }}</span>
+          <span class="font-h2 font-serif text-beige">{{ mainTitle }}</span>
           <!-- ToDo: Add contact link -->
           <a
             href="mailto:info@earthai.com"
-            class="btn btn-primary mt-auto text-label text-darkblue hover:underline"
+            class="btn btn-primary mt-auto font-label text-darkblue hover:underline"
           >Contact us</a>
         </div>
         <PrismicImage
@@ -17,7 +17,7 @@
           class="h-md w-auto"
         />
       </div>
-      <ul v-if="footer?.data?.social_media_links?.length" class="flex gap-sm">
+      <ul v-if="footer?.data?.social_media_links?.length" class="flex gap-xs">
         <li v-for="(item, i) in footer.data.social_media_links" :key="i">
           <PrismicLink :field="item.link" class="block text-beige hover:text-grey transition-colors">
             <img
@@ -36,7 +36,7 @@
     </div>
 
     <!-- Bottom bar -->
-    <div class="mt-sm flex flex-col justify-start md:flex-row md:items-center md:justify-end gap-sm border-t border-beige pt-sm text-label text-beige">
+    <div class="mt-sm flex flex-col justify-start md:flex-row md:items-center md:justify-end gap-sm border-t border-beige pt-sm font-label text-beige">
       <nav v-if="footer?.data?.legal_links?.length" class="w-full flex justify-center md:justify-end gap-sm">
         <PrismicLink
           v-for="(item, i) in footer.data.legal_links"

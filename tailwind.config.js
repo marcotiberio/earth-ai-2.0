@@ -8,6 +8,16 @@ export default {
     './app.vue',
   ],
   theme: {
+    screens: {
+      // Breakpoints from _variables.scss
+      mobile: '640px',   // $breakpoint-mobile
+      tablet: '780px',   // $breakpoint-tablet
+      desktop: '1180px', // $breakpoint-desktop
+      // Additional breakpoints
+      sm: '640px',
+      md: '780px',
+      lg: '1180px',
+    },
     extend: {
       aspectRatio: {
         '4/3': '4 / 3',
@@ -31,22 +41,10 @@ export default {
         'black': '#050F23',
         'white': '#FAF3E4',
       },
-      fontSize: {
-        // Semantic type scale. Each role: [size, { lineHeight, letterSpacing }].
-        // Display / headings use the editorial serif; tight leading + tracking.
-        'h1':       ['6.25rem',   { lineHeight: '1.15', letterSpacing: '-0.02em' }], // 100px
-        'h2':       ['3.75rem',      { lineHeight: '1.1', letterSpacing: '-0.015em' }], // 60px
-        'h3':       ['1.875rem',   { lineHeight: '1.1',  letterSpacing: '0' }], // 30px
-        // Body / UI grotesk; comfortable leading.
-        'body':     ['1.375rem',      { lineHeight: '1.1' }],  // 22px
-        // Small print / captions.
-        'label':    ['1rem', { lineHeight: '1',  letterSpacing: '0.01em' }], // 16px
-        'caption':  ['1rem', { lineHeight: '1',  letterSpacing: '0.04em' }], // 16px
-      },
       spacing: {
         // Spacing values using CSS variables from spacings.php
-        xs: '0.5rem', // 8px, for tight UI elements
-        sm: '3rem', // 32px, for moderate gaps
+        xs: '1rem', // 8px, for tight UI elements
+        sm: '2.5rem', // 32px, for moderate gaps
         md: '6rem', // 80px, for generous spacing
         lg: '8rem', // 128px, for large gaps
         xl: '12rem', // 192px, for extra large gaps

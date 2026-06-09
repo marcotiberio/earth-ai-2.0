@@ -59,6 +59,11 @@ html.lenis body {
 }
 
 @layer components {
+  /* Shared slice padding: vertical rhythm + responsive gutters. */
+  .boxed {
+    @apply pt-md lg:pt-lg md:pb-md px-xs md:px-sm;
+  }
+
   /* Dotted baseline grid used across every section in the Figma comp. */
   .ea-rule {
     @apply border-0 border-t border-dashed border-beige/15;
@@ -93,5 +98,56 @@ html.lenis body {
   }
   .btn-outline {
     @apply border border-beige/40 text-beige hover:bg-beige/10;
+  }
+
+  .font-h1 {
+    font-size: 2.5rem;
+
+    @screen md {
+      font-size: 6.25rem;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+  }
+
+  .font-h2 {
+    font-size: 2rem;
+
+    @screen md {
+      font-size: 3.75rem;
+      line-height: 1.1;
+      letter-spacing: -0.015em;
+    }
+  }
+  
+  .font-h3 {
+    font-size: 1.375rem;
+
+    @screen md {
+      font-size: 1.875rem;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+  }
+
+  .font-body {
+    font-size: 1rem;
+
+    @screen md {
+      font-size: 1.375rem;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+  }
+
+  .font-label,
+  .font-caption {
+    font-size: 1rem;
+
+    @screen md {
+      font-size: 1rem;
+      line-height: 1;
+      letter-spacing: 0;
+    }
   }
 }

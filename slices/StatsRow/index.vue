@@ -10,7 +10,7 @@
       <div class="flex-1">
         <h2
           v-if="slice.primary.heading"
-          class="ea-display font-serif text-beige text-h3 md:text-h2 font-normal leading-[1.1] mb-16 max-w-xl"
+          class="ea-display font-serif text-beige font-h2 font-normal leading-[1.1] mb-16 max-w-xl"
           v-html="slice.primary.heading"
         />
 
@@ -24,12 +24,12 @@
             <span
               :class="[
                 'font-serif text-beige leading-none',
-                slice.variation === 'large' ? 'text-h2 md:text-h1' : 'text-h3 md:text-h2',
+                slice.variation === 'large' ? 'font-h1' : 'font-h2',
               ]"
             >
               {{ item.value }}
             </span>
-            <span class="text-caption text-grey">{{ item.label }}</span>
+            <span class="font-caption text-grey">{{ item.label }}</span>
           </li>
         </ul>
       </div>
