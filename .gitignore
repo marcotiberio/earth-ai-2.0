@@ -15,3 +15,6 @@ node_modules
 
 # Logs
 *.log
+
+# Source video files (uploaded to Prismic; not served from the site)
+media-src/
