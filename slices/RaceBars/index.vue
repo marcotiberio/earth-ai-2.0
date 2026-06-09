@@ -149,8 +149,8 @@ function barStyle(row) {
 // --- Scroll-driven progress (pinned scrub) -----------------------------------
 // The section is tall so its inner panel can stick and scrub progress 0→1 as you
 // scroll past, growing every bar's width and counting its number up together.
-// `tall` is always on so the scrub runs for everyone (mirroring the video scenes);
-// kept as a ref so the template's tall-vs-static branch stays intact.
+// `tall` starts true so SSR and client render identically; reduced-motion
+// clients drop it to a normal-height section and show the finished state.
 const rootRef  = ref(null)
 const progress = ref(0)
 const tall     = ref(true)
@@ -158,6 +158,12 @@ const tall     = ref(true)
 let ctx = null
 
 onMounted(async () => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    tall.value = false
+    progress.value = 1
+    return
+  }
+
   const trigger = rootRef.value
   if (!trigger) return
 

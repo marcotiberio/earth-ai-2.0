@@ -61,6 +61,17 @@
             "label": "Scroll length (vh)",
             "placeholder": "Pinned scroll distance in vh (default: 200)"
           }
+        },
+        "scrub_start": {
+          "type": "Select",
+          "config": {
+            "label": "Scrub start",
+            "placeholder": "When the scroll-scrub begins (default: full travel)",
+            "options": [
+              "top",
+              "middle"
+            ]
+          }
         }
       },
       "items": {}

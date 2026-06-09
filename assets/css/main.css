@@ -61,7 +61,7 @@ html.lenis body {
 @layer components {
   /* Shared slice padding: vertical rhythm + responsive gutters. */
   .boxed {
-    @apply pt-md lg:pt-lg md:pb-md px-xs md:px-sm;
+    @apply pt-md lg:pt-lg md:pb-[4rem] px-xs md:px-sm;
   }
 
   /* Typography */
@@ -152,8 +152,9 @@ html.lenis body {
            no-underline hover:no-underline !important;
   }
   .btn-primary {
-    @apply text-beige hover:no-underline !important;
-    background: linear-gradient(178deg, rgba(233, 123, 57, 0.15) 27.16%, rgba(10, 8, 8, 0.15) 98.51%);
+    @apply text-darkblue hover:text-darkblue group-hover:text-darkblue
+           bg-beige hover:bg-orange group-hover:bg-orange
+           border-beige hover:no-underline !important;
   }
   .btn-outline {
     @apply border border-beige/40 text-beige hover:bg-beige/10;

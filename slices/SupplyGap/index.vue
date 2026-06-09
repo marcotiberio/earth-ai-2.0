@@ -202,9 +202,8 @@ const fadeDemand = computed(() => lerp(0, 1, (progress.value - 0.40) / 0.06))
 const fadeSupply = computed(() => lerp(0, 1, (progress.value - 0.85) / 0.05))
 
 // --- Scroll-driven progress (pinned scrub) -----------------------------------
-// `tall` is always on so the panel has scroll distance to scrub against (the
-// scrub runs for everyone, mirroring the video scenes); kept as a ref so the
-// template's tall-vs-static branch stays intact.
+// `tall` starts true so SSR and client render identically; reduced-motion
+// clients drop to a normal-height section and show the finished chart.
 const rootRef  = ref(null)
 const chartRef = ref(null)
 const progress = ref(0)
@@ -222,6 +221,13 @@ onMounted(async () => {
   measure()
   ro = new ResizeObserver(measure)
   if (chartRef.value) ro.observe(chartRef.value)
+
+  // Reduced motion: collapse the scroll distance and show the finished chart.
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    tall.value = false
+    progress.value = 1
+    return
+  }
 
   const trigger = rootRef.value
   if (!trigger) return
