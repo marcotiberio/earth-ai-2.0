@@ -79,8 +79,8 @@ const inlineSerializer = {
   paragraph: ({ children }) => children,
 }
 
-// Tolerate both the static string shape (content/home.js) and real Prismic
-// rich text (the simulator and the live API).
+// Tolerate both a plain static string shape and real Prismic rich text
+// (the simulator and the live API).
 const toHtml = (field) => {
   if (!field) return ''
   return typeof field === 'string'

@@ -83,8 +83,8 @@ const inlineSerializer = {
   paragraph: ({ children }) => children,
 }
 
-// Tolerate both the static string shape (content/home.js) and real Prismic
-// rich text (the live API).
+// Tolerate both a plain static string shape and real Prismic rich text
+// (the live API).
 const toHtml = (field) => {
   if (!field) return ''
   return typeof field === 'string'
@@ -105,7 +105,7 @@ const rootRef  = ref(null)
 const videoRef = ref(null)
 
 if (props.slice.variation !== 'overlay' && props.slice.primary.video_url) {
-  // `scrub_start` ('top' | 'middle') is set per section in content/home.js.
+  // `scrub_start` ('top' | 'middle') is set per section in the Prismic field.
   useScrubVideo(videoRef, rootRef, { startAt: props.slice.primary.scrub_start })
 }
 </script>

@@ -39,4 +39,4 @@ for src in "$DIR"/*.mp4; do
     "$(du -h "$src"  | cut -f1)" "$(du -h "$out" | cut -f1)"
 done
 
-echo "Done. Review the *.scrub.mp4 files, then replace the originals and update /content/home.js paths."
+echo "Done. Review the *.scrub.mp4 files, then replace the originals and update the video paths in Prismic."

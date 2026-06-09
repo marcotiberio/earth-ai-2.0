@@ -125,8 +125,8 @@ const toHtml = (field) => {
   if (!field) return ''
   return typeof field === 'string' ? field : asHTML(field, { serializer: inlineSerializer }) || ''
 }
-// A repeatable Prismic Group arrives as [{ value: '…' }], while content/home.js
-// passes a plain array/object — accept both.
+// A repeatable Prismic Group arrives as [{ value: '…' }], while a plain static
+// shape passes a plain array/object — accept both.
 const obj   = (g) => (Array.isArray(g) ? g[0] : g) || {}
 const items = (g) => (Array.isArray(g) ? g : []).map((it) => (it && typeof it === 'object' ? it.value : it))
 

@@ -65,7 +65,7 @@ const mediaUrl = (field) =>
 const videoUrl = computed(() => mediaUrl(props.slice.primary.video_url))
 
 // The repeatable group of titles. Real Prismic returns it under
-// `primary.items` (a Group field); static content/home.js uses top-level `items`.
+// `primary.items` (a Group field); a plain static shape may use top-level `items`.
 const titles = computed(() => props.slice.primary.items || props.slice.items || [])
 
 // Total pinned scroll distance in vh. With 200 the video stays pinned for
