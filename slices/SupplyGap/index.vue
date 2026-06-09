@@ -15,7 +15,7 @@
   >
     <div
       class="w-full boxed"
-      :class="tall ? 'sticky top-0 flex h-screen flex-col justify-between md:justify-center overflow-hidden' : 'flex min-h-screen flex-col justify-between md:justify-center py-24'"
+      :class="tall ? 'sticky top-0 flex h-screen flex-col justify-between overflow-hidden' : 'flex min-h-screen flex-col justify-between md:justify-center py-24'"
     >
       <!-- Heading + intro -->
       <div class="flex shrink-0 flex-col gap-6 md:flex-row md:items-start md:justify-start md:gap-sm">
@@ -202,8 +202,9 @@ const fadeDemand = computed(() => lerp(0, 1, (progress.value - 0.40) / 0.06))
 const fadeSupply = computed(() => lerp(0, 1, (progress.value - 0.85) / 0.05))
 
 // --- Scroll-driven progress (pinned scrub) -----------------------------------
-// `tall` starts true so SSR and client render identically; reduced-motion
-// clients drop to a normal-height section and show the finished chart.
+// `tall` is always on so the panel has scroll distance to scrub against (the
+// scrub runs for everyone, mirroring the video scenes); kept as a ref so the
+// template's tall-vs-static branch stays intact.
 const rootRef  = ref(null)
 const chartRef = ref(null)
 const progress = ref(0)
@@ -221,12 +222,6 @@ onMounted(async () => {
   measure()
   ro = new ResizeObserver(measure)
   if (chartRef.value) ro.observe(chartRef.value)
-
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    tall.value = false
-    progress.value = 1
-    return
-  }
 
   const trigger = rootRef.value
   if (!trigger) return

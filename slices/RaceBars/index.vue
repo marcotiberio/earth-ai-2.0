@@ -14,15 +14,15 @@
   >
     <div
       class="boxed"
-      :class="tall ? 'sticky top-0 flex h-screen flex-col justify-between pt-md pb-md lg:pt-lg md:pb-sm overflow-hidden' : 'flex min-h-screen flex-col justify-between py-lg'"
+      :class="tall ? 'sticky top-0 flex h-screen flex-col justify-between boxed overflow-hidden' : 'flex min-h-screen flex-col justify-between boxed'"
     >
       <h2
         class="ea-display font-serif text-beige font-h2 font-normal max-w-screen-lg"
         v-html="headingHtml"
       />
 
-      <div class="mt-sm flex flex-col justify-end gap-sm">
-        <div v-for="(group, gi) in groups" :key="gi">
+      <div class="mt-xs flex flex-col justify-end gap-xs">
+        <div class="p-xs bg-[#FAF3E40D] rounded" v-for="(group, gi) in groups" :key="gi">
           <!-- metric label + dotted rule -->
           <div class="font-caption text-beige uppercase">{{ group.metric }}</div>
           <svg class="hidden md:block w-full mt-3" width="1640" height="2" viewBox="0 0 1640 2" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -30,7 +30,7 @@
           </svg>
 
           <!-- bars -->
-          <div class="mt-sm flex flex-col gap-xs md:gap-xs">
+          <div class="mt-xs flex flex-col gap-xs md:gap-xs">
             <div
               v-for="(row, ri) in group.rows"
               :key="ri"
@@ -38,7 +38,7 @@
             >
               <span
                 class="font-label"
-                :class="row.highlight ? 'text-[#E66F3E]' : 'text-beige'"
+                :class="row.highlight ? 'text-orange' : 'text-beige'"
               >
                 {{ row.label }}
               </span>
@@ -149,8 +149,8 @@ function barStyle(row) {
 // --- Scroll-driven progress (pinned scrub) -----------------------------------
 // The section is tall so its inner panel can stick and scrub progress 0→1 as you
 // scroll past, growing every bar's width and counting its number up together.
-// `tall` starts true so SSR and client render identically; reduced-motion
-// clients drop it to a normal-height section and show the finished state.
+// `tall` is always on so the scrub runs for everyone (mirroring the video scenes);
+// kept as a ref so the template's tall-vs-static branch stays intact.
 const rootRef  = ref(null)
 const progress = ref(0)
 const tall     = ref(true)
@@ -158,12 +158,6 @@ const tall     = ref(true)
 let ctx = null
 
 onMounted(async () => {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    tall.value = false
-    progress.value = 1
-    return
-  }
-
   const trigger = rootRef.value
   if (!trigger) return
 

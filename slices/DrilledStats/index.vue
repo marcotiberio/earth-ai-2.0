@@ -175,9 +175,9 @@ function counter(value) {
 // --- Scroll-driven progress (GSAP ScrollTrigger scrub) -----------------------
 const rootRef  = ref(null)
 const progress = ref(0)
-// `tall` controls the sticky/scroll-distance layout. It starts true so server
-// and client render identically (no hydration mismatch); reduced-motion clients
-// drop it to a normal-height section in onMounted, after the first paint.
+// `tall` controls the sticky/scroll-distance layout; always on so the panel has
+// scroll distance to scrub against (the scrub runs for everyone, mirroring the
+// video scenes). Kept as a ref so the template's tall-vs-static branch is intact.
 const tall = ref(true)
 
 // Drill line rises from the section's bottom edge (the viewBox foot, y=1000) up
@@ -192,13 +192,6 @@ const arrowPath = computed(() => `M 388 ${lineY.value + 12} L 400 ${lineY.value}
 let ctx = null
 
 onMounted(async () => {
-  // Reduced motion: collapse the scroll distance and show the finished scene.
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    tall.value = false
-    progress.value = 1
-    return
-  }
-
   const trigger = rootRef.value
   if (!trigger) return
 

@@ -13,10 +13,12 @@ export default {
       mobile: '640px',   // $breakpoint-mobile
       tablet: '780px',   // $breakpoint-tablet
       desktop: '1180px', // $breakpoint-desktop
+      desktopWide: '1180px', // $breakpoint-desktop
       // Additional breakpoints
       sm: '640px',
       md: '780px',
       lg: '1180px',
+      xl: '1680px',
     },
     extend: {
       aspectRatio: {

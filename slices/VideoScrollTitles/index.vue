@@ -138,8 +138,17 @@ async function setupTitleScrub() {
         scrub: 1,
       },
     })
-    titles.forEach((el) => {
-      tl.fromTo(el, { opacity: 0.2 }, { opacity: 1, ease: 'none' })
+    // Highlight one title at a time: brighten the first, then crossfade each
+    // into the next — the outgoing title dims back to 20% as the new one rises.
+    titles.forEach((el, i) => {
+      if (i === 0) {
+        tl.fromTo(el, { opacity: 0.2 }, { opacity: 1, ease: 'none' })
+      }
+      const next = titles[i + 1]
+      if (next) {
+        tl.to(el, { opacity: 0.2, ease: 'none' })
+        tl.fromTo(next, { opacity: 0.2 }, { opacity: 1, ease: 'none' }, '<')
+      }
     })
   }, trigger)
 }

@@ -37,6 +37,13 @@
             "thumbnails": []
           }
         },
+        "scroll_length": {
+          "type": "Number",
+          "config": {
+            "label": "Scroll length (vh)",
+            "placeholder": "Pinned scroll distance in vh (default: 200)"
+          }
+        },
         "title": {
           "type": "StructuredText",
           "config": {

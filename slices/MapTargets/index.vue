@@ -18,15 +18,15 @@
     >
       <div class="flex h-full w-full flex-col gap-sm lg:flex-row lg:items-stretch lg:gap-0">
         <!-- Text column -->
-        <div class="flex h-full w-full flex-col justify-start md:justify-between gap-xs md:gap-lg lg:w-6/12">
+        <div class="flex h-full w-full flex-col justify-start md:justify-between flex-wrap gap-xs md:gap-lg lg:w-6/12">
           
             <h2
               class="ea-display font-serif font-h2"
               v-html="titleHtml"
             />
 
-          <div class="flex flex-col justify-start md:justify-between gap-sm md:gap-md h-full md:h-1/2">
-            <ul class="mt-xs md:mt-sm grid max-w-[550px] grid-cols-2 gap-x-10 gap-y-12 lg:mt-20 xl:gap-x-20">
+          <div class="flex flex-col justify-start md:justify-between h-full md:h-1/2">
+            <ul class="grid max-w-[550px] grid-cols-2 gap-x-10 gap-y-12 lg:mt-20 xl:gap-x-20">
               <li
                 v-for="(stat, i) in stats"
                 :key="i"
@@ -153,21 +153,14 @@ function counter(value) {
 // --- Scroll-driven progress (GSAP ScrollTrigger scrub) -----------------------
 const rootRef  = ref(null)
 const progress = ref(0)
-// `tall` controls the sticky/scroll-distance layout. It starts true so server
-// and client render identically (no hydration mismatch); reduced-motion clients
-// drop it to a normal-height section in onMounted, after the first paint.
+// `tall` controls the sticky/scroll-distance layout; always on so the panel has
+// scroll distance to scrub against (the scrub runs for everyone, mirroring the
+// video scenes). Kept as a ref so the template's tall-vs-static branch is intact.
 const tall = ref(true)
 
 let ctx = null
 
 onMounted(async () => {
-  // Reduced motion: collapse the scroll distance and show the finished scene.
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    tall.value = false
-    progress.value = 1
-    return
-  }
-
   const trigger = rootRef.value
   if (!trigger) return
 
