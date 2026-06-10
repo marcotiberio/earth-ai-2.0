@@ -35,7 +35,7 @@
         <img
           v-else-if="image && image.url"
           :src="image.url"
-          :alt="image.alt || ''"
+          :alt="resolveImageAlt(image)"
           class="absolute inset-0 w-full h-full object-cover"
         />
         <div class="absolute inset-0" :class="overlayClass" />

@@ -15,6 +15,7 @@
           v-if="footer?.data?.logo_footer?.url"
           :field="footer.data.logo_footer"
           class="h-md w-auto"
+          alt="Earth AI logo"
         />
       </div>
       <ul v-if="footer?.data?.social_media_links?.length" class="flex gap-xs">

@@ -33,6 +33,7 @@
         :target="linkTarget || undefined"
         :rel="linkTarget === '_blank' ? 'noopener noreferrer' : undefined"
         class="btn btn-primary mt-auto font-label"
+        alt="Read more"
       >Read more</a>
     </component>
   </article>
@@ -75,7 +76,7 @@ const linkUrl = (field) =>
 
 const titleHtml  = computed(() => toHtml(props.slice.primary.title))
 const imageUrl   = computed(() => mediaUrl(props.slice.primary.image))
-const imageAlt   = computed(() => props.slice.primary.image?.alt || '')
+const imageAlt   = computed(() => resolveImageAlt(props.slice.primary.image, 'Press coverage'))
 const dateValue  = computed(() => props.slice.primary.date || '')
 const linkHref   = computed(() => linkUrl(props.slice.primary.link))
 const linkTarget = computed(() => props.slice.primary.link?.target || '')

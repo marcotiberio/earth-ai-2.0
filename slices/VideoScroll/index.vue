@@ -38,7 +38,7 @@
       <img
         v-else-if="slice.primary.image?.url"
         :src="slice.primary.image.url"
-        :alt="slice.primary.image.alt || ''"
+        :alt="resolveImageAlt(slice.primary.image)"
         class="w-full h-[40vh] md:h-[55vh] object-cover"
       />
       <!-- Top and bottom fades (each a quarter of the band height) so the media
