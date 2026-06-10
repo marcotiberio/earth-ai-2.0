@@ -7,14 +7,14 @@
   <section
     ref="rootRef"
     class="relative w-full bg-darkblue"
-    :style="{ height: inSimulator ? '100vh' : `${scrollLength}vh` }"
+    :style="{ height: inSimulator ? '100dvh' : `${scrollLength}dvh` }"
   >
     <!-- Pinned stage: video background AND content both pin to the top for the
          whole scrub, then wipe away together when the section ends. In `frame`
          mode the video no longer bleeds to the edges — it sits inset on the
          darkblue background with the content held in a caption band beneath it. -->
     <div
-      class="sticky top-0 h-screen w-full flex flex-col"
+      class="sticky top-0 h-dvh w-full flex flex-col"
       :class="frame ? 'px-xs md:px-sm pt-xs md:pt-sm pb-md' : ''"
     >
       <!-- Media stage. Full-bleed by default; a bordered, inset box when framed. -->

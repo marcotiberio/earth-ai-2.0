@@ -19,6 +19,15 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 export default defineNuxtPlugin((nuxtApp) => {
   gsap.registerPlugin(ScrollTrigger)
 
+  // Android Chrome (and iOS Safari) show/hide the URL bar as you scroll, which
+  // fires a `resize` and changes `innerHeight`/`vh` mid-scroll. By default
+  // ScrollTrigger would recompute every pinned start/end on each of those
+  // resizes, so the scrub videos visibly jump as the toolbar slides away.
+  // ignoreMobileResize keeps the measurements taken on load, so the scrub stays
+  // smooth through the toolbar transition. (Lenis owns scroll, so we do NOT add
+  // normalizeScroll here — that would fight Lenis for the scroll position.)
+  ScrollTrigger.config({ ignoreMobileResize: true })
+
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   const lenis = new Lenis({
