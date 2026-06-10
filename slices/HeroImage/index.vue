@@ -11,7 +11,7 @@
 
     <template #pinned>
       <div
-        class="pointer-events-none absolute inset-x-xs md:inset-x-sm top-[22%] bottom-[14%] flex flex-col justify-between"
+        class="hidden pointer-events-none absolute inset-x-xs md:inset-x-sm top-[22%] bottom-[14%] flex-col justify-between"
       >
         <!-- Dashed telemetry-style guide lines. -->
         <div

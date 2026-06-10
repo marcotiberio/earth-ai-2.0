@@ -158,14 +158,24 @@ const supplyPoints = [
   [0, 160], [100, 168], [200, 184], [300, 192], [400, 192],
   [500, 192], [600, 200], [700, 240], [800, 240], [900, 248], [1000, 252],
 ]
-// Gridline rows (value → y in the same space), top (50) to bottom (10).
-const gridLines = [
-  { label: '50', y: 0 },
-  { label: '40', y: 80 },
-  { label: '30', y: 160 },
-  { label: '20', y: 240 },
-  { label: '10', y: 320 },
-]
+// Gridline rows. Labels come from the editable `y_ticks` group (entered low →
+// high in Prismic); the plot's top is the highest value, so we reverse them to
+// read top → bottom and space them evenly across the chart's 0–320 band. Falls
+// back to the original 50→10 scale when no ticks are set.
+const Y_TOP = 0
+const Y_BOTTOM = 320
+const DEFAULT_Y_LABELS = ['50', '40', '30', '20', '10'] // high → low (top → bottom)
+const gridLines = computed(() => {
+  const raw = props.slice.primary.y_ticks || []
+  const ticks = (Array.isArray(raw) && raw.some((v) => v && typeof v === 'object') ? items(raw) : raw)
+    .filter((v) => v != null && String(v).trim() !== '')
+  const labels = ticks.length ? [...ticks].reverse() : DEFAULT_Y_LABELS
+  const n = labels.length
+  return labels.map((label, i) => ({
+    label,
+    y: n > 1 ? Y_TOP + (Y_BOTTOM - Y_TOP) * (i / (n - 1)) : Y_TOP,
+  }))
+})
 
 const PAD_X = 24
 const PAD_TOP = 36
