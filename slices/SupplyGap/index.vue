@@ -177,12 +177,12 @@ const gridLines = computed(() => {
   }))
 })
 
-const PAD_X = 24
 const PAD_TOP = 36
 const PAD_BOTTOM = 64
 const bounds = ref({ width: 1000, height: 460 }) // SSR/first-paint default
 
-const mapX = (x) => PAD_X + (x / 1000) * (bounds.value.width - PAD_X - 40)
+// Span the full chart width: x=0 maps to the left edge, x=1000 to the right edge.
+const mapX = (x) => (x / 1000) * bounds.value.width
 const mapY = (y) => PAD_TOP + ((y + 40) / 480) * (bounds.value.height - PAD_TOP - PAD_BOTTOM)
 
 const mappedDemand = computed(() => demandPoints.map((p) => [mapX(p[0]), mapY(p[1])]))
