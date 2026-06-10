@@ -196,6 +196,7 @@ export type FooterDocument<Lang extends string = string> =
 type HomePageDocumentDataSlicesSlice =
   | HeroImageSlice
   | VideoScrollSlice
+  | VideoScrollTitlesSlice
   | DrilledStatsSlice
   | RaceBarsSlice
   | SupplyGapSlice
@@ -235,6 +236,17 @@ interface HomePageDocumentData {
    * - **Documentation**: https://prismic.io/docs/fields/text
    */
   meta_description: prismic.KeyTextField;
+
+  /**
+   * Meta Image field in *Home Page*
+   *
+   * - **Field Type**: Image
+   * - **Placeholder**: *None*
+   * - **API ID Path**: home_page.meta_image
+   * - **Tab**: SEO & Metadata
+   * - **Documentation**: https://prismic.io/docs/fields/image
+   */
+  meta_image: prismic.ImageField<never>;
 }
 
 /**
@@ -294,6 +306,26 @@ export interface DrilledStatsSliceDefaultPrimary {
    * - **Documentation**: https://prismic.io/docs/fields/boolean
    */
   is_hidden: prismic.BooleanField;
+
+  /**
+   * Scroll length (vh) field in *DrilledStats → Default → Primary*
+   *
+   * - **Field Type**: Number
+   * - **Placeholder**: Pinned scroll distance in vh (default: 300)
+   * - **API ID Path**: drilled_stats.default.primary.scroll_length
+   * - **Documentation**: https://prismic.io/docs/fields/number
+   */
+  scroll_length: prismic.NumberField;
+
+  /**
+   * Scrub start field in *DrilledStats → Default → Primary*
+   *
+   * - **Field Type**: Select
+   * - **Placeholder**: When the scroll-scrub begins (default: full travel)
+   * - **API ID Path**: drilled_stats.default.primary.scrub_start
+   * - **Documentation**: https://prismic.io/docs/fields/select
+   */
+  scrub_start: prismic.SelectField<"top" | "middle">;
 
   /**
    * Title field in *DrilledStats → Default → Primary*
@@ -420,6 +452,26 @@ export interface HeroImageSliceDefaultPrimary {
    * - **Documentation**: https://prismic.io/docs/fields/rich-text
    */
   subtitle: prismic.RichTextField;
+
+  /**
+   * Scroll length (vh) field in *HeroImage → Default → Primary*
+   *
+   * - **Field Type**: Number
+   * - **Placeholder**: Pinned scroll distance in vh (default: 300)
+   * - **API ID Path**: hero_image.default.primary.scroll_length
+   * - **Documentation**: https://prismic.io/docs/fields/number
+   */
+  scroll_length: prismic.NumberField;
+
+  /**
+   * Scrub start field in *HeroImage → Default → Primary*
+   *
+   * - **Field Type**: Select
+   * - **Placeholder**: When the scroll-scrub begins (default: full travel)
+   * - **API ID Path**: hero_image.default.primary.scrub_start
+   * - **Documentation**: https://prismic.io/docs/fields/select
+   */
+  scrub_start: prismic.SelectField<"top" | "middle">;
 }
 
 /**
@@ -475,6 +527,17 @@ export interface MapTargetsSliceDefaultPrimaryStatsItem {
    * - **Documentation**: https://prismic.io/docs/fields/text
    */
   value: prismic.KeyTextField;
+
+  /**
+   * Orange field in *MapTargets → Default → Primary → Stats (max 4)*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: map_targets.default.primary.stats[].orange
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  orange: prismic.BooleanField;
 }
 
 /**
@@ -491,6 +554,26 @@ export interface MapTargetsSliceDefaultPrimary {
    * - **Documentation**: https://prismic.io/docs/fields/boolean
    */
   is_hidden: prismic.BooleanField;
+
+  /**
+   * Scroll length (vh) field in *MapTargets → Default → Primary*
+   *
+   * - **Field Type**: Number
+   * - **Placeholder**: Pinned scroll distance in vh (default: 300)
+   * - **API ID Path**: map_targets.default.primary.scroll_length
+   * - **Documentation**: https://prismic.io/docs/fields/number
+   */
+  scroll_length: prismic.NumberField;
+
+  /**
+   * Scrub start field in *MapTargets → Default → Primary*
+   *
+   * - **Field Type**: Select
+   * - **Placeholder**: When the scroll-scrub begins (default: full travel)
+   * - **API ID Path**: map_targets.default.primary.scrub_start
+   * - **Documentation**: https://prismic.io/docs/fields/select
+   */
+  scrub_start: prismic.SelectField<"top" | "middle">;
 
   /**
    * Title field in *MapTargets → Default → Primary*
@@ -577,16 +660,6 @@ export interface PressQuotesSliceDefaultPrimary {
    * - **Documentation**: https://prismic.io/docs/fields/image
    */
   image: prismic.ImageField<never>;
-
-  /**
-   * Date field in *PressQuotes → Default → Primary*
-   *
-   * - **Field Type**: Date
-   * - **Placeholder**: Publication date
-   * - **API ID Path**: press_quotes.default.primary.date
-   * - **Documentation**: https://prismic.io/docs/fields/date
-   */
-  date: prismic.DateField;
 
   /**
    * Title field in *PressQuotes → Default → Primary*
@@ -726,6 +799,26 @@ export interface RaceBarsSliceDefaultPrimary {
    * - **Documentation**: https://prismic.io/docs/fields/boolean
    */
   is_hidden: prismic.BooleanField;
+
+  /**
+   * Scroll length (vh) field in *RaceBars → Default → Primary*
+   *
+   * - **Field Type**: Number
+   * - **Placeholder**: Pinned scroll distance in vh (default: 360)
+   * - **API ID Path**: race_bars.default.primary.scroll_length
+   * - **Documentation**: https://prismic.io/docs/fields/number
+   */
+  scroll_length: prismic.NumberField;
+
+  /**
+   * Scrub start field in *RaceBars → Default → Primary*
+   *
+   * - **Field Type**: Select
+   * - **Placeholder**: When the scroll-scrub begins (default: full travel)
+   * - **API ID Path**: race_bars.default.primary.scrub_start
+   * - **Documentation**: https://prismic.io/docs/fields/select
+   */
+  scrub_start: prismic.SelectField<"top" | "middle">;
 
   /**
    * Heading field in *RaceBars → Default → Primary*
@@ -874,6 +967,26 @@ export interface SupplyGapSliceDefaultPrimary {
   is_hidden: prismic.BooleanField;
 
   /**
+   * Scroll length (vh) field in *SupplyGap → Default → Primary*
+   *
+   * - **Field Type**: Number
+   * - **Placeholder**: Pinned scroll distance in vh (default: 300)
+   * - **API ID Path**: supply_gap.default.primary.scroll_length
+   * - **Documentation**: https://prismic.io/docs/fields/number
+   */
+  scroll_length: prismic.NumberField;
+
+  /**
+   * Scrub start field in *SupplyGap → Default → Primary*
+   *
+   * - **Field Type**: Select
+   * - **Placeholder**: When the scroll-scrub begins (default: full travel)
+   * - **API ID Path**: supply_gap.default.primary.scrub_start
+   * - **Documentation**: https://prismic.io/docs/fields/select
+   */
+  scrub_start: prismic.SelectField<"top" | "middle">;
+
+  /**
    * Heading field in *SupplyGap → Default → Primary*
    *
    * - **Field Type**: Rich Text
@@ -982,6 +1095,17 @@ export interface VideoScrollSliceOverlayPrimary {
   is_hidden: prismic.BooleanField;
 
   /**
+   * Play video in a frame field in *VideoScroll → Overlay → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: video_scroll.overlay.primary.frame
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  frame: prismic.BooleanField;
+
+  /**
    * Background video field in *VideoScroll → Overlay → Primary*
    *
    * - **Field Type**: Link to Media
@@ -1000,6 +1124,16 @@ export interface VideoScrollSliceOverlayPrimary {
    * - **Documentation**: https://prismic.io/docs/fields/image
    */
   image: prismic.ImageField<never>;
+
+  /**
+   * Scroll length (vh) field in *VideoScroll → Overlay → Primary*
+   *
+   * - **Field Type**: Number
+   * - **Placeholder**: Pinned scroll distance in vh (default: 300)
+   * - **API ID Path**: video_scroll.overlay.primary.scroll_length
+   * - **Documentation**: https://prismic.io/docs/fields/number
+   */
+  scroll_length: prismic.NumberField;
 
   /**
    * Title field in *VideoScroll → Overlay → Primary*
@@ -1080,6 +1214,119 @@ export type VideoScrollSlice = prismic.SharedSlice<
   VideoScrollSliceVariation
 >;
 
+/**
+ * Item in *VideoScrollTitles → Default → Primary → Titles*
+ */
+export interface VideoScrollTitlesSliceDefaultPrimaryItemsItem {
+  /**
+   * Title field in *VideoScrollTitles → Default → Primary → Titles*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. AI Data Centres
+   * - **API ID Path**: video_scroll_titles.default.primary.items[].title
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  title: prismic.KeyTextField;
+}
+
+/**
+ * Primary content in *VideoScrollTitles → Default → Primary*
+ */
+export interface VideoScrollTitlesSliceDefaultPrimary {
+  /**
+   * Hide slice field in *VideoScrollTitles → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: video_scroll_titles.default.primary.is_hidden
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  is_hidden: prismic.BooleanField;
+
+  /**
+   * Background video field in *VideoScrollTitles → Default → Primary*
+   *
+   * - **Field Type**: Link to Media
+   * - **Placeholder**: Upload or select a video from the Media Library
+   * - **API ID Path**: video_scroll_titles.default.primary.video_url
+   * - **Documentation**: https://prismic.io/docs/fields/link-to-media
+   */
+  video_url: prismic.LinkToMediaField<prismic.FieldState, never>;
+
+  /**
+   * Background image (poster / fallback) field in *VideoScrollTitles → Default → Primary*
+   *
+   * - **Field Type**: Image
+   * - **Placeholder**: *None*
+   * - **API ID Path**: video_scroll_titles.default.primary.image
+   * - **Documentation**: https://prismic.io/docs/fields/image
+   */
+  image: prismic.ImageField<never>;
+
+  /**
+   * Scroll length (vh) field in *VideoScrollTitles → Default → Primary*
+   *
+   * - **Field Type**: Number
+   * - **Placeholder**: Pinned scroll distance in vh (default: 300)
+   * - **API ID Path**: video_scroll_titles.default.primary.scroll_length
+   * - **Documentation**: https://prismic.io/docs/fields/number
+   */
+  scroll_length: prismic.NumberField;
+
+  /**
+   * Scrub start field in *VideoScrollTitles → Default → Primary*
+   *
+   * - **Field Type**: Select
+   * - **Placeholder**: When the scroll-scrub begins (default: full travel)
+   * - **API ID Path**: video_scroll_titles.default.primary.scrub_start
+   * - **Documentation**: https://prismic.io/docs/fields/select
+   */
+  scrub_start: prismic.SelectField<"top" | "middle">;
+
+  /**
+   * Titles field in *VideoScrollTitles → Default → Primary*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: video_scroll_titles.default.primary.items[]
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  items: prismic.GroupField<
+    Simplify<VideoScrollTitlesSliceDefaultPrimaryItemsItem>
+  >;
+}
+
+/**
+ * Default variation for VideoScrollTitles Slice
+ *
+ * - **API ID**: `default`
+ * - **Description**: Pinned video with a stack of titles that reveal in sequence on scroll.
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type VideoScrollTitlesSliceDefault = prismic.SharedSliceVariation<
+  "default",
+  Simplify<VideoScrollTitlesSliceDefaultPrimary>,
+  never
+>;
+
+/**
+ * Slice variation for *VideoScrollTitles*
+ */
+type VideoScrollTitlesSliceVariation = VideoScrollTitlesSliceDefault;
+
+/**
+ * VideoScrollTitles Shared Slice
+ *
+ * - **API ID**: `video_scroll_titles`
+ * - **Description**: Pinned full-bleed scroll-scrub video with a repeatable group of headline titles overlaid; each title brightens from 20% to 100% opacity in turn as the section scrolls.
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type VideoScrollTitlesSlice = prismic.SharedSlice<
+  "video_scroll_titles",
+  VideoScrollTitlesSliceVariation
+>;
+
 declare module "@prismicio/client" {
   interface CreateClient {
     (
@@ -1146,6 +1393,11 @@ declare module "@prismicio/client" {
       VideoScrollSliceOverlayPrimary,
       VideoScrollSliceVariation,
       VideoScrollSliceOverlay,
+      VideoScrollTitlesSlice,
+      VideoScrollTitlesSliceDefaultPrimaryItemsItem,
+      VideoScrollTitlesSliceDefaultPrimary,
+      VideoScrollTitlesSliceVariation,
+      VideoScrollTitlesSliceDefault,
     };
   }
 }
