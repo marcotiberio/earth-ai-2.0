@@ -88,14 +88,14 @@
         <!-- endpoint figures (HTML overlay, counting up) -->
         <div
           class="absolute flex flex-col items-end text-right leading-none"
-          :style="{ top: `${mapY(8) - 30}px`, right: `${rightOffset}px`, opacity: fadeDemand, color: BEIGE }"
+          :style="{ top: `${mapY(8) - demandOffset}px`, right: `${rightOffset}px`, opacity: fadeDemand, color: BEIGE }"
         >
           <div class="font-serif font-h3 tabular-nums tracking-tight md:font-h2">{{ demandTotal }}</div>
           <div class="mt-1 font-body uppercase text-beige">{{ demand.label }}</div>
         </div>
         <div
           class="absolute flex max-w-[60%] flex-col items-end text-right leading-none"
-          :style="{ top: `${mapY(252) - 35}px`, right: `${rightOffset}px`, opacity: fadeSupply, color: ORANGE }"
+          :style="{ top: `${mapY(252) - supplyOffset}px`, right: `${rightOffset}px`, opacity: fadeSupply, color: ORANGE }"
         >
           <div class="font-serif font-h3 tabular-nums tracking-tight md:font-h2">{{ supplyTotal }}</div>
           <div class="mt-1 font-body uppercase">{{ supply.label }}</div>
@@ -196,7 +196,16 @@ const supplyLine = computed(() => toPath(mappedSupply.value))
 const demandArea = computed(() => toPolygon(mappedDemand.value))
 const supplyArea = computed(() => toPolygon(mappedSupply.value))
 
-const rightOffset = computed(() => bounds.value.width - mapX(1000) + 20)
+// Endpoint-label lift above its data point. The figures use a smaller font on
+// mobile (font-h3) and a larger one on desktop (md:font-h2), so each breakpoint
+// gets its own tuned offset. `isMobile` tracks Tailwind's `md` breakpoint.
+const isMobile = ref(false)
+const demandOffset = computed(() => (isMobile.value ? 60 : 50))
+const supplyOffset = computed(() => (isMobile.value ? 100 : 55))
+
+// Inset of the endpoint figures from the chart's right edge, tuned per breakpoint.
+const rightInset = computed(() => (isMobile.value ? 10 : 20))
+const rightOffset = computed(() => bounds.value.width - mapX(1000) + rightInset.value)
 
 // --- Progress-driven reveal (sequential: demand, then supply) ----------------
 const dProg = computed(() => clamp01(progress.value / 0.45))
@@ -221,6 +230,8 @@ const tall     = ref(true)
 
 let ctx = null
 let ro = null
+let mqlMobile = null
+const onMobileChange = (e) => { isMobile.value = e.matches }
 
 function measure() {
   const el = chartRef.value
@@ -231,6 +242,11 @@ onMounted(async () => {
   measure()
   ro = new ResizeObserver(measure)
   if (chartRef.value) ro.observe(chartRef.value)
+
+  // Track Tailwind's `md` breakpoint (768px) so label offsets match font size.
+  mqlMobile = window.matchMedia('(max-width: 767px)')
+  isMobile.value = mqlMobile.matches
+  mqlMobile.addEventListener('change', onMobileChange)
 
   // Reduced motion: collapse the scroll distance and show the finished chart.
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -265,5 +281,6 @@ onMounted(async () => {
 onUnmounted(() => {
   ctx?.revert()
   ro?.disconnect()
+  mqlMobile?.removeEventListener('change', onMobileChange)
 })
 </script>

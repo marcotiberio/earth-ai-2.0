@@ -61,7 +61,7 @@ html.lenis body {
 @layer components {
   /* Shared slice padding: vertical rhythm + responsive gutters. */
   .boxed {
-    @apply pt-md lg:pt-lg md:pb-[4rem] px-xs md:px-sm;
+    @apply pt-md lg:pt-lg pb-[4rem] px-xs md:px-sm;
   }
 
   /* Typography */

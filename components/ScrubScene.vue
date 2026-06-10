@@ -15,7 +15,7 @@
          darkblue background with the content held in a caption band beneath it. -->
     <div
       class="sticky top-0 h-dvh w-full flex flex-col"
-      :class="frame ? 'px-xs md:px-sm pt-xs md:pt-sm pb-md' : ''"
+      :class="frame ? 'px-xs md:px-sm pt-6 md:pt-8 pb-md' : ''"
     >
       <!-- Media stage. Full-bleed by default; a bordered, inset box when framed. -->
       <div

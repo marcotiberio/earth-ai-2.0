@@ -18,25 +18,23 @@
     >
       <div class="flex h-full w-full flex-col gap-sm lg:flex-row lg:items-stretch lg:gap-0">
         <!-- Text column -->
-        <div class="flex h-full w-full flex-col justify-start md:justify-between flex-wrap gap-xs md:gap-lg lg:w-6/12">
+        <div class="flex h-full w-full flex-col justify-start md:justify-between flex-wrap gap-sm md:gap-lg lg:w-6/12">
           
             <h2
               class="ea-display font-serif font-h2"
               v-html="titleHtml"
             />
 
-          <div class="flex flex-col max-w-[550px] justify-start md:justify-between h-full md:h-1/2">
-            <ul class="h-full grid grid-cols-2 gap-x-sm gap-y-sm">
+          <div class="flex flex-col max-w-[550px] justify-start md:justify-between gap-6 md:gap-0 h-auto md:h-1/2">
+            <ul class="h-full grid grid-cols-2 gap-6 md:gap-x-sm md:gap-y-sm">
               <li
                 v-for="(stat, i) in stats"
                 :key="i"
                 class="relative flex flex-col"
                 :class="stat.orange ? 'text-orange' : 'text-beige'"
               >
-                <svg class="w-full" width="238" height="2" viewBox="0 0 238 2" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 1H237" :stroke="stat.orange ? ORANGE : '#FAF3E4'" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15"/>
-                </svg>
-                <h2 class="mt-5 mb-2 font-serif font-h2 tabular-nums">
+                <DottedLine color="currentColor" />
+                <h2 class="my-2 font-serif font-h2 tabular-nums">
                   {{ counter(stat.value) }}
                 </h2>
                 <span class="font-caption">{{ stat.label }}</span>
@@ -105,8 +103,6 @@ const toHtml = (field) => {
     ? field
     : asHTML(field, { serializer: inlineSerializer }) || ''
 }
-
-const ORANGE = '#E97B39'
 
 const titleHtml = computed(() => toHtml(props.slice.primary.title))
 const body      = computed(() => props.slice.primary.body || '')

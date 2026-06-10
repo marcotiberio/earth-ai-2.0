@@ -19,12 +19,7 @@
           :key="`line-${li}`"
           class="relative h-12 w-full overflow-hidden"
         >
-          <svg
-            class="absolute bottom-0 left-0 w-full"
-            height="2" viewBox="0 0 1640 2" fill="none" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M1 1H1639" stroke="#FAF3E4" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15"/>
-          </svg>
+          <DottedLine class="absolute bottom-0 left-0 w-full" />
         </div>
       </div>
       <span

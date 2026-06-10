@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Scrub diagnostic</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #0a1424; color: #eae6da; font: 14px/1.4 -apple-system, system-ui, sans-serif; }
+
+  /* Tall scroll track so there is plenty of travel to scrub across. */
+  .track { height: 600dvh; position: relative; }
+
+  /* Pinned stage — mirrors ScrubScene: sticky, full dvh, video object-cover. */
+  .stage { position: sticky; top: 0; height: 100dvh; width: 100%; overflow: hidden; background:#0a1424; }
+  video, canvas#paint { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  canvas#paint { display: none; }
+  body.mode-canvas video { visibility: hidden; }
+  body.mode-canvas canvas#paint { display: block; }
+
+  /* HUD */
+  .hud { position: fixed; left: 8px; right: 8px; top: 8px; z-index: 10;
+         background: rgba(8,16,30,.86); border:1px solid #2a3b57; border-radius: 10px;
+         padding: 10px 12px; backdrop-filter: blur(6px); }
+  .hud h1 { font-size: 13px; margin: 0 0 6px; letter-spacing:.04em; text-transform: uppercase; color:#9fb3d1; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 14px; font-variant-numeric: tabular-nums; }
+  .grid b { color:#7fd1a0; font-weight: 600; }
+  .bad { color:#ff7a7a !important; }
+  .warn { color:#ffcf6b !important; }
+  .modes { display:flex; flex-wrap: wrap; gap:6px; margin-top:8px; }
+  .modes button { flex:1 1 auto; padding:9px 6px; border-radius:8px; border:1px solid #2a3b57;
+                  background:#13243d; color:#cfe0f7; font-size:13px; }
+  .modes button.active { background:#2f6df0; border-color:#2f6df0; color:#fff; font-weight:600; }
+  .row2 { display:flex; gap:6px; margin-top:6px; }
+  .row2 button { flex:1; padding:8px; border-radius:8px; border:1px solid #2a3b57; background:#13243d; color:#cfe0f7; }
+  .hint { margin-top:8px; font-size:12px; color:#9fb3d1; }
+  .spacer { height: 40px; }
+</style>
+</head>
+<body class="mode-seek">
+  <div class="hud">
+    <h1>Scrub diagnostic — scroll the page</h1>
+    <div class="grid">
+      <span>scroll %</span><b id="prog">0</b>
+      <span>target t</span><b id="target">0</b>
+      <span>video.currentTime</span><b id="ctime">0</b>
+      <span>duration</span><b id="dur">?</b>
+      <span>readyState</span><b id="rs">0</b>
+      <span>paused</span><b id="paused">–</b>
+      <span>seeking</span><b id="seeking">–</b>
+      <span>seeked events</span><b id="seeked">0</b>
+      <span>rVFC paints</span><b id="rvfc">0</b>
+      <span>frame changed?</span><b id="framechg">?</b>
+    </div>
+    <div class="modes">
+      <button data-mode="seek"   class="active">A · seek</button>
+      <button data-mode="rvfc">B · seek+rVFC</button>
+      <button data-mode="canvas">C · canvas</button>
+      <button data-mode="chase">D · play-chase</button>
+    </div>
+    <div class="row2">
+      <button id="prime">Re-prime (play→pause)</button>
+      <button id="reload">Reload video</button>
+    </div>
+    <div class="hint" id="hint">A is the current site behaviour. If the picture is frozen in A but moves in C or D, that mode is the fix.</div>
+  </div>
+
+  <div class="track">
+    <div class="stage">
+      <video id="v"
+        src="https://earth-ai-static.cdn.prismic.io/earth-ai-static/aikUFAeQX7-eXHSw_EAI_Landscape_60fps.mp4"
+        muted playsinline preload="auto"></video>
+      <canvas id="paint"></canvas>
+    </div>
+  </div>
+  <div class="spacer"></div>
+
+<script>
+const v = document.getElementById('v')
+const paint = document.getElementById('paint')
+const pctx = paint.getContext('2d')
+const $ = id => document.getElementById(id)
+let mode = 'seek'
+let target = 0, actual = 0
+let seekedCount = 0, rvfcCount = 0
+
+// --- prime the decode pipeline (muted inline play, then pause) ---
+function prime() {
+  v.muted = true
+  try { v.load() } catch {}
+  const p = v.play()
+  if (p && p.then) p.then(() => v.pause()).catch(e => log('play() rejected: ' + e.message))
+}
+v.addEventListener('seeked', () => seekedCount++)
+$('prime').onclick = prime
+$('reload').onclick = () => { v.load(); prime() }
+prime()
+
+// --- mode switching ---
+document.querySelectorAll('.modes button').forEach(b => b.onclick = () => {
+  mode = b.dataset.mode
+  document.querySelectorAll('.modes button').forEach(x => x.classList.toggle('active', x === b))
+  document.body.className = 'mode-' + mode
+  if (mode !== 'chase') { v.pause(); v.playbackRate = 1 }
+})
+
+// --- scroll → target time ---
+function progress() {
+  const max = document.documentElement.scrollHeight - window.innerHeight
+  return max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0
+}
+
+// --- frame-change detection (best effort; cross-origin may taint → manual visual) ---
+let det = document.createElement('canvas'); det.width = 32; det.height = 18
+let dctx = det.getContext('2d', { willReadFrequently: true })
+let lastSig = -1, frameChanges = 0, detectOK = true
+function detectFrame() {
+  if (!detectOK || v.readyState < 2) return
+  try {
+    dctx.drawImage(v, 0, 0, 32, 18)
+    const d = dctx.getImageData(0, 0, 32, 18).data
+    let s = 0; for (let i = 0; i < d.length; i += 40) s += d[i]
+    if (lastSig >= 0 && Math.abs(s - lastSig) > 3) frameChanges++
+    lastSig = s
+    $('framechg').textContent = frameChanges + ' changes'
+    $('framechg').className = frameChanges > 0 ? '' : 'warn'
+  } catch (e) {
+    detectOK = false
+    $('framechg').textContent = 'CORS-blocked → judge by eye'
+    $('framechg').className = 'warn'
+  }
+}
+
+// --- main loop ---
+function tick() {
+  const pr = progress()
+  target = pr * (v.duration || 0)
+  // light smoothing so it feels like the real scrub
+  actual += (target - actual) * 0.25
+
+  if (mode === 'seek' || mode === 'rvfc' || mode === 'canvas') {
+    if (Number.isFinite(actual)) v.currentTime = actual
+    if (mode === 'rvfc' && v.requestVideoFrameCallback) {
+      v.requestVideoFrameCallback(() => { rvfcCount++ })
+    }
+    if (mode === 'canvas' && v.readyState >= 2) {
+      try { pctx.drawImage(v, 0, 0, paint.width = paint.clientWidth, paint.height = paint.clientHeight) } catch {}
+    }
+  } else if (mode === 'chase') {
+    // ScrollyVideo trick: keep the video PLAYING toward the target instead of
+    // paused-seeking. A playing video repaints every frame on Android; a paused
+    // seek often does not. Backwards can't play, so jump for that.
+    const diff = target - v.currentTime
+    if (diff > 0.05) {
+      if (v.paused) v.play().catch(()=>{})
+      v.playbackRate = Math.min(8, Math.max(1, diff * 4))
+    } else if (diff < -0.05) {
+      v.pause(); v.currentTime = target            // can't play backwards → seek
+    } else {
+      v.pause()
+    }
+  }
+
+  detectFrame()
+
+  $('prog').textContent = (pr * 100).toFixed(1) + '%'
+  $('target').textContent = target.toFixed(2)
+  $('ctime').textContent = v.currentTime.toFixed(2)
+  $('dur').textContent = Number.isFinite(v.duration) ? v.duration.toFixed(2) : '?'
+  $('rs').textContent = v.readyState; $('rs').className = v.readyState >= 2 ? '' : 'bad'
+  $('paused').textContent = v.paused
+  $('seeking').textContent = v.seeking
+  $('seeked').textContent = seekedCount
+  $('rvfc').textContent = rvfcCount
+  requestAnimationFrame(tick)
+}
+function log(m){ $('hint').textContent = m }
+requestAnimationFrame(tick)
+</script>
+</body>
+</html>

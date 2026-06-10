@@ -23,11 +23,9 @@
             v-html="titleHtml"
           />
 
-          <ul class="mt-14 grid max-w-[550px] grid-cols-2 gap-x-10 gap-y-12 lg:mt-20 xl:gap-x-20">
+          <ul class="mt-12 grid max-w-[550px] grid-cols-2 gap-x-10 gap-y-12 lg:mt-20 xl:gap-x-20">
             <li v-for="(stat, i) in stats" :key="i" class="relative flex flex-col">
-              <svg class="w-full"width="238" height="2" viewBox="0 0 238 2" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1 1H237" stroke="#FAF3E4" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15"/>
-              </svg>
+              <DottedLine class="w-full" />
               <h2 class="mt-5 mb-2 font-serif font-h2 font-normal leading-[1.05] tracking-tight tabular-nums">
                 {{ counter(stat.value) }}
               </h2>
@@ -41,7 +39,7 @@
           <svg
             viewBox="0 0 800 1000"
             preserveAspectRatio="xMidYMid meet"
-            class="h-auto max-h-[650px] w-[120%] lg:max-h-[850px] lg:w-full"
+            class="h-auto max-h-[650px] w-[120%] -translate-y-16 lg:translate-y-0 lg:max-h-[850px] lg:w-full"
             role="img"
             :aria-label="`${counter(feetValue)} ${feetLabel}`"
           >

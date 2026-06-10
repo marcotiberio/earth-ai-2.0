@@ -25,16 +25,14 @@
         <div class="racebar p-xs bg-[#FAF3E40D] rounded" v-for="(group, gi) in groups" :key="gi">
           <!-- metric label + dotted rule -->
           <div class="font-caption text-beige uppercase">{{ group.metric }}</div>
-          <svg class="hidden md:block w-full mt-3" width="1640" height="2" viewBox="0 0 1640 2" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M1 1H1639" stroke="#FAF3E4" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15"/>
-          </svg>
+          <DottedLine class="hidden md:block w-full mt-3" />
 
           <!-- bars -->
           <div class="mt-xs flex flex-col gap-xs md:gap-xs">
             <div
               v-for="(row, ri) in group.rows"
               :key="ri"
-              class="grid grid-cols-[7rem_1fr] items-center gap-4 md:grid-cols-[12rem_1fr] md:gap-8"
+              class="grid grid-cols-1 items-center gap-2 md:grid-cols-[12rem_1fr] md:gap-8"
             >
               <span
                 class="font-label"
