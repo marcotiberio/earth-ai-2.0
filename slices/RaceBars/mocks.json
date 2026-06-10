@@ -3,16 +3,28 @@
 		"__TYPE__": "SharedSliceContent",
 		"variation": "default",
 		"primary": {
+			"is_hidden": {
+				"__TYPE__": "BooleanContent",
+				"value": false
+			},
+			"scroll_length": {
+				"__TYPE__": "FieldContent",
+				"value": "24",
+				"type": "Number"
+			},
+			"scrub_start": {
+				"__TYPE__": "FieldContent",
+				"value": "middle",
+				"type": "Select"
+			},
 			"heading": {
 				"__TYPE__": "StructuredTextContent",
 				"value": [
 					{
 						"type": "paragraph",
 						"content": {
-							"text": "Incumbents created the problem, but they won’t be the ones to solve it.",
-							"spans": []
-						},
-						"direction": "ltr"
+							"text": "Consectetur sunt enim irure pariatur dolor tempor est commodo ex ipsum ea dolor qui. Enim anim sunt ea non nostrud ullamco deserunt pariatur qui pariatur ut fugiat cillum quis. Est ullamco ex ipsum aliquip sint."
+						}
 					}
 				]
 			},
@@ -24,11 +36,19 @@
 						"value": [
 							[
 								"metric",
-								{ "__TYPE__": "FieldContent", "type": "Text", "value": "DISCOVERY TIMELINE" }
+								{
+									"__TYPE__": "FieldContent",
+									"value": "become",
+									"type": "Text"
+								}
 							],
 							[
 								"unit",
-								{ "__TYPE__": "FieldContent", "type": "Text", "value": "YEARS" }
+								{
+									"__TYPE__": "FieldContent",
+									"value": "outer",
+									"type": "Text"
+								}
 							],
 							[
 								"rows",
@@ -38,70 +58,44 @@
 										{
 											"__TYPE__": "GroupItemContent",
 											"value": [
-												["label", { "__TYPE__": "FieldContent", "type": "Text", "value": "EARTH AI" }],
-												["value", { "__TYPE__": "FieldContent", "type": "Number", "value": 3 }],
-												["highlight", { "__TYPE__": "FieldContent", "type": "Boolean", "value": true }]
-											],
-											"key": "row-eai-discovery"
-										},
-										{
-											"__TYPE__": "GroupItemContent",
-											"value": [
-												["label", { "__TYPE__": "FieldContent", "type": "Text", "value": "Other Explorers" }],
-												["value", { "__TYPE__": "FieldContent", "type": "Number", "value": 15 }],
-												["highlight", { "__TYPE__": "FieldContent", "type": "Boolean", "value": false }]
-											],
-											"key": "row-other-discovery"
+												[
+													"label",
+													{
+														"__TYPE__": "FieldContent",
+														"value": "eat",
+														"type": "Text"
+													}
+												],
+												[
+													"value",
+													{
+														"__TYPE__": "FieldContent",
+														"value": "58",
+														"type": "Number"
+													}
+												],
+												[
+													"highlight",
+													{
+														"__TYPE__": "BooleanContent",
+														"value": false
+													}
+												]
+											]
 										}
 									]
 								}
 							]
-						],
-						"key": "group-discovery"
-					},
-					{
-						"__TYPE__": "GroupItemContent",
-						"value": [
-							[
-								"metric",
-								{ "__TYPE__": "FieldContent", "type": "Text", "value": "SUCCESS RATE" }
-							],
-							[
-								"unit",
-								{ "__TYPE__": "FieldContent", "type": "Text", "value": "%" }
-							],
-							[
-								"rows",
-								{
-									"__TYPE__": "GroupContentType",
-									"value": [
-										{
-											"__TYPE__": "GroupItemContent",
-											"value": [
-												["label", { "__TYPE__": "FieldContent", "type": "Text", "value": "Other Explorers" }],
-												["value", { "__TYPE__": "FieldContent", "type": "Number", "value": 0.5 }],
-												["highlight", { "__TYPE__": "FieldContent", "type": "Boolean", "value": false }]
-											],
-											"key": "row-other-success"
-										},
-										{
-											"__TYPE__": "GroupItemContent",
-											"value": [
-												["label", { "__TYPE__": "FieldContent", "type": "Text", "value": "EARTH AI" }],
-												["value", { "__TYPE__": "FieldContent", "type": "Number", "value": 80 }],
-												["highlight", { "__TYPE__": "FieldContent", "type": "Boolean", "value": true }]
-											],
-											"key": "row-eai-success"
-										}
-									]
-								}
-							]
-						],
-						"key": "group-success"
+						]
 					}
 				]
 			}
 		},
-		"items": []
+		"items": [
+			{
+				"__TYPE__": "GroupItemContent",
+				"value": []
+			}
+		]
 	}
 ]

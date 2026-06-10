@@ -24,19 +24,115 @@
 			"y_ticks": {
 				"__TYPE__": "GroupContentType",
 				"value": [
-					{ "__TYPE__": "GroupItemContent", "value": [["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "10" }]], "key": "yt-10" },
-					{ "__TYPE__": "GroupItemContent", "value": [["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "20" }]], "key": "yt-20" },
-					{ "__TYPE__": "GroupItemContent", "value": [["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "30" }]], "key": "yt-30" },
-					{ "__TYPE__": "GroupItemContent", "value": [["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "40" }]], "key": "yt-40" },
-					{ "__TYPE__": "GroupItemContent", "value": [["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "50" }]], "key": "yt-50" }
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "10"
+								}
+							]
+						]
+					},
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "20"
+								}
+							]
+						]
+					},
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "30"
+								}
+							]
+						]
+					},
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "40"
+								}
+							]
+						]
+					},
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "50"
+								}
+							]
+						]
+					}
 				]
 			},
 			"x_labels": {
 				"__TYPE__": "GroupContentType",
 				"value": [
-					{ "__TYPE__": "GroupItemContent", "value": [["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "2030" }]], "key": "xl-2030" },
-					{ "__TYPE__": "GroupItemContent", "value": [["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "2035" }]], "key": "xl-2035" },
-					{ "__TYPE__": "GroupItemContent", "value": [["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "2040" }]], "key": "xl-2040" }
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "2030"
+								}
+							]
+						]
+					},
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "2035"
+								}
+							]
+						]
+					},
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "2040"
+								}
+							]
+						]
+					}
 				]
 			},
 			"demand": {
@@ -45,10 +141,23 @@
 					{
 						"__TYPE__": "GroupItemContent",
 						"value": [
-							["label", { "__TYPE__": "FieldContent", "type": "Text", "value": "DEMAND" }],
-							["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "1270" }]
-						],
-						"key": "demand"
+							[
+								"label",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "DEMAND"
+								}
+							],
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "1270"
+								}
+							]
+						]
 					}
 				]
 			},
@@ -58,10 +167,23 @@
 					{
 						"__TYPE__": "GroupItemContent",
 						"value": [
-							["label", { "__TYPE__": "FieldContent", "type": "Text", "value": "CURRENT AND DEVELOPING MINES" }],
-							["value", { "__TYPE__": "FieldContent", "type": "Text", "value": "627" }]
-						],
-						"key": "supply"
+							[
+								"label",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "CURRENT AND DEVELOPING MINES"
+								}
+							],
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "627"
+								}
+							]
+						]
 					}
 				]
 			}

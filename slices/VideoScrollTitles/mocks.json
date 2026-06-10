@@ -3,10 +3,53 @@
 		"__TYPE__": "SharedSliceContent",
 		"variation": "default",
 		"primary": {
+			"is_hidden": {
+				"__TYPE__": "BooleanContent",
+				"value": false
+			},
+			"video_url": {
+				"__TYPE__": "LinkContent",
+				"key": "42ee5c7c-ae73-4faa-b04e-43b4ea793fb7",
+				"value": {
+					"__TYPE__": "FileLink",
+					"id": "mock_Media_link",
+					"kind": "file",
+					"name": "mock_name",
+					"url": "https://source.unsplash.com/daily",
+					"size": "0"
+				}
+			},
+			"image": {
+				"__TYPE__": "ImageContent",
+				"origin": {
+					"id": "main",
+					"url": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6",
+					"width": 3212,
+					"height": 3880
+				},
+				"url": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6",
+				"width": 3212,
+				"height": 3880,
+				"edit": {
+					"zoom": 1,
+					"crop": {
+						"x": 0,
+						"y": 0
+					},
+					"background": "transparent"
+				},
+				"alt": "parent",
+				"thumbnails": {}
+			},
 			"scroll_length": {
 				"__TYPE__": "FieldContent",
-				"type": "Number",
-				"value": 300
+				"value": "6",
+				"type": "Number"
+			},
+			"scrub_start": {
+				"__TYPE__": "FieldContent",
+				"value": "middle",
+				"type": "Select"
 			},
 			"items": {
 				"__TYPE__": "GroupContentType",
@@ -14,34 +57,24 @@
 					{
 						"__TYPE__": "GroupItemContent",
 						"value": [
-							["title", { "__TYPE__": "FieldContent", "type": "Text", "value": "AI Data Centres" }]
-						],
-						"key": "title-ai-data-centres"
-					},
-					{
-						"__TYPE__": "GroupItemContent",
-						"value": [
-							["title", { "__TYPE__": "FieldContent", "type": "Text", "value": "Humanoid Robots" }]
-						],
-						"key": "title-humanoid-robots"
-					},
-					{
-						"__TYPE__": "GroupItemContent",
-						"value": [
-							["title", { "__TYPE__": "FieldContent", "type": "Text", "value": "eVTOL" }]
-						],
-						"key": "title-evtol"
-					},
-					{
-						"__TYPE__": "GroupItemContent",
-						"value": [
-							["title", { "__TYPE__": "FieldContent", "type": "Text", "value": "Fusion Energy" }]
-						],
-						"key": "title-fusion-energy"
+							[
+								"title",
+								{
+									"__TYPE__": "FieldContent",
+									"value": "read",
+									"type": "Text"
+								}
+							]
+						]
 					}
 				]
 			}
 		},
-		"items": []
+		"items": [
+			{
+				"__TYPE__": "GroupItemContent",
+				"value": []
+			}
+		]
 	}
 ]

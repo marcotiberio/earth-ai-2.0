@@ -11,7 +11,11 @@
 						"content": {
 							"text": "We operate like no other mineral exploration company.",
 							"spans": [
-								{ "type": "em", "start": 11, "end": 24 }
+								{
+									"type": "em",
+									"start": 11,
+									"end": 24
+								}
 							]
 						},
 						"direction": "ltr"
@@ -45,8 +49,7 @@
 									"value": "1,500"
 								}
 							]
-						],
-						"key": "b1a2c3d4-0001-4a00-8a00-000000000001"
+						]
 					},
 					{
 						"__TYPE__": "GroupItemContent",
@@ -67,8 +70,7 @@
 									"value": "83%"
 								}
 							]
-						],
-						"key": "b1a2c3d4-0002-4a00-8a00-000000000002"
+						]
 					}
 				]
 			}
