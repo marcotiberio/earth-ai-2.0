@@ -10,32 +10,52 @@
     :style="{ height: `${scrollLength}vh` }"
   >
     <!-- Pinned stage: video background AND content both pin to the top for the
-         whole scrub, then wipe away together when the section ends. -->
-    <div class="sticky top-0 h-screen w-full overflow-hidden">
-      <video
-        v-if="videoUrl"
-        ref="videoRef"
-        :src="videoSrc || undefined"
-        :poster="image && image.url ? image.url : undefined"
-        muted
-        playsinline
-        preload="auto"
-        class="absolute inset-0 w-full h-full object-cover"
-      />
-      <img
-        v-else-if="image && image.url"
-        :src="image.url"
-        :alt="image.alt || ''"
-        class="absolute inset-0 w-full h-full object-cover"
-      />
-      <div class="absolute inset-0" :class="overlayClass" />
+         whole scrub, then wipe away together when the section ends. In `frame`
+         mode the video no longer bleeds to the edges — it sits inset on the
+         darkblue background with the content held in a caption band beneath it. -->
+    <div
+      class="sticky top-0 h-screen w-full flex flex-col"
+      :class="frame ? 'px-xs md:px-sm pt-xs md:pt-sm pb-md' : ''"
+    >
+      <!-- Media stage. Full-bleed by default; a bordered, inset box when framed. -->
+      <div
+        class="relative w-full overflow-hidden"
+        :class="frame ? 'flex-1 rounded' : 'h-full'"
+      >
+        <video
+          v-if="videoUrl"
+          ref="videoRef"
+          :src="videoSrc || undefined"
+          :poster="image && image.url ? image.url : undefined"
+          muted
+          playsinline
+          preload="auto"
+          class="absolute inset-0 w-full h-full object-cover"
+        />
+        <img
+          v-else-if="image && image.url"
+          :src="image.url"
+          :alt="image.alt || ''"
+          class="absolute inset-0 w-full h-full object-cover"
+        />
+        <div class="absolute inset-0" :class="overlayClass" />
 
-      <!-- Decorative layers that should stay pinned with the video -->
-      <slot name="pinned" />
+        <!-- Decorative layers that should stay pinned with the video -->
+        <slot name="pinned" />
 
-      <!-- Content: scrolls in with the section, then holds at bottom 5% (or the
-           chosen alignment) while the video scrubs, then wipes away with it. -->
-      <div class="absolute inset-0 z-10 flex px-xs md:px-sm" :class="[alignClass, alignXClass]">
+        <!-- Full-bleed content: overlaid on the video, scrolls in with the
+             section then holds at the chosen alignment while the video scrubs. -->
+        <div
+          v-if="!frame"
+          class="absolute inset-0 z-10 flex px-xs md:px-sm"
+          :class="[alignClass, alignXClass]"
+        >
+          <slot />
+        </div>
+      </div>
+
+      <!-- Framed content: sits in a caption band below the inset media. -->
+      <div v-if="frame" class="flex pt-sm" :class="alignXClass">
         <slot />
       </div>
     </div>
@@ -57,6 +77,9 @@ const props = defineProps({
   // default below (scrub spans the full sticky travel).
   scrubStart:   { type: String, default: '' },
   overlayClass: { type: String, default: 'bg-darkblue/40' },
+  // Frame mode: render the video inset on the darkblue background (rather than
+  // full-bleed) with the content shown in a caption band beneath it.
+  frame:        { type: Boolean, default: false },
   // Eager = download on page load (use for the hero). Otherwise the clip is
   // fetched lazily as the section approaches, so we don't pull every video at
   // once on first paint.

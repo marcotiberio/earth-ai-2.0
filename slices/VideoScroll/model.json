@@ -21,6 +21,15 @@
             "default_value": false
           }
         },
+        "frame": {
+          "type": "Boolean",
+          "config": {
+            "label": "Play video in a frame",
+            "placeholder_false": "Full-bleed",
+            "placeholder_true": "Framed",
+            "default_value": false
+          }
+        },
         "video_url": {
           "type": "Link",
           "config": {

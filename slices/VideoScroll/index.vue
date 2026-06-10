@@ -8,6 +8,7 @@
     :scrub-start="slice.primary.scrub_start || ''"
     :align="slice.primary.title_align_vertical || 'bottom'"
     :align-x="slice.primary.title_align_horizontal || 'left'"
+    :frame="slice.primary.frame || false"
     overlay-class=""
   >
     <!-- Top and bottom fades (each a quarter of the section height) so the
