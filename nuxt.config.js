@@ -6,6 +6,11 @@ export default defineNuxtConfig({
 
   prismic: {
     endpoint: apiEndpoint || repositoryName,
+    // The Prismic preview toolbar (static.cdn.prismic.io/prismic.js) sets
+    // third-party cookies and trips Lighthouse "Best Practices" / deprecated-API
+    // audits. Drop it from production builds (what gets audited / served to
+    // visitors) while keeping in-context Preview working in local dev.
+    toolbar: process.env.NODE_ENV !== 'production',
   },
 
   // Base URL used to build absolute og:url / og:image links. Override per
