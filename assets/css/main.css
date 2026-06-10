@@ -99,7 +99,7 @@ html.lenis body {
     letter-spacing: 0;
 
     @screen lg {
-      font-size: 1.875rem;  
+      font-size: 1.575rem;  
     }
     
     @screen xl {
@@ -113,7 +113,11 @@ html.lenis body {
     letter-spacing: 0;
 
     @screen lg {
-      font-size: 1.375rem;
+      font-size: 1.2rem;
+    }
+
+    @screen xl {
+      font-size: 1.375rem;  
     }
   }
 
@@ -124,7 +128,11 @@ html.lenis body {
     letter-spacing: 0;
 
     @screen lg {
-      font-size: 1rem;
+      font-size: 0.875rem;
+    }
+
+    @screen xl {
+      font-size: 1rem;  
     }
   }
 

@@ -88,14 +88,14 @@
         <!-- endpoint figures (HTML overlay, counting up) -->
         <div
           class="absolute flex flex-col items-end text-right leading-none"
-          :style="{ top: `${mapY(8) - 50}px`, right: `${rightOffset}px`, opacity: fadeDemand, color: BEIGE }"
+          :style="{ top: `${mapY(8) - 30}px`, right: `${rightOffset}px`, opacity: fadeDemand, color: BEIGE }"
         >
           <div class="font-serif font-h3 tabular-nums tracking-tight md:font-h2">{{ demandTotal }}</div>
           <div class="mt-1 font-body uppercase text-beige">{{ demand.label }}</div>
         </div>
         <div
           class="absolute flex max-w-[60%] flex-col items-end text-right leading-none"
-          :style="{ top: `${mapY(252) - 60}px`, right: `${rightOffset}px`, opacity: fadeSupply, color: ORANGE }"
+          :style="{ top: `${mapY(252) - 35}px`, right: `${rightOffset}px`, opacity: fadeSupply, color: ORANGE }"
         >
           <div class="font-serif font-h3 tabular-nums tracking-tight md:font-h2">{{ supplyTotal }}</div>
           <div class="mt-1 font-body uppercase">{{ supply.label }}</div>
@@ -186,7 +186,7 @@ const supplyLine = computed(() => toPath(mappedSupply.value))
 const demandArea = computed(() => toPolygon(mappedDemand.value))
 const supplyArea = computed(() => toPolygon(mappedSupply.value))
 
-const rightOffset = computed(() => bounds.value.width - mapX(1000) + 40)
+const rightOffset = computed(() => bounds.value.width - mapX(1000) + 20)
 
 // --- Progress-driven reveal (sequential: demand, then supply) ----------------
 const dProg = computed(() => clamp01(progress.value / 0.45))
