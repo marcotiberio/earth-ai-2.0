@@ -182,7 +182,7 @@ onMounted(async () => {
       ease: 'none',
       scrollTrigger: {
         trigger,
-        start: 'top center',
+        start: 'top top',
         end: () => `bottom bottom+=${window.innerHeight * 0.5}`,
         scrub: 1,
       },

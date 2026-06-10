@@ -1,5 +1,5 @@
 <template>
-  <article class="flex flex-col gap-4">
+  <article class="flex flex-col h-full flex-stretch">
 
     <component
       :is="linkHref ? 'a' : 'div'"
@@ -9,7 +9,7 @@
       class="flex flex-1 flex-col gap-4"
       :class="linkHref ? 'group' : ''"
     >
-      <figure class="overflow-hidden rounded">
+      <figure class="overflow-hidden rounded flex flex-col gap-xs">
         <img
           v-if="imageUrl"
           :src="imageUrl"
@@ -18,19 +18,13 @@
           :class="linkHref ? 'transition-all group-hover:scale-105 group-hover:transition-all ' : ''"
           
         />
-      </figure>
-      <div class="mt-auto flex flex-col gap-xs items-start justify-start font-caption text-beige">
-        <time 
-          v-if="dateValue" 
-          :datetime="dateValue" 
-          :class="linkHref ? 'transition-colors group-hover:text-orange' : ''">{{ dateValue }}</time>
         <p
           class="text-beige font-h3"
           :class="linkHref ? 'transition-colors group-hover:text-orange' : ''"
         >
           &ldquo;<span v-html="titleHtml" />&rdquo;
         </p>
-      </div>
+      </figure>
       <a
         v-if="linkHref"
         :href="linkHref"

@@ -22,7 +22,7 @@
       />
 
       <div class="mt-xs flex flex-col justify-end gap-xs">
-        <div class="p-xs bg-[#FAF3E40D] rounded" v-for="(group, gi) in groups" :key="gi">
+        <div class="racebar p-xs bg-[#FAF3E40D] rounded" v-for="(group, gi) in groups" :key="gi">
           <!-- metric label + dotted rule -->
           <div class="font-caption text-beige uppercase">{{ group.metric }}</div>
           <svg class="hidden md:block w-full mt-3" width="1640" height="2" viewBox="0 0 1640 2" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -47,7 +47,7 @@
                 <!-- the bar itself — width is the normalised target scaled by progress -->
                 <div
                   class="h-sm shrink-0 rounded-[3px] md:h-md"
-                  :style="[barStyle(row), { width: barWidth(group, row) }]"
+                  :style="[barStyle(row), { width: barWidth(group, row, gi) }]"
                 />
 
                 <!-- count-up number, sitting just past the bar's tip -->
@@ -56,7 +56,7 @@
                   :class="row.highlight ? 'text-orange' : 'text-beige'"
                 >
                   <span class="font-serif font-h3 tabular-nums md:font-h2">
-                    {{ display(group, row.value) }}
+                    {{ display(group, row, gi) }}
                   </span>
                   <span
                     v-if="group.unit && group.unit !== '%'"
@@ -101,8 +101,10 @@ const headingHtml = computed(() => toHtml(props.slice.primary.heading))
 // whichever is present.
 const groups = computed(() => props.slice.primary.items || props.slice.items || [])
 
-// Pinned scroll distance (vh) — editable per section; defaults to 220.
-const scrollLength = computed(() => Number(props.slice.primary.scroll_length) || 220)
+// Pinned scroll distance (vh) — editable per section; defaults to 360. A larger
+// value spreads the same 0→1 progress over more scrolling, so the bars grow more
+// slowly. Each group only gets ~1/N of this, so bump it when adding groups.
+const scrollLength = computed(() => Number(props.slice.primary.scroll_length) || 360)
 
 // --- Bar width + count-up (both driven by the same reveal progress) ----------
 // Bars are normalised to the largest value in their own group, scaled by FILL
@@ -114,24 +116,52 @@ function targetPct(group, row) {
   const pct = max ? (Number(row.value) / max) * 100 * FILL : 0
   return Math.max(pct, 1.5)
 }
-function barWidth(group, row) {
-  return `${targetPct(group, row) * progress.value}%`
+
+// Each racebar (group) animates in turn: group 0 plays over the first 1/N of the
+// scroll, group 1 over the next, and so on — so #2 only starts once #1 finishes.
+// The master progress is linear (see the tween below) so every group gets an
+// equal scroll budget; we apply a smoothstep ease *within* each group's segment
+// so the sweep accelerates in and settles softly into its finish.
+const easeInOut = (t) => t * t * (3 - 2 * t)
+function groupProgress(gi) {
+  const n = groups.value.length || 1
+  const seg = 1 / n
+  const t = Math.min(1, Math.max(0, (progress.value - gi * seg) / seg))
+  return easeInOut(t)
+}
+
+// Within a group every bar grows at the same constant speed (a single fill front
+// sweeping right), so the smallest bar reaches its target first and the largest
+// keeps growing until the group's segment ends. `barFill` is the 0→1 fraction of
+// this bar's own target that's currently shown.
+function maxTargetPct(group) {
+  return Math.max(...group.rows.map((r) => targetPct(group, r)))
+}
+function barFill(group, row, gi) {
+  const t = targetPct(group, row)
+  if (!t) return 0
+  const filled = groupProgress(gi) * maxTargetPct(group)
+  return Math.min(filled / t, 1)
+}
+function barWidth(group, row, gi) {
+  return `${targetPct(group, row) * barFill(group, row, gi)}%`
 }
 
 function decimalsFor(value) {
   const s = String(value)
   return s.includes('.') ? s.split('.')[1].length : 0
 }
-function countUp(value) {
+function countUp(value, fill) {
   const decimals = decimalsFor(value)
-  const cur = Number(value) * progress.value
+  const cur = Number(value) * fill
   return cur.toLocaleString('en-US', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   })
 }
-function display(group, value) {
-  return group.unit === '%' ? `${countUp(value)}%` : countUp(value)
+function display(group, row, gi) {
+  const fill = barFill(group, row, gi)
+  return group.unit === '%' ? `${countUp(row.value, fill)}%` : countUp(row.value, fill)
 }
 
 function barStyle(row) {
@@ -175,13 +205,16 @@ onMounted(async () => {
     const state = { p: 0 }
     gsap.to(state, {
       p: 1,
-      duration: 1.6,
-      ease: 'power2.out',
-      scrollTrigger: { 
+      duration: 2,
+      // Linear scroll→progress mapping: each group's segment is shaped by its own
+      // smoothstep ease (see groupProgress), so the per-group easing isn't skewed
+      // by a curve spanning the whole section.
+      ease: 'none',
+      scrollTrigger: {
         trigger, 
         start: 'top top',
         end: () => `bottom bottom+=${window.innerHeight * 0.5}`,
-        scrub: 1.2,
+        scrub: 2.5,
       },
       onUpdate: () => { progress.value = state.p },
     })

@@ -29,13 +29,6 @@
             "thumbnails": []
           }
         },
-        "date": {
-          "type": "Date",
-          "config": {
-            "label": "Date",
-            "placeholder": "Publication date"
-          }
-        },
         "title": {
           "type": "StructuredText",
           "config": {

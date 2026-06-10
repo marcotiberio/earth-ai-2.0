@@ -215,13 +215,13 @@ onMounted(async () => {
       p: 1,
       ease: 'none',
       scrollTrigger: {
-        // Begin the scrub when the section's top reaches the middle of the
-        // viewport, and finish it 50vh before the panel unpins — that trailing
+        // Begin the scrub when the panel pins (section top hits the viewport
+        // top), and finish it 50vh before the panel unpins — that trailing
         // 50vh keeps the section pinned so the completed stats sit on screen
         // before the next section scrolls in. (Section height carries +50vh to
         // fund this dwell; keep the two in step if you tune it.)
         trigger,
-        start: 'top center',
+        start: 'top top',
         end: () => `bottom bottom+=${window.innerHeight * 0.5}`,
         scrub: 1,
       },
