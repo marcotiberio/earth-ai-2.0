@@ -9,22 +9,24 @@
       class="flex flex-1 flex-col gap-4"
       :class="linkHref ? 'group' : ''"
     >
-      <figure class="overflow-hidden rounded flex flex-col gap-xs">
-        <img
-          v-if="imageUrl"
-          :src="imageUrl"
-          :alt="imageAlt"
-          class="h-auto w-full aspect-video self-start object-cover rounded grayscale"
-          :class="linkHref ? 'transition-all group-hover:scale-105 group-hover:transition-all ' : ''"
-          
-        />
+      <div class=" flex flex-col gap-xs">
+        <figure class="overflow-hidden rounded flex flex-col gap-xs">
+          <img
+            v-if="imageUrl"
+            :src="imageUrl"
+            :alt="imageAlt"
+            class="h-auto w-full aspect-video self-start object-cover rounded grayscale"
+            :class="linkHref ? 'transition-all group-hover:scale-105 group-hover:transition-all ' : ''"
+            
+          />
+        </figure>
         <p
           class="text-beige font-h3"
           :class="linkHref ? 'transition-colors group-hover:text-orange' : ''"
         >
           &ldquo;<span v-html="titleHtml" />&rdquo;
         </p>
-      </figure>
+      </div>
       <a
         v-if="linkHref"
         :href="linkHref"

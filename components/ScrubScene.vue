@@ -7,7 +7,7 @@
   <section
     ref="rootRef"
     class="relative w-full bg-darkblue"
-    :style="{ height: `${scrollLength}vh` }"
+    :style="{ height: inSimulator ? '100vh' : `${scrollLength}vh` }"
   >
     <!-- Pinned stage: video background AND content both pin to the top for the
          whole scrub, then wipe away together when the section ends. In `frame`
@@ -63,7 +63,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
 const props = defineProps({
   videoUrl:     { type: String, default: '' },
@@ -85,6 +85,12 @@ const props = defineProps({
   // once on first paint.
   eager:        { type: Boolean, default: false },
 })
+
+// True when rendered inside the Slice Simulator (Page Builder sidebar previews
+// + "Update screenshot"). There we collapse to a single fixed screen and skip
+// the scroll pinning, so the preview shows a composed frame rather than the
+// cropped top of a tall pinned section. Provided by pages/slice-simulator.vue.
+const inSimulator = inject('inSliceSimulator', false)
 
 const rootRef  = ref(null)
 const videoRef = ref(null)
@@ -144,7 +150,7 @@ onBeforeUnmount(() => observer?.disconnect())
 // Pinned scrub: map currentTime 0 → duration across the section's pinned travel
 // (top hits viewport top → bottom hits viewport bottom), matching the sticky pin.
 // A `scrubStart` preset overrides this with a per-section start ('top'|'middle').
-if (props.videoUrl) {
+if (props.videoUrl && !inSimulator) {
   useScrubVideo(
     videoRef,
     rootRef,
@@ -153,4 +159,8 @@ if (props.videoUrl) {
       : { start: 'top top', end: 'bottom bottom' },
   )
 }
+
+// Expose the section root so slotted content (e.g. VideoScrollTitles' per-title
+// reveal) can anchor its own ScrollTrigger to the same pinned travel.
+defineExpose({ root: rootRef })
 </script>

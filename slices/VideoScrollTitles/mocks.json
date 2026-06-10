@@ -8,8 +8,8 @@
 				"value": false
 			},
 			"video_url": {
-				"__TYPE__": "LinkContent",
 				"key": "42ee5c7c-ae73-4faa-b04e-43b4ea793fb7",
+				"__TYPE__": "LinkContent",
 				"value": {
 					"__TYPE__": "FileLink",
 					"id": "mock_Media_link",
@@ -20,7 +20,6 @@
 				}
 			},
 			"image": {
-				"__TYPE__": "ImageContent",
 				"origin": {
 					"id": "main",
 					"url": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6",
@@ -39,6 +38,8 @@
 					"background": "transparent"
 				},
 				"alt": "parent",
+				"credits": null,
+				"__TYPE__": "ImageContent",
 				"thumbnails": {}
 			},
 			"scroll_length": {
