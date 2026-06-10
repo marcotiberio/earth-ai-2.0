@@ -115,7 +115,7 @@ const stats     = computed(() => (props.slice.primary.stats || []).slice(0, 4))
 // Pinned scroll distance (vh) — editable per section; defaults to 220. (The
 // scrub still finishes 50vh before unpin for the end-state dwell; tune the
 // length up if the reveal feels rushed — this slice previously used 270.)
-const scrollLength = computed(() => Number(props.slice.primary.scroll_length) || 220)
+const scrollLength = computed(() => Number(props.slice.primary.scroll_length) || 300)
 
 const mapLabel = computed(() =>
   stats.value.map((s) => `${counter(s.value)} ${s.label}`).join(', ') || 'Continental target map'

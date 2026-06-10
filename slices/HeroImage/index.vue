@@ -2,7 +2,7 @@
   <ScrubScene
     :video-url="videoUrl"
     :image="slice.primary.image || {}"
-    :scroll-length="slice.primary.scroll_length || 200"
+    :scroll-length="slice.primary.scroll_length || 300"
     :scrub-start="slice.primary.scrub_start || ''"
     align="bottom"
     overlay-class="bg-darkblue/40"

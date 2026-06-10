@@ -3,7 +3,7 @@
   <ScrubScene
     :video-url="slice.primary.video_url || ''"
     :image="slice.primary.image || {}"
-    :scroll-length="slice.primary.scroll_length || 200"
+    :scroll-length="slice.primary.scroll_length || 300"
     :scrub-start="slice.primary.scrub_start || ''"
     align="bottom"
     overlay-class="bg-gradient-to-t from-darkblue via-darkblue/50 to-transparent"

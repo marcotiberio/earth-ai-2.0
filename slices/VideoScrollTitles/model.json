@@ -41,7 +41,7 @@
           "type": "Number",
           "config": {
             "label": "Scroll length (vh)",
-            "placeholder": "Pinned scroll distance in vh (default: 200)"
+            "placeholder": "Pinned scroll distance in vh (default: 300)"
           }
         },
         "scrub_start": {

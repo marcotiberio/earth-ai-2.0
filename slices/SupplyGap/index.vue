@@ -133,7 +133,7 @@ const items = (g) => (Array.isArray(g) ? g : []).map((it) => (it && typeof it ==
 const headingHtml = computed(() => toHtml(props.slice.primary.heading))
 const body    = computed(() => props.slice.primary.body || '')
 // Pinned scroll distance (vh) — editable per section; defaults to 220.
-const scrollLength = computed(() => Number(props.slice.primary.scroll_length) || 220)
+const scrollLength = computed(() => Number(props.slice.primary.scroll_length) || 300)
 const demand  = computed(() => ({ label: 'DEMAND', value: '', ...obj(props.slice.primary.demand) }))
 const supply  = computed(() => ({ label: '', value: '', ...obj(props.slice.primary.supply) }))
 const xLabels = computed(() => {

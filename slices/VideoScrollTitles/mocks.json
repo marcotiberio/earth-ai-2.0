@@ -6,7 +6,7 @@
 			"scroll_length": {
 				"__TYPE__": "FieldContent",
 				"type": "Number",
-				"value": 250
+				"value": 300
 			},
 			"items": {
 				"__TYPE__": "GroupContentType",

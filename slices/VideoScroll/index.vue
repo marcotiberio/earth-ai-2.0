@@ -4,7 +4,7 @@
     v-if="slice.variation === 'overlay'"
     :video-url="videoUrl"
     :image="slice.primary.image || {}"
-    :scroll-length="slice.primary.scroll_length || 200"
+    :scroll-length="slice.primary.scroll_length || 300"
     :scrub-start="slice.primary.scrub_start || ''"
     :align="slice.primary.title_align_vertical || 'bottom'"
     :align-x="slice.primary.title_align_horizontal || 'left'"

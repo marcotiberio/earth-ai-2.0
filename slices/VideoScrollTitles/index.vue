@@ -70,7 +70,7 @@ const titles = computed(() => props.slice.primary.items || props.slice.items || 
 
 // Total pinned scroll distance in vh. With 200 the video stays pinned for
 // ~one full screen of scroll, over which the titles brighten in turn.
-const scrollLength = computed(() => props.slice.primary.scroll_length || 200)
+const scrollLength = computed(() => props.slice.primary.scroll_length || 300)
 
 const rootRef   = ref(null)
 const videoRef  = ref(null)
