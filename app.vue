@@ -1,5 +1,6 @@
 <template>
   <div>
+    <AppLoader />
     <AppNav />
     <NuxtPage />
     <AppFooter />

@@ -11,12 +11,18 @@
             class="btn btn-primary mt-auto font-label text-darkblue hover:underline"
           >Contact us</a>
         </div>
-        <PrismicImage
+        <NuxtLink
           v-if="footer?.data?.logo_footer?.url"
-          :field="footer.data.logo_footer"
-          class="h-md w-auto"
-          alt="Earth AI logo"
-        />
+          to="/"
+          aria-label="Earth AI home"
+          @click="scrollToTop"
+        >
+          <PrismicImage
+            :field="footer.data.logo_footer"
+            class="h-md w-auto"
+            alt="Earth AI logo"
+          />
+        </NuxtLink>
       </div>
       <ul v-if="footer?.data?.social_media_links?.length" class="flex gap-xs">
         <li v-for="(item, i) in footer.data.social_media_links" :key="i">
@@ -56,6 +62,16 @@ import { components } from '~/slices'
 
 // The footer is driven by a single `footer` page document in Prismic: each
 // press quote is a `press_quotes` slice in its slice zone.
+const route = useRoute()
+
+// On the homepage, smooth-scroll to top instead of triggering a no-op navigation.
+function scrollToTop(e) {
+  if (route.path === '/') {
+    e.preventDefault()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
 const prismic = usePrismic()
 const { data: footer } = await useAsyncData('footer', () =>
   prismic.client.getSingle('footer').catch(() => null),
