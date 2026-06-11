@@ -41,7 +41,7 @@
       />
       <p
         v-if="subtitleHtml"
-        class="text-beige font-body max-w-sm md:mb-3 w-full lg:w-1/2"
+        class="text-beige font-body md:mb-3 w-full md:w-1/2 lg:w-1/4"
         v-html="subtitleHtml"
       />
     </div>

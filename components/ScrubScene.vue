@@ -76,6 +76,11 @@ const props = defineProps({
   // Named scrub start preset ('top' | 'middle'). Empty keeps the pinned
   // default below (scrub spans the full sticky travel).
   scrubStart:   { type: String, default: '' },
+  // Tail (in vh) at the end of the pinned travel where the video scrub is
+  // already complete — it finishes at its natural pace and holds its last frame
+  // across this dwell before the section unpins. 0 (default) scrubs the full
+  // travel. Only applies to the default (non-`scrubStart`) scrub.
+  tailVh:       { type: Number, default: 0 },
   overlayClass: { type: String, default: 'bg-darkblue/40' },
   // Frame mode: render the video inset on the darkblue background (rather than
   // full-bleed) with the content shown in a caption band beneath it.
@@ -151,12 +156,19 @@ onBeforeUnmount(() => observer?.disconnect())
 // (top hits viewport top → bottom hits viewport bottom), matching the sticky pin.
 // A `scrubStart` preset overrides this with a per-section start ('top'|'middle').
 if (props.videoUrl && !inSimulator) {
+  // With a `tailVh`, end the scrub that many vh before the pin releases so the
+  // video reaches its last frame at its natural pace, then holds across the
+  // dwell. Expressed as a px offset from the start (`+=…`) — a `bottom bottom-=`
+  // offset would push the end past the scrollable max and never complete.
+  const defaultEnd = props.tailVh > 0
+    ? () => `+=${rootRef.value.offsetHeight - window.innerHeight * (1 + props.tailVh / 100)}`
+    : 'bottom bottom'
   useScrubVideo(
     videoRef,
     rootRef,
     props.scrubStart
       ? { startAt: props.scrubStart }
-      : { start: 'top top', end: 'bottom bottom' },
+      : { start: 'top top', end: defaultEnd },
   )
 }
 

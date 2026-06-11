@@ -7,7 +7,8 @@
     ref="sceneRef"
     :video-url="videoUrl"
     :image="slice.primary.image || {}"
-    :scroll-length="slice.primary.scroll_length || 300"
+    :scroll-length="scrollLength"
+    :tail-vh="titleHtml ? DWELL_VH : 0"
     align="bottom"
     align-x="left"
     overlay-class=""
@@ -72,6 +73,15 @@ const videoUrl = computed(() => mediaUrl(props.slice.primary.video_url))
 // `primary.items` (a Group field); a plain static shape may use top-level `items`.
 const titles = computed(() => props.slice.primary.items || props.slice.items || [])
 
+// Once the end title lands we hold it pinned for an extra screen of scroll
+// before the section unpins. We grow the section by that much (so there's real
+// scroll distance to dwell over) and end the title timeline a screen early, so
+// GSAP holds it at its final state across the dwell.
+const DWELL_VH = 200
+const scrollLength = computed(
+  () => (props.slice.primary.scroll_length || 300) + (titleHtml.value ? DWELL_VH : 0),
+)
+
 // End title (the WYSIWYG h2 that wipes in over the second half). Rendered as
 // inline HTML so paragraph formatting (strong/em) is kept but the <p> wrapper is
 // stripped — the heading stays a single h2. Tolerates both the live Prismic
@@ -133,7 +143,15 @@ async function setupScrub() {
       scrollTrigger: {
         trigger,
         start: 'top top',
-        end: 'bottom bottom',
+        // With an end title the section is a dwell-screen taller (see
+        // `scrollLength`); end the timeline that much before the pin releases so
+        // GSAP holds the finished state — the title stays put — across the dwell.
+        // Expressed as a px offset from the start: `bottom bottom-=Xvh` offsets
+        // the *viewport* keyword the wrong way and pushes the end past the
+        // scrollable max (unreachable), which is what threw the end marker off.
+        end: heading
+          ? () => `+=${trigger.offsetHeight - window.innerHeight * (1 + DWELL_VH / 100)}`
+          : 'bottom bottom',
         scrub: 1,
       },
     })
