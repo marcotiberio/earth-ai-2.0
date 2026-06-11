@@ -222,13 +222,15 @@ onMounted(async () => {
       p: 1,
       ease: 'none',
       scrollTrigger: {
-        // Begin the scrub when the panel pins (section top hits the viewport
-        // top), and finish it 50vh before the panel unpins — that trailing
-        // 50vh keeps the section pinned so the completed stats sit on screen
-        // before the next section scrolls in. (Section height carries +50vh to
-        // fund this dwell; keep the two in step if you tune it.)
+        // Begin the scrub when the section's top reaches the viewport's
+        // vertical center — on the vertical mobile layout this keeps the graph
+        // in view before it animates, so we don't lose the opening of the
+        // count-up/video scrub. Finish it 50vh before the panel unpins — that
+        // trailing 50vh keeps the section pinned so the completed stats sit on
+        // screen before the next section scrolls in. (Section height carries
+        // +50vh to fund this dwell; keep the two in step if you tune it.)
         trigger,
-        start: 'top top',
+        start: 'top center',
         end: () => `bottom bottom+=${window.innerHeight * 0.5}`,
         scrub: 1,
       },

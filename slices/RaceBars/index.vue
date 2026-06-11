@@ -209,8 +209,8 @@ onMounted(async () => {
       // by a curve spanning the whole section.
       ease: 'none',
       scrollTrigger: {
-        trigger, 
-        start: 'top top',
+        trigger,
+        start: 'top center',
         end: () => `bottom bottom+=${window.innerHeight * 0.5}`,
         scrub: 2.5,
       },
