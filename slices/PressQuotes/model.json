@@ -45,6 +45,13 @@
             "placeholder": "Link to the article",
             "allowTargetBlank": true
           }
+        },
+        "link_label": {
+          "type": "Text",
+          "config": {
+            "label": "Link Label",
+            "placeholder": "Read More"
+          }
         }
       },
       "items": {}

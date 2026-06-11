@@ -33,8 +33,8 @@
         :target="linkTarget || undefined"
         :rel="linkTarget === '_blank' ? 'noopener noreferrer' : undefined"
         class="btn btn-primary mt-auto font-label"
-        alt="Read more"
-      >Read more</a>
+        :alt="linkLabel"
+      >{{ linkLabel }}</a>
     </component>
   </article>
 </template>
@@ -80,4 +80,5 @@ const imageAlt   = computed(() => resolveImageAlt(props.slice.primary.image, 'Pr
 const dateValue  = computed(() => props.slice.primary.date || '')
 const linkHref   = computed(() => linkUrl(props.slice.primary.link))
 const linkTarget = computed(() => props.slice.primary.link?.target || '')
+const linkLabel  = computed(() => props.slice.primary.link_label || 'Read More')
 </script>

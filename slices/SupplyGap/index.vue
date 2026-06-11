@@ -49,9 +49,10 @@
             </linearGradient>
           </defs>
 
-          <!-- gridlines + y labels -->
+          <!-- gridlines + y labels (with an extra dotted cap line on top) -->
           <g>
-            <g v-for="g in gridLines" :key="g.label">
+            <line :x1="mapX(0)" :y1="mapY(capY)" :x2="mapX(1000)" :y2="mapY(capY)" stroke="#FAF3E4" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15" />
+            <g v-for="(g, i) in gridLines" :key="i">
               <text :x="mapX(0)" :y="mapY(g.y) - 8" fill="#FAF3E4" font-size="12" opacity="1">{{ g.label }}</text>
               <line :x1="mapX(0)" :y1="mapY(g.y)" :x2="mapX(1000)" :y2="mapY(g.y)" stroke="#FAF3E4" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15" />
             </g>
@@ -88,7 +89,7 @@
         <!-- endpoint figures (HTML overlay, counting up) -->
         <div
           class="absolute flex flex-col items-end text-right leading-none"
-          :style="{ top: `${mapY(8) - demandOffset}px`, right: `${rightOffset}px`, opacity: fadeDemand, color: BEIGE }"
+          :style="{ top: `${mapY(capY) - demandOffset}px`, right: `${rightOffset}px`, opacity: fadeDemand, color: BEIGE }"
         >
           <div class="font-serif font-h3 tabular-nums tracking-tight md:font-h2">{{ demandTotal }}</div>
           <div class="mt-1 font-body uppercase text-beige">{{ demand.label }}</div>
@@ -160,21 +161,28 @@ const supplyPoints = [
 ]
 // Gridline rows. Labels come from the editable `y_ticks` group (entered low →
 // high in Prismic); the plot's top is the highest value, so we reverse them to
-// read top → bottom and space them evenly across the chart's 0–320 band. Falls
-// back to the original 50→10 scale when no ticks are set.
+// read top → bottom and space them evenly across the chart's 0–320 band.
 const Y_TOP = 0
 const Y_BOTTOM = 320
-const DEFAULT_Y_LABELS = ['50', '40', '30', '20', '10'] // high → low (top → bottom)
+const Y_LINE_COUNT = 5
 const gridLines = computed(() => {
   const raw = props.slice.primary.y_ticks || []
   const ticks = (Array.isArray(raw) && raw.some((v) => v && typeof v === 'object') ? items(raw) : raw)
     .filter((v) => v != null && String(v).trim() !== '')
-  const labels = ticks.length ? [...ticks].reverse() : DEFAULT_Y_LABELS
+  // Always render the dotted rows; labels (when set) read top → bottom.
+  const labels = ticks.length ? [...ticks].reverse() : Array(Y_LINE_COUNT).fill('')
   const n = labels.length
   return labels.map((label, i) => ({
     label,
     y: n > 1 ? Y_TOP + (Y_BOTTOM - Y_TOP) * (i / (n - 1)) : Y_TOP,
   }))
+})
+
+// Extra dotted cap line, one grid-gap above the topmost line.
+const capY = computed(() => {
+  const rows = gridLines.value
+  const gap = rows.length > 1 ? rows[1].y - rows[0].y : Y_BOTTOM - Y_TOP
+  return rows[0].y - gap
 })
 
 const PAD_TOP = 36
@@ -185,7 +193,11 @@ const bounds = ref({ width: 1000, height: 460 }) // SSR/first-paint default
 const mapX = (x) => (x / 1000) * bounds.value.width
 const mapY = (y) => PAD_TOP + ((y + 40) / 480) * (bounds.value.height - PAD_TOP - PAD_BOTTOM)
 
-const mappedDemand = computed(() => demandPoints.map((p) => [mapX(p[0]), mapY(p[1])]))
+// Lift the demand curve so its peak lands on the dotted cap line, widening the
+// deficit band between demand and supply.
+const demandPeak = Math.min(...demandPoints.map((p) => p[1]))
+const demandLift = computed(() => capY.value - demandPeak)
+const mappedDemand = computed(() => demandPoints.map((p) => [mapX(p[0]), mapY(p[1] + demandLift.value)]))
 const mappedSupply = computed(() => supplyPoints.map((p) => [mapX(p[0]), mapY(p[1])]))
 
 const toPath    = (pts) => 'M ' + pts.map((p) => `${p[0]} ${p[1]}`).join(' L ')
