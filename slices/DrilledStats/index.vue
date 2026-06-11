@@ -47,7 +47,7 @@
             <video
               v-if="videoUrl"
               ref="videoRef"
-              :src="videoUrl"
+              :src="videoSrc"
               :poster="posterUrl || undefined"
               muted
               playsinline
@@ -98,8 +98,12 @@ const titleHtml = computed(() => toHtml(props.slice.primary.title))
 const feetValue = computed(() => props.slice.primary.feet_value || '')
 const feetLabel = computed(() => props.slice.primary.feet_label || '')
 // Scrub video (Link-to-Media) + poster/fallback image.
-const videoUrl  = computed(() => mediaUrl(props.slice.primary.video_url))
-const posterUrl = computed(() => props.slice.primary.image?.url || '')
+const videoUrl     = computed(() => mediaUrl(props.slice.primary.video_url))
+const videoUrlHevc = computed(() => mediaUrl(props.slice.primary.video_url_hevc))
+const posterUrl    = computed(() => props.slice.primary.image?.url || '')
+// SSR keeps the h264 URL so hydration matches; onMounted swaps in the HEVC
+// sibling when the browser can play it.
+const videoSrc = ref(videoUrl.value)
 // Group field lives in primary; cap at 6 rows (the design only has room for six).
 const stats = computed(() => (props.slice.primary.stats || []).slice(0, 6))
 // Pinned scroll distance (vh) — editable per section; defaults to 300. (The
@@ -190,24 +194,47 @@ async function primeVideo() {
   syncVideo(progress.value) // land on the current scroll position (or last frame)
 }
 
+// Priming forces a full fetch, so don't run it until the section is anywhere
+// near the viewport — priming every section at mount made all clips download
+// in parallel on page load, starving the hero on mobile connections. ~2
+// screens out still leaves time to buffer before the panel pins.
+let primeIo = null
+function primeWhenNear() {
+  const el = rootRef.value
+  if (!el || typeof IntersectionObserver === 'undefined') return primeVideo()
+  primeIo = new IntersectionObserver((entries) => {
+    if (entries.some((e) => e.isIntersecting)) {
+      primeIo.disconnect()
+      primeIo = null
+      primeVideo()
+    }
+  }, { rootMargin: '200% 0px 200% 0px' })
+  primeIo.observe(el)
+}
+
 let ctx = null
 
 onMounted(async () => {
+  if (videoUrl.value) {
+    videoSrc.value = pickScrubSource(videoUrl.value, videoUrlHevc.value)
+    prefetchScrubVideo(videoSrc.value)
+  }
+
   // Reduced motion: collapse the scroll distance and show the finished scene
   // (final counts + the clip's last frame).
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     tall.value = false
     progress.value = 1
-    primeVideo()
+    primeWhenNear()
     return
   }
 
   const trigger = rootRef.value
   if (!trigger) return
 
-  // Start priming the clip immediately so it has buffered enough to scrub
-  // smoothly by the time the panel pins.
-  primeVideo()
+  primeWhenNear()
+
+  const coarse = window.matchMedia('(pointer: coarse)').matches
 
   const { gsap }              = await import('gsap')
   const { ScrollTrigger: ST } = await import('gsap/ScrollTrigger')
@@ -231,8 +258,12 @@ onMounted(async () => {
         // +50vh to fund this dwell; keep the two in step if you tune it.)
         trigger,
         start: 'top center',
-        end: () => `bottom bottom+=${window.innerHeight * 0.5}`,
-        scrub: 1,
+        // Touch scrolling is native (Lenis only smooths wheel input), so a
+        // momentum flick after the heavy pinned video sections rips through
+        // this scene. A heavier scrub lerp and a longer end dwell keep the
+        // count-up readable and hold the finished state on screen.
+        end: () => `bottom bottom+=${window.innerHeight * (coarse ? 0.75 : 0.5)}`,
+        scrub: coarse ? 3 : 1,
       },
       onUpdate: () => {
         progress.value = state.p
@@ -242,5 +273,8 @@ onMounted(async () => {
   }, trigger)
 })
 
-onUnmounted(() => ctx?.revert())
+onUnmounted(() => {
+  primeIo?.disconnect()
+  ctx?.revert()
+})
 </script>

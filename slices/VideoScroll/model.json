@@ -38,6 +38,14 @@
             "select": "media"
           }
         },
+        "video_url_hevc": {
+          "type": "Link",
+          "config": {
+            "label": "Background video (HEVC, optional)",
+            "placeholder": "Optional .scrub.hevc.mp4 — served to Safari/iOS, ~40% smaller",
+            "select": "media"
+          }
+        },
         "image": {
           "type": "Image",
           "config": {

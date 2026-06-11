@@ -67,6 +67,10 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref } from 'vue
 
 const props = defineProps({
   videoUrl:     { type: String, default: '' },
+  // Optional HEVC sibling (.scrub.hevc.mp4, hvc1-tagged): ~40% smaller, served
+  // instead of videoUrl when the browser hardware-decodes it (Safari/iOS — the
+  // platform where the scrub starved on slow networks).
+  videoUrlHevc: { type: String, default: '' },
   image:        { type: Object, default: () => ({}) },
   // Total pinned scroll distance in vh. With 200, the video stays pinned for
   // ~one full screen of scroll, over which the content travels in and out.
@@ -100,6 +104,9 @@ const inSimulator = inject('inSliceSimulator', false)
 const rootRef  = ref(null)
 const videoRef = ref(null)
 
+// Final URL after codec selection. Starts as the h264 URL so SSR markup and
+// hydration match; onMounted swaps in the HEVC sibling when supported.
+const chosenUrl = ref(props.videoUrl)
 // Lazy src: empty until the section nears the viewport (or immediately if eager).
 const videoSrc = ref(props.eager ? props.videoUrl : '')
 let observer = null
@@ -120,17 +127,29 @@ const alignXClass = computed(() => ({
 }[props.alignX] || 'justify-start text-left'))
 
 onMounted(() => {
-  if (!props.videoUrl || props.eager) return
-  const el = rootRef.value
-  if (!el || typeof IntersectionObserver === 'undefined') {
-    videoSrc.value = props.videoUrl // no IO support → just load it
+  if (!props.videoUrl) return
+  chosenUrl.value = pickScrubSource(props.videoUrl, props.videoUrlHevc)
+  if (props.eager) {
+    // Swap to the supported codec right after hydration — the h264 fetch has
+    // barely started at this point, so the restart is cheap.
+    videoSrc.value = chosenUrl.value
     return
   }
-  // Start fetching ~1.5 screens before the section enters so it has time to
-  // buffer enough for a smooth scrub by the time it pins.
+  // Queue a sequential background warm-up of the clip (starts after window
+  // load + idle), so by the time the lazy src attaches it's usually cached.
+  prefetchScrubVideo(chosenUrl.value)
+  const el = rootRef.value
+  if (!el || typeof IntersectionObserver === 'undefined') {
+    videoSrc.value = chosenUrl.value // no IO support → just load it
+    return
+  }
+  // Start fetching ~1.5 screens before the section enters (3 on mobile, where
+  // slower networks need a longer head start) so it has time to buffer enough
+  // for a smooth scrub by the time it pins.
+  const margin = window.matchMedia('(max-width: 767px)').matches ? '300%' : '150%'
   observer = new IntersectionObserver((entries) => {
     if (entries.some(e => e.isIntersecting)) {
-      videoSrc.value = props.videoUrl
+      videoSrc.value = chosenUrl.value
       // Setting src alone isn't enough — kick load() + a muted inline play() so
       // the clip actually buffers and (on iOS) unlocks frame painting for the
       // scrub. The composable's own kick already ran at mount, before this src
@@ -146,7 +165,7 @@ onMounted(() => {
       observer.disconnect()
       observer = null
     }
-  }, { rootMargin: '150% 0px 150% 0px' })
+  }, { rootMargin: `${margin} 0px ${margin} 0px` })
   observer.observe(el)
 })
 

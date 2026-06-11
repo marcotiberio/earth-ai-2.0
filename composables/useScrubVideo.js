@@ -34,6 +34,7 @@ export const SCRUB_PRESETS = {
 export function useScrubVideo(videoRef, triggerRef, options = {}) {
   let ctx = null
   let rafId = 0
+  let io = null
 
   // Resolve a named preset into positions. An explicit start/end always wins.
   const preset = SCRUB_PRESETS[options.startAt] || {}
@@ -50,6 +51,24 @@ export function useScrubVideo(videoRef, triggerRef, options = {}) {
     gsap.registerPlugin(ST)
 
     video.muted = true // required for an unattended play()
+
+    // Don't touch the network until the section is anywhere near the viewport.
+    // The kick below forces a full fetch, and running it for every section at
+    // mount made all clips download in parallel on page load — starving the
+    // hero's scrub on mobile connections. ~2 screens out is still early enough
+    // to buffer before the section pins. (ScrubScene lazy-attaches the src with
+    // its own observer; this gate covers sections whose src is set at mount.)
+    await new Promise((resolve) => {
+      if (typeof IntersectionObserver === 'undefined') return resolve()
+      io = new IntersectionObserver((entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          io.disconnect()
+          io = null
+          resolve()
+        }
+      }, { rootMargin: '200% 0px 200% 0px' })
+      io.observe(trigger)
+    })
 
     // Kick the pipeline BEFORE waiting for data. iOS Safari ignores
     // preload="auto" — it won't fetch the clip (and won't paint seeked frames)
@@ -112,11 +131,27 @@ export function useScrubVideo(videoRef, triggerRef, options = {}) {
     const DEADBAND  = 0.05                  // s — don't micro-toggle play/pause at the target
     const MAX_RATE  = options.maxRate  ?? 8 // cap playbackRate so fast scrolls stay watchable
     const RATE_GAIN = options.rateGain ?? 4 // how aggressively playbackRate tracks the gap
+    const BUF_MARGIN = 0.15                 // s — stay this far inside the buffered range
+
+    // Furthest playable time contiguous with `t` (-1 when `t` isn't buffered).
+    const bufferedEndAt = (t) => {
+      const b = video.buffered
+      for (let i = 0; i < b.length; i++) {
+        if (b.start(i) - 0.1 <= t && t <= b.end(i)) return b.end(i)
+      }
+      return -1
+    }
+
     const loop = () => {
       rafId = requestAnimationFrame(loop)
       const dur = video.duration
       if (!Number.isFinite(dur) || dur <= 0) return
-      const target = targetProgress * dur
+      let target = targetProgress * dur
+      // Never chase into an unbuffered region: on a slow network the scrub then
+      // lags smoothly behind the scroll and catches up as data arrives, instead
+      // of stalling the decoder and freezing the picture.
+      const limit = bufferedEndAt(video.currentTime)
+      if (limit >= 0) target = Math.min(target, Math.max(0, limit - BUF_MARGIN))
       const diff   = target - video.currentTime
       if (diff > DEADBAND) {
         // Behind the target → play forward to catch up (repaints every frame).
@@ -137,6 +172,7 @@ export function useScrubVideo(videoRef, triggerRef, options = {}) {
 
   onUnmounted(() => {
     if (rafId) cancelAnimationFrame(rafId)
+    io?.disconnect()
     ctx?.revert()
   })
 }

@@ -3,6 +3,7 @@
   <ScrubScene
     v-if="slice.variation === 'overlay'"
     :video-url="videoUrl"
+    :video-url-hevc="videoUrlHevc"
     :image="slice.primary.image || {}"
     :scroll-length="slice.primary.scroll_length || 300"
     :scrub-start="slice.primary.scrub_start || ''"
@@ -42,7 +43,8 @@
       <video
         v-if="videoUrl"
         ref="videoRef"
-        :src="videoUrl"
+        :src="videoSrc"
+        :poster="slice.primary.image?.url || undefined"
         class="w-full h-[40vh] md:h-[55vh] object-cover"
         muted
         playsinline
@@ -77,7 +79,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { asHTML } from '@prismicio/client'
 
 const props = defineProps({
@@ -114,6 +116,7 @@ const mediaUrl = (field) =>
 const titleHtml    = computed(() => toHtml(props.slice.primary.title))
 const subtitleHtml = computed(() => toHtml(props.slice.primary.subtitle))
 const videoUrl     = computed(() => mediaUrl(props.slice.primary.video_url))
+const videoUrlHevc = computed(() => mediaUrl(props.slice.primary.video_url_hevc))
 
 // Subtitle resting position over the pinned video. Mirrors ScrubScene's own
 // alignment mapping so the subtitle can be placed independently of the title.
@@ -132,8 +135,15 @@ const subtitleAlignXClass = computed(() => ({
 // Only used by the non-pinned "default" band variation.
 const rootRef  = ref(null)
 const videoRef = ref(null)
+// SSR keeps the h264 URL so hydration matches; onMounted swaps in the HEVC
+// sibling when the browser can play it, and queues the background warm-up.
+const videoSrc = ref(videoUrl.value)
 
 if (props.slice.variation !== 'overlay' && props.slice.primary.video_url) {
+  onMounted(() => {
+    videoSrc.value = pickScrubSource(videoUrl.value, videoUrlHevc.value)
+    prefetchScrubVideo(videoSrc.value)
+  })
   // `scrub_start` ('top' | 'middle') is set per section in the Prismic field.
   useScrubVideo(videoRef, rootRef, { startAt: props.slice.primary.scrub_start })
 }

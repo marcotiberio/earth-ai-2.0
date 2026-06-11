@@ -270,6 +270,8 @@ onMounted(async () => {
   const trigger = rootRef.value
   if (!trigger) return
 
+  const coarse = window.matchMedia('(pointer: coarse)').matches
+
   const { gsap }              = await import('gsap')
   const { ScrollTrigger: ST } = await import('gsap/ScrollTrigger')
   gsap.registerPlugin(ST)
@@ -282,8 +284,12 @@ onMounted(async () => {
       scrollTrigger: {
         trigger,
         start: 'top center',
-        end: () => `bottom bottom+=${window.innerHeight * 0.5}`,
-        scrub: 1.2,
+        // Touch scrolling is native (Lenis only smooths wheel input), so a
+        // momentum flick after the heavy pinned video sections rips through
+        // this scene. A heavier scrub lerp and a longer end dwell keep the
+        // chart readable and hold the finished state on screen.
+        end: () => `bottom bottom+=${window.innerHeight * (coarse ? 0.75 : 0.5)}`,
+        scrub: coarse ? 3 : 1.2,
       },
       onUpdate: () => { progress.value = state.p },
     })

@@ -2,6 +2,7 @@
   <!-- Pinned closing video; the CTA scrolls over it -->
   <ScrubScene
     :video-url="slice.primary.video_url || ''"
+    :video-url-hevc="videoUrlHevc"
     :image="slice.primary.image || {}"
     :scroll-length="slice.primary.scroll_length || 300"
     :scrub-start="slice.primary.scrub_start || ''"
@@ -25,10 +26,19 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   slice:   { type: Object, required: true },
   context: { type: Object },
   index:   { type: Number },
   slices:  { type: Array },
 })
+
+// Link-to-Media fields come back as an object ({ url, ... }); static content
+// passes a plain string.
+const mediaUrl = (field) =>
+  typeof field === 'string' ? field : field?.url || ''
+
+const videoUrlHevc = computed(() => mediaUrl(props.slice.primary.video_url_hevc))
 </script>
