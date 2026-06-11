@@ -37,8 +37,8 @@
     </div>
 
     <!-- Bottom bar -->
-    <div class="mt-sm flex flex-col justify-start md:flex-row md:items-center md:justify-end gap-sm border-t border-beige pt-sm font-label text-beige">
-      <nav v-if="footer?.data?.legal_links?.length" class="w-full flex justify-center md:justify-end gap-sm">
+    <div class="mt-sm flex flex-col justify-start sm:flex-row sm:items-center sm:justify-end gap-sm border-t border-beige pt-sm font-label text-beige">
+      <nav v-if="footer?.data?.legal_links?.length" class="w-full flex justify-center sm:justify-end gap-sm">
         <PrismicLink
           v-for="(item, i) in footer.data.legal_links"
           :key="i"
@@ -60,41 +60,6 @@ const prismic = usePrismic()
 const { data: footer } = await useAsyncData('footer', () =>
   prismic.client.getSingle('footer').catch(() => null),
 )
-
-// Fallback in the SliceZone's shape, so the footer keeps rendering before the
-// `footer` document is published. Remove once content is live in Prismic.
-const fallbackPress = [
-  {
-    slice_type: 'press_quotes',
-    variation: 'default',
-    primary: {
-      title: 'Earth AI is vertically integrating the search for critical minerals.',
-      date: '2025-08-07',
-      link: '',
-      image: {},
-    },
-  },
-  {
-    slice_type: 'press_quotes',
-    variation: 'default',
-    primary: {
-      title: 'The Future 50 is here.',
-      date: '2025-08-06',
-      link: '',
-      image: {},
-    },
-  },
-  {
-    slice_type: 'press_quotes',
-    variation: 'default',
-    primary: {
-      title: "AI could be the US's secret weapon in the race to mine more minerals — if it can prove itself.",
-      date: '2025-08-03',
-      link: '',
-      image: {},
-    },
-  },
-]
 
 const press = computed(() => {
   const slices = footer.value?.data?.slices

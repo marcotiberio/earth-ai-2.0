@@ -1,4 +1,6 @@
 {
   "repositoryName": "earth-ai-static",
-  "routes": []
+  "routes": [
+    { "type": "page", "path": "/:uid" }
+  ]
 }

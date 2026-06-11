@@ -1,6 +1,6 @@
 <template>
   <section class="boxed bg-darkblue text-beige">
-    <div class="mx-auto max-w-3xl">
+    <div class="max-w-screen-xl">
       <!-- Heading + optional sub-line -->
       <header v-if="slice.primary.title || slice.primary.subtitle" class="mb-md">
         <h1
@@ -37,23 +37,69 @@ defineProps({
    the project's `.font-*` sizes are component classes, not @apply-able
    utilities.) */
 .text-content :deep(h2) {
-  @apply font-serif font-normal leading-[1.1] tracking-tight mt-md mb-xs;
-  font-size: 1.625rem;
+  font-size: 2rem;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  margin-block-end: 1rem;
+
+  @screen sm {
+    font-size: 2.75rem;  
+  }
+  
+  @screen xl {
+    font-size: 3.75rem;  
+  }
 }
-.text-content :deep(h3),
-.text-content :deep(h4) {
-  @apply font-serif font-normal leading-[1.15] tracking-tight mt-sm mb-xs;
+
+.text-content :deep(h3) { 
+  font-size: 1.375rem;
+  line-height: 1.1;
+  letter-spacing: 0;
+  margin-block-end: 1rem;
+
+  @screen sm {
+    font-size: 1.575rem;  
+  }
+  
+  @screen xl {
+    font-size: 1.875rem;  
+  }
 }
-.text-content :deep(h3) { font-size: 1.375rem; }
-.text-content :deep(h4) { font-size: 1.125rem; }
+
+.text-content :deep(h4) { 
+  font-size: 1.2rem;
+  line-height: 1.1;
+  letter-spacing: 0;
+  margin-block-end: 1rem;
+  @screen sm {
+    font-size: 1.3rem;  
+  }
+  
+  @screen xl {
+    font-size: 1.6rem;  
+  }
+}
 
 .text-content :deep(p) {
-  @apply leading-relaxed mb-xs;
+  font-size: 1rem;
+  line-height: 1.1;
+  letter-spacing: 0;
+  margin-block-end: 1rem;
+
+  @screen sm {
+    font-size: 1.2rem;
+  }
+
+  @screen xl {
+    font-size: 1.375rem;  
+  }
 }
+
 .text-content :deep(ul),
 .text-content :deep(ol) {
   @apply mb-xs pl-6 leading-relaxed;
 }
+
 .text-content :deep(ul) { @apply list-disc; }
 .text-content :deep(ol) { @apply list-decimal; }
 .text-content :deep(li) { @apply mb-2; }
