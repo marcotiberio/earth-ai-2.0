@@ -24,10 +24,10 @@
             v-html="titleHtml"
           />
 
-          <ul class="mt-12 grid max-w-[550px] grid-cols-2 gap-x-10 gap-y-12 lg:mt-20 xl:gap-x-20">
+          <ul class="mt-6 grid max-w-[550px] grid-cols-2 gap-x-8 gap-y-6 lg:mt-20 xl:gap-x-20">
             <li v-for="(stat, i) in stats" :key="i" class="relative flex flex-col">
               <DottedLine class="w-full" />
-              <h2 class="mt-5 mb-2 font-serif font-h2 font-normal leading-[1.05] tracking-tight tabular-nums">
+              <h2 class="mt-4 mb-2 font-serif font-h2">
                 {{ counter(stat.value) }}
               </h2>
               <span class="font-caption font-medium tracking-wide">{{ stat.label }}</span>

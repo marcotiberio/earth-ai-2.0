@@ -21,11 +21,11 @@
            own vertical/horizontal alignment lets it sit apart from the title. -->
       <div
         v-if="subtitleHtml"
-        class="absolute inset-0 z-10 flex px-xs md:px-sm pointer-events-none"
+        class="absolute inset-x-0 inset-y-sm z-10 flex px-xs md:px-sm pointer-events-none"
         :class="[subtitleAlignClass, subtitleAlignXClass]"
       >
         <p
-          class="text-beige font-body w-full md:w-1/2 lg:w-1/3"
+          class="text-beige font-h3 w-full md:w-1/2"
           v-html="subtitleHtml"
         />
       </div>

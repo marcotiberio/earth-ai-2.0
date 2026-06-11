@@ -75,9 +75,14 @@ onMounted(async () => {
   window.scrollTo(0, 0)
 
   // Collect homepage media straight from the Prismic document, then download.
+  // Only the first few videos (top of the page) gate the overlay; the rest of
+  // the media streams in the background once we lift it.
   try {
     const doc = await prismic.client.getSingle('home_page')
-    registerAssets([...collectMediaUrls(doc)])
+    const entries = [...collectMediaUrls(doc)]
+    const priorityVideos = entries.filter(([, type]) => type === 'video').slice(0, 3)
+    registerAssets(priorityVideos, { priority: true })
+    registerAssets(entries)
   } catch { /* no document / offline → overlay still resolves via timeout */ }
 
   startLoading()

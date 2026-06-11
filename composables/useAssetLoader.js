@@ -12,20 +12,31 @@ import { reactive, computed, readonly } from 'vue'
  * State lives at module scope so it's a single shared store across the app.
  */
 const state = reactive({
-  assets: [], // { url, type: 'video' | 'image', loaded, total, done }
+  assets: [], // { url, type: 'video' | 'image', priority, loaded, total, done }
   started: false,
   done: false,
 })
 
-// Overall progress 0..1. Each asset contributes its real byte fraction when the
-// server sends a Content-Length; otherwise it counts 0 until it finishes, then 1.
+// Assets that actually gate the overlay. We only hold the launch screen for the
+// handful of media marked `priority` (the first scrub videos at the top of the
+// page); everything else streams in the background after the overlay lifts.
+const gating = computed(() => {
+  const p = state.assets.filter((a) => a.priority)
+  return p.length ? p : state.assets
+})
+
+// Overall progress 0..1 across the gating assets only — so the bars track the
+// media we're actually waiting on. Each asset contributes its real byte fraction
+// when the server sends a Content-Length; otherwise it counts 0 until it
+// finishes, then 1.
 const progress = computed(() => {
-  if (!state.assets.length) return state.done ? 1 : 0
+  const assets = gating.value
+  if (!assets.length) return state.done ? 1 : 0
   let sum = 0
-  for (const a of state.assets) {
+  for (const a of assets) {
     sum += a.total > 0 ? Math.min(a.loaded / a.total, 1) : a.done ? 1 : 0
   }
-  return sum / state.assets.length
+  return sum / assets.length
 })
 
 const VIDEO_RE = /\.(mp4|webm|mov|m4v)(\?|#|$)/i
@@ -66,11 +77,18 @@ export function collectMediaUrls(node, found = new Map()) {
   return found
 }
 
-/** Register [url, type] entries (e.g. from collectMediaUrls(...).entries()). */
-export function registerAssets(entries) {
+/**
+ * Register [url, type] entries (e.g. from collectMediaUrls(...).entries()).
+ * Pass `{ priority: true }` for the media that should gate the launch overlay;
+ * everything else still downloads, but in the background once the overlay lifts.
+ */
+export function registerAssets(entries, { priority = false } = {}) {
   for (const [url, type] of entries) {
-    if (!state.assets.some((a) => a.url === url)) {
-      state.assets.push({ url, type, loaded: 0, total: 0, done: false })
+    const existing = state.assets.find((a) => a.url === url)
+    if (existing) {
+      if (priority) existing.priority = true
+    } else {
+      state.assets.push({ url, type, priority, loaded: 0, total: 0, done: false })
     }
   }
 }
@@ -138,15 +156,25 @@ async function loadOne(a) {
 }
 
 /**
- * Begin downloading every registered asset. Resolves when all are ready, or
- * when `timeout` ms elapse — so a stalled asset can never trap the user behind
- * the overlay forever. Idempotent.
+ * Begin downloading every registered asset. The overlay is only gated on the
+ * priority assets: this resolves once they're ready (or `timeout` ms elapse, so
+ * a stalled asset can never trap the user), while the remaining media keeps
+ * downloading in the background to warm the cache for later scenes. Idempotent.
  */
 export async function startLoading({ timeout = 25000 } = {}) {
   if (state.started) return
   state.started = true
 
-  const all = Promise.all(state.assets.map(loadOne))
+  const priority = state.assets.filter((a) => a.priority)
+  const rest = state.assets.filter((a) => !a.priority)
+  // No explicit priorities → fall back to gating on everything.
+  const gate = priority.length ? priority : state.assets
+  const background = priority.length ? rest : []
+
+  // Fire-and-forget the background media; it must not hold up the overlay.
+  for (const a of background) loadOne(a)
+
+  const all = Promise.all(gate.map(loadOne))
   let timer
   const cap = new Promise((resolve) => { timer = setTimeout(resolve, timeout) })
 
