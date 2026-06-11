@@ -1,19 +1,24 @@
 import { onMounted, onUnmounted, unref } from 'vue'
 
 /**
- * Drive a <video>'s currentTime from scroll position (scroll-scrub), instead of
- * autoplaying it. Pass a ref to the video and a ref to the element that acts as
- * the ScrollTrigger trigger (usually the section root).
+ * Drive a <video> from scroll position (scroll-scrub), instead of autoplaying
+ * it. Pass a ref to the video and a ref to the element that acts as the
+ * ScrollTrigger trigger (usually the section root).
+ *
+ * Uses "play-chase": rather than paused-seeking each frame (which doesn't
+ * repaint on Android Chrome — the picture freezes while the timestamp moves),
+ * it plays the clip forward toward the scroll target and only seeks for
+ * backward motion. See the chase loop below for the full rationale.
  *
  * Options:
  *   startAt     — named start preset ('top' | 'middle'); see SCRUB_PRESETS.
  *   start / end — explicit ScrollTrigger positions. Override the preset when
  *                 given; otherwise default to the full transit through view.
- *   scrub       — ScrollTrigger scrub value (seconds of catch-up lag).
+ *   maxRate     — cap on forward playbackRate while catching up (default 8).
+ *   rateGain    — how aggressively playbackRate tracks the gap (default 4).
  *
- * The Safari priming notes from the original ScrollVideo slice still apply:
- * we wait for a decoded frame and kick the decode pipeline with a muted
- * play()/pause() so seeks actually repaint.
+ * Priming still matters: we wait for the duration and kick the decode pipeline
+ * with a muted play()/pause() so the clip buffers and (on iOS) unlocks paint.
  */
 
 // Named start/end presets, selectable per section (e.g. via a `scrub_start`
@@ -28,6 +33,7 @@ export const SCRUB_PRESETS = {
 
 export function useScrubVideo(videoRef, triggerRef, options = {}) {
   let ctx = null
+  let rafId = 0
 
   // Resolve a named preset into positions. An explicit start/end always wins.
   const preset = SCRUB_PRESETS[options.startAt] || {}
@@ -83,28 +89,56 @@ export function useScrubVideo(videoRef, triggerRef, options = {}) {
       video.currentTime = 0
     } catch { /* ignore */ }
 
-    // Seek explicitly on each tick rather than tweening currentTime directly:
-    // Safari coalesces rapid currentTime writes, so an explicit seek repaints
-    // more reliably.
-    const state = { time: 0 }
+    // "Play-chase" scrub. A paused seek (`video.currentTime = t`) advances the
+    // timestamp but does NOT repaint the picture on Android Chrome — the frame
+    // freezes while the clip "scrubs" silently. The only thing that reliably
+    // repaints there is active playback, so instead of seeking we keep the video
+    // PLAYING toward the scroll-derived target: a playing clip paints every
+    // frame, making forward scrubbing smooth cross-platform. Reverse playback
+    // isn't possible, so scrolling backward falls back to a direct seek.
+    let targetProgress = 0
     ctx = gsap.context(() => {
-      gsap.to(state, {
-        time: video.duration,
-        ease: 'none',
-        scrollTrigger: {
-          trigger,
-          start,
-          end,
-          scrub: options.scrub ?? 1,
-        },
-        onUpdate: () => {
-          if (Number.isFinite(state.time)) video.currentTime = state.time
-        },
+      // Bare ScrollTrigger (no tween): onUpdate hands us the raw scroll
+      // progress; the chase loop below turns that into frame delivery. The
+      // smoothing comes from the video physically catching up, so no `scrub`.
+      ST.create({
+        trigger,
+        start,
+        end,
+        onUpdate: (self) => { targetProgress = self.progress },
       })
     }, trigger)
+
+    const DEADBAND  = 0.05                  // s — don't micro-toggle play/pause at the target
+    const MAX_RATE  = options.maxRate  ?? 8 // cap playbackRate so fast scrolls stay watchable
+    const RATE_GAIN = options.rateGain ?? 4 // how aggressively playbackRate tracks the gap
+    const loop = () => {
+      rafId = requestAnimationFrame(loop)
+      const dur = video.duration
+      if (!Number.isFinite(dur) || dur <= 0) return
+      const target = targetProgress * dur
+      const diff   = target - video.currentTime
+      if (diff > DEADBAND) {
+        // Behind the target → play forward to catch up (repaints every frame).
+        if (video.paused) video.play().catch(() => {})
+        video.playbackRate = Math.min(MAX_RATE, Math.max(1, diff * RATE_GAIN))
+      } else if (diff < -DEADBAND) {
+        // Ahead of the target (scrolled up) → can't play in reverse, so seek.
+        if (!video.paused) video.pause()
+        video.playbackRate = 1
+        video.currentTime = target
+      } else if (!video.paused) {
+        // Arrived → hold this frame.
+        video.pause()
+      }
+    }
+    rafId = requestAnimationFrame(loop)
   })
 
-  onUnmounted(() => ctx?.revert())
+  onUnmounted(() => {
+    if (rafId) cancelAnimationFrame(rafId)
+    ctx?.revert()
+  })
 }
 
 // Two ready-made instances a section can call directly. Both forward to the
