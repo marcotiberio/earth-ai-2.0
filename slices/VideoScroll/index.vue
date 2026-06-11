@@ -25,7 +25,7 @@
         :class="[subtitleAlignClass, subtitleAlignXClass]"
       >
         <p
-          class="text-beige font-h3 w-full md:w-1/2"
+          class="text-beige font-h3 w-full lg:w-1/2"
           v-html="subtitleHtml"
         />
       </div>
