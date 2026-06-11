@@ -156,11 +156,26 @@ const tall = ref(true)
 // clip's metadata loads; until then syncVideo is a no-op.
 let videoDuration = 0
 
+// Seek-gating (mirrors useScrubVideo's backward path): re-issuing a seek on
+// every scroll update cancels the in-flight one before it can paint, which
+// stutters on mobile now that the encodes are GOP=5 (each seek decodes up to 5
+// frames from a keyframe) instead of all-intra. Wait for the previous seek to
+// paint, and use nearest-keyframe fastSeek for large jumps.
+let lastSeekAt = 0
+
 function syncVideo(p) {
   const v = videoRef.value
   if (!v || !videoDuration) return
   const t = videoDuration * p
-  if (Number.isFinite(t)) v.currentTime = t
+  if (!Number.isFinite(t)) return
+  const now = performance.now()
+  if (v.seeking && now - lastSeekAt < 250) return
+  lastSeekAt = now
+  if (typeof v.fastSeek === 'function' && Math.abs(t - v.currentTime) > 0.5) {
+    v.fastSeek(t)
+  } else {
+    v.currentTime = t
+  }
 }
 
 // Prime the clip for scroll-scrubbing (mirrors useScrubVideo): a muted inline

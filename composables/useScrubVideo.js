@@ -133,6 +133,18 @@ export function useScrubVideo(videoRef, triggerRef, options = {}) {
     const RATE_GAIN = options.rateGain ?? 4 // how aggressively playbackRate tracks the gap
     const BUF_MARGIN = 0.15                 // s — stay this far inside the buffered range
 
+    // Backward scrubbing pays the GOP cost: every seek decodes forward from the
+    // nearest keyframe (≤ GOP frames with the .scrub encodes). Setting
+    // currentTime every rAF cancels the in-flight seek before it can paint, so
+    // on mobile almost no frame completes and the reverse scrub stutters.
+    // Instead, issue a new seek only after the previous one has painted —
+    // frames then arrive at whatever rate the decoder sustains. For large gaps
+    // (fast flick upward) fastSeek trades frame-accuracy for nearest-keyframe
+    // speed; at GOP=5 that's ≤ 5/fps s off, invisible mid-flick.
+    const SEEK_STALL_MS = 250 // re-issue if a seek silently never completes
+    const FAST_SEEK_GAP = 0.5 // s — beyond this, keyframe accuracy is enough
+    let lastSeekAt = 0
+
     // Furthest playable time contiguous with `t` (-1 when `t` isn't buffered).
     const bufferedEndAt = (t) => {
       const b = video.buffered
@@ -161,7 +173,15 @@ export function useScrubVideo(videoRef, triggerRef, options = {}) {
         // Ahead of the target (scrolled up) → can't play in reverse, so seek.
         if (!video.paused) video.pause()
         video.playbackRate = 1
-        video.currentTime = target
+        const now = performance.now()
+        if (!video.seeking || now - lastSeekAt > SEEK_STALL_MS) {
+          lastSeekAt = now
+          if (typeof video.fastSeek === 'function' && diff < -FAST_SEEK_GAP) {
+            video.fastSeek(target)
+          } else {
+            video.currentTime = target
+          }
+        }
       } else if (!video.paused) {
         // Arrived → hold this frame.
         video.pause()
