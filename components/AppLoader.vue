@@ -30,13 +30,15 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { collectMediaUrls, registerAssets, startLoading, useAssetLoader } from '~/composables/useAssetLoader'
 
-// Smallest time the overlay stays up, so a fast/cached load doesn't flash.
-const MIN_DISPLAY_MS = 700
+// The overlay is a timed splash, not a real byte-meter: it holds the viewport
+// for a fixed beat so the homepage's <video> elements get a head start buffering
+// in the background, then lifts. We deliberately don't gate on real downloads —
+// forcing full fetches up front made first paint slower than just letting the
+// videos stream lazily as the page needs them.
+const HOLD_MS = 2000   // total time the bars take to fill from 0 → 100%
+const FADE_HOLD_MS = 220 // beat to admire the filled mark before fading out
 
-const { progress, state } = useAssetLoader()
-const prismic = usePrismic()
 const { $lenis } = useNuxtApp()
 
 const visible = ref(true)
@@ -52,40 +54,31 @@ function barStyle(order) {
   return { fillOpacity: DIM + (1 - DIM) * t }
 }
 
-function tick() {
-  // Ease toward the live progress, and toward a clean 1 once loading is done.
-  const target = state.done ? 1 : Math.max(displayed.value, progress.value)
-  displayed.value += (target - displayed.value) * 0.1
+// Ease-out so the fill starts brisk and settles into 100% — feels like loading,
+// not a linear timer.
+const easeOut = (t) => 1 - Math.pow(1 - t, 2)
 
+function tick() {
   const elapsed = performance.now() - startedAt
-  if (state.done && displayed.value > 0.99 && elapsed >= MIN_DISPLAY_MS && !hiding) {
+  displayed.value = easeOut(Math.min(elapsed / HOLD_MS, 1))
+
+  if (elapsed >= HOLD_MS && !hiding) {
     displayed.value = 1
     hiding = true
     // Hold the filled mark a beat, then trigger the fade-out.
-    setTimeout(() => { visible.value = false }, 220)
+    setTimeout(() => { visible.value = false }, FADE_HOLD_MS)
     return
   }
   rafId = requestAnimationFrame(tick)
 }
 
-onMounted(async () => {
-  // Lock the page while we load: stop Lenis and pin the scroll to the top.
+onMounted(() => {
+  // Lock the page while the splash holds: stop Lenis and pin the scroll to the
+  // top so the videos below can buffer without the user scrolling into them.
   $lenis?.stop?.()
   document.documentElement.style.overflow = 'hidden'
   window.scrollTo(0, 0)
 
-  // Collect homepage media straight from the Prismic document, then download.
-  // Only the first few videos (top of the page) gate the overlay; the rest of
-  // the media streams in the background once we lift it.
-  try {
-    const doc = await prismic.client.getSingle('home_page')
-    const entries = [...collectMediaUrls(doc)]
-    const priorityVideos = entries.filter(([, type]) => type === 'video').slice(0, 3)
-    registerAssets(priorityVideos, { priority: true })
-    registerAssets(entries)
-  } catch { /* no document / offline → overlay still resolves via timeout */ }
-
-  startLoading()
   startedAt = performance.now()
   rafId = requestAnimationFrame(tick)
 })
