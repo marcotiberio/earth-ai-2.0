@@ -1,5 +1,5 @@
 <template>
-  <header class="fixed top-0 left-0 w-full z-50 px-xs md:px-sm">
+  <header ref="headerRef" class="fixed top-0 left-0 w-full z-50 px-xs md:px-sm will-change-transform">
     <!-- Thin rule under the bar, as in the NAV-STICK frame -->
     <div class="flex flex-col items-start justify-start mt-6 gap-6 lg:mt-8 lg:gap-8">
       <DottedLine class="w-full" />
@@ -38,6 +38,9 @@
 
 <script setup>
 const route = useRoute()
+const { $lenis } = useNuxtApp()
+
+const headerRef = ref(null)
 
 // On the homepage, smooth-scroll to top instead of triggering a no-op navigation.
 function scrollToTop(e) {
@@ -46,6 +49,41 @@ function scrollToTop(e) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
+
+// The footer shares the nav's beige palette, so once you scroll into it the
+// fixed nav logo overlays the footer's title/logo. Instead of leaving the nav
+// pinned, let the footer's top edge "push" it off-screen: we translate the nav
+// up by exactly how far the footer has crossed into the nav's band, so the
+// nav's bottom edge stays flush with the footer's top edge — no overlap, no gap.
+let footerEl = null
+
+function updateNavPush() {
+  const header = headerRef.value
+  if (!header) return
+
+  if (!footerEl || !footerEl.isConnected) footerEl = document.querySelector('footer')
+  if (!footerEl) return
+
+  const navHeight = header.offsetHeight
+  const footerTop = footerEl.getBoundingClientRect().top
+  // 0 until the footer reaches the nav's lower edge, then grows to navHeight.
+  const overlap = Math.min(Math.max(navHeight - footerTop, 0), navHeight)
+  header.style.transform = `translate3d(0, ${-overlap}px, 0)`
+}
+
+onMounted(() => {
+  updateNavPush()
+  // Lenis owns the scroll position; fall back to native scroll if absent.
+  if ($lenis) $lenis.on('scroll', updateNavPush)
+  else window.addEventListener('scroll', updateNavPush, { passive: true })
+  window.addEventListener('resize', updateNavPush)
+})
+
+onBeforeUnmount(() => {
+  if ($lenis) $lenis.off('scroll', updateNavPush)
+  else window.removeEventListener('scroll', updateNavPush)
+  window.removeEventListener('resize', updateNavPush)
+})
 
 // TODO: pull from Prismic global settings once repo is connected
 const navItems = [
