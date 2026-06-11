@@ -34,14 +34,14 @@
     </template>
 
     <!-- Content that scrolls over the pinned hero video -->
-    <div class="w-full flex flex-col gap-8 md:flex-row md:items-end md:justify-start">
+    <div class="w-full flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-start">
       <h1
-        class="ea-display font-serif text-beige font-h1 w-full md:w-1/2"
+        class="ea-display font-serif text-beige font-h1 w-full lg:w-1/2"
         v-html="titleHtml"
       />
       <p
         v-if="subtitleHtml"
-        class="text-beige font-body max-w-sm md:mb-3 w-full md:w-1/2"
+        class="text-beige font-body max-w-sm md:mb-3 w-full lg:w-1/2"
         v-html="subtitleHtml"
       />
     </div>

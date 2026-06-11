@@ -18,14 +18,14 @@
       :class="tall ? 'sticky top-0 flex h-screen flex-col justify-between overflow-hidden' : 'flex min-h-screen flex-col justify-between md:justify-center py-24'"
     >
       <!-- Heading + intro -->
-      <div class="flex shrink-0 flex-col gap-6 md:flex-row md:items-start md:justify-start md:gap-sm">
+      <div class="flex shrink-0 flex-col gap-6 md:gap-8 md:flex-row md:items-start md:justify-start lg:gap-sm">
         <h2
           class="ea-display font-serif text-beige font-h2 w-full md:w-1/2"
           v-html="headingHtml"
         />
         <p
           v-if="body"
-          class="text-beige font-body md:pt-2 w-full md:w-1/4"
+          class="text-beige font-body md:pt-2 w-full md:w-1/2 lg:w-1/4"
         >
           {{ body }}
         </p>

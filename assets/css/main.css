@@ -70,7 +70,7 @@ html.lenis body {
     line-height: 1.15;
     letter-spacing: -0.02em;
 
-    @screen lg {
+    @screen md {
       font-size: 5.25rem;  
     }
 
@@ -84,7 +84,7 @@ html.lenis body {
     line-height: 1.1;
     letter-spacing: -0.015em;
 
-    @screen lg {
+    @screen md {
       font-size: 2.75rem;  
     }
     
@@ -112,7 +112,7 @@ html.lenis body {
     line-height: 1.1;
     letter-spacing: 0;
 
-    @screen lg {
+    @screen md {
       font-size: 1.2rem;
     }
 
@@ -123,11 +123,11 @@ html.lenis body {
 
   .font-label,
   .font-caption {
-    font-size: 1rem;
+    font-size: 0.875rem;
     line-height: 1;
     letter-spacing: 0;
 
-    @screen lg {
+    @screen md {
       font-size: 0.875rem;
     }
 
