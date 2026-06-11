@@ -49,6 +49,17 @@
 					}
 				]
 			},
+			"subtitle": {
+				"__TYPE__": "StructuredTextContent",
+				"value": [
+					{
+						"type": "paragraph",
+						"content": {
+							"text": "A supporting caption that sits independently over the video."
+						}
+					}
+				]
+			},
 			"scrub_start": {
 				"__TYPE__": "FieldContent",
 				"value": "middle",
@@ -62,6 +73,16 @@
 			"title_align_horizontal": {
 				"__TYPE__": "FieldContent",
 				"value": "left",
+				"type": "Select"
+			},
+			"subtitle_align_vertical": {
+				"__TYPE__": "FieldContent",
+				"value": "bottom",
+				"type": "Select"
+			},
+			"subtitle_align_horizontal": {
+				"__TYPE__": "FieldContent",
+				"value": "right",
 				"type": "Select"
 			}
 		},

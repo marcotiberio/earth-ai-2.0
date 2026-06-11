@@ -16,6 +16,19 @@
     <template #pinned>
       <div class="bg-gradient-to-b from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 top-0 h-1/4 pointer-events-none" />
       <div class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
+
+      <!-- Subtitle: an independently-aligned caption layer over the video. Its
+           own vertical/horizontal alignment lets it sit apart from the title. -->
+      <div
+        v-if="subtitleHtml"
+        class="absolute inset-0 z-10 flex px-xs md:px-sm pointer-events-none"
+        :class="[subtitleAlignClass, subtitleAlignXClass]"
+      >
+        <p
+          class="text-beige font-body w-full md:w-1/2 lg:w-1/3"
+          v-html="subtitleHtml"
+        />
+      </div>
     </template>
     <h2
       class="ea-display font-serif text-beige font-h2 w-full md:w-screen-md"
@@ -98,8 +111,23 @@ const toHtml = (field) => {
 const mediaUrl = (field) =>
   typeof field === 'string' ? field : field?.url || ''
 
-const titleHtml = computed(() => toHtml(props.slice.primary.title))
-const videoUrl  = computed(() => mediaUrl(props.slice.primary.video_url))
+const titleHtml    = computed(() => toHtml(props.slice.primary.title))
+const subtitleHtml = computed(() => toHtml(props.slice.primary.subtitle))
+const videoUrl     = computed(() => mediaUrl(props.slice.primary.video_url))
+
+// Subtitle resting position over the pinned video. Mirrors ScrubScene's own
+// alignment mapping so the subtitle can be placed independently of the title.
+const subtitleAlignClass = computed(() => ({
+  top:    'items-start pt-[5vh]',
+  center: 'items-center',
+  bottom: 'items-end pb-md',
+}[props.slice.primary.subtitle_align_vertical] || 'items-end pb-md'))
+
+const subtitleAlignXClass = computed(() => ({
+  left:   'justify-start text-left',
+  center: 'justify-center text-center',
+  right:  'justify-end text-right',
+}[props.slice.primary.subtitle_align_horizontal] || 'justify-start text-left'))
 
 // Only used by the non-pinned "default" band variation.
 const rootRef  = ref(null)

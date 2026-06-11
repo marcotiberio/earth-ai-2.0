@@ -53,15 +53,6 @@
             "placeholder": "Pinned scroll distance in vh (default: 300)"
           }
         },
-        "title": {
-          "type": "StructuredText",
-          "config": {
-            "label": "Title",
-            "placeholder": "Headline",
-            "allowTargetBlank": true,
-            "single": "heading1,heading2,heading3,strong,em"
-          }
-        },
         "scrub_start": {
           "type": "Select",
           "config": {
@@ -71,6 +62,15 @@
               "top",
               "middle"
             ]
+          }
+        },
+        "title": {
+          "type": "StructuredText",
+          "config": {
+            "label": "Title",
+            "placeholder": "Headline",
+            "allowTargetBlank": true,
+            "single": "heading1,heading2,heading3,strong,em"
           }
         },
         "title_align_vertical": {
@@ -90,6 +90,41 @@
           "type": "Select",
           "config": {
             "label": "Title horizontal position",
+            "placeholder": "Horizontal position (default: left)",
+            "options": [
+              "left",
+              "center",
+              "right"
+            ],
+            "default_value": "left"
+          }
+        },
+        "subtitle": {
+          "type": "StructuredText",
+          "config": {
+            "label": "Subtitle",
+            "placeholder": "Supporting caption",
+            "allowTargetBlank": true,
+            "single": "paragraph,strong,em,hyperlink"
+          }
+        },
+        "subtitle_align_vertical": {
+          "type": "Select",
+          "config": {
+            "label": "Subtitle vertical position",
+            "placeholder": "Vertical position (default: bottom)",
+            "options": [
+              "top",
+              "center",
+              "bottom"
+            ],
+            "default_value": "bottom"
+          }
+        },
+        "subtitle_align_horizontal": {
+          "type": "Select",
+          "config": {
+            "label": "Subtitle horizontal position",
             "placeholder": "Horizontal position (default: left)",
             "options": [
               "left",
