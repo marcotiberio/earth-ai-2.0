@@ -16,16 +16,6 @@
 					}
 				]
 			},
-			"feet_label": {
-				"__TYPE__": "FieldContent",
-				"type": "Text",
-				"value": "Feet Drilles"
-			},
-			"feet_value": {
-				"__TYPE__": "FieldContent",
-				"type": "Text",
-				"value": "96,000"
-			},
 			"stats": {
 				"__TYPE__": "GroupContentType",
 				"value": [

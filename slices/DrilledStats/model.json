@@ -2,7 +2,7 @@
   "id": "drilled_stats",
   "type": "SharedSlice",
   "name": "DrilledStats",
-  "description": "Pinned light scene: a WYSIWYG title with count-up metrics beside a drilling arrow that grows skyward on scroll. Add up to 4 stat rows.",
+  "description": "Pinned scene: a WYSIWYG title with count-up metrics beside an in-frame video that scrubs on scroll. Add up to 4 stat rows.",
   "variations": [
     {
       "id": "default",
@@ -48,24 +48,26 @@
             "single": "paragraph,strong,em"
           }
         },
-        "feet_value": {
-          "type": "Text",
+        "video_url": {
+          "type": "Link",
           "config": {
-            "label": "Feet drilled — value",
-            "placeholder": "e.g. 96,000 (counts up on scroll)"
+            "label": "Scrub video",
+            "placeholder": "Upload or select a video from the Media Library",
+            "select": "media"
           }
         },
-        "feet_label": {
-          "type": "Text",
+        "image": {
+          "type": "Image",
           "config": {
-            "label": "Feet drilled — label",
-            "placeholder": "e.g. Feet Drilled"
+            "label": "Poster / fallback image",
+            "constraint": {},
+            "thumbnails": []
           }
         },
         "stats": {
           "type": "Group",
           "config": {
-            "label": "Stats (max 4)",
+            "label": "Stats (max 6)",
             "fields": {
               "label": {
                 "type": "Text",
