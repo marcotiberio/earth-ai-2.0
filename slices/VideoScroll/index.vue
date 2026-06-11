@@ -18,7 +18,7 @@
       <div class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
     </template>
     <h2
-      class="ea-display font-serif text-beige font-h2 w-full md:w-1/2"
+      class="ea-display font-serif text-beige font-h2 w-full md:w-screen-md"
       v-html="titleHtml"
     />
   </ScrubScene>
@@ -50,7 +50,7 @@
 
     <div class="mt-12 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
       <h2
-        class="ea-display font-serif text-beige font-h2 font-normal leading-[1.1] max-w-2xl"
+        class="ea-display font-serif text-beige font-h2"
         v-html="titleHtml"
       />
       <p

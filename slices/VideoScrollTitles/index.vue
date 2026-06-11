@@ -16,10 +16,22 @@
     <template #pinned>
       <div class="bg-gradient-to-b from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 top-0 h-1/4 pointer-events-none" />
       <div class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
+
+      <!-- End title: parked one screen below by default, then scrolls up into
+           place over the second half as the titles scroll away above it. Its own
+           alignment is independent of the bottom-left scrolling titles. -->
+      <div
+        v-if="titleHtml"
+        ref="headingRef"
+        class="absolute inset-0 z-20 flex px-xs md:px-sm opacity-0"
+        :class="[titleAlignClass, titleAlignXClass]"
+      >
+        <h2 class="ea-display font-serif text-beige font-h1 w-full md:w-screen-md" v-html="titleHtml" />
+      </div>
     </template>
 
     <!-- Overlaid titles: held bottom-left, brightening in sequence as we scroll. -->
-    <div class="flex flex-col">
+    <div ref="titlesWrapRef" class="flex flex-col">
       <h1
         v-for="(item, i) in titles"
         :key="i"
@@ -35,6 +47,7 @@
 
 <script setup>
 import { ref, computed, inject, onMounted, onBeforeUnmount } from 'vue'
+import { asHTML } from '@prismicio/client'
 
 const props = defineProps({
   slice:   { type: Object, required: true },
@@ -59,22 +72,57 @@ const videoUrl = computed(() => mediaUrl(props.slice.primary.video_url))
 // `primary.items` (a Group field); a plain static shape may use top-level `items`.
 const titles = computed(() => props.slice.primary.items || props.slice.items || [])
 
-const sceneRef  = ref(null) // ScrubScene instance — exposes its section root
-const titleRefs = []        // collected per-element via the v-for function ref
+// End title (the WYSIWYG h2 that wipes in over the second half). Rendered as
+// inline HTML so paragraph formatting (strong/em) is kept but the <p> wrapper is
+// stripped — the heading stays a single h2. Tolerates both the live Prismic
+// rich-text shape and a plain static string.
+const inlineSerializer = { paragraph: ({ children }) => children }
+const titleHtml = computed(() => {
+  const field = props.slice.primary.title
+  if (!field) return ''
+  return typeof field === 'string'
+    ? field
+    : asHTML(field, { serializer: inlineSerializer }) || ''
+})
+
+const titleAlignClass = computed(() => ({
+  top:    'items-start pt-[5vh]',
+  center: 'items-center',
+  bottom: 'items-end pb-md',
+}[props.slice.primary.title_align] || 'items-center'))
+
+const titleAlignXClass = computed(() => ({
+  left:   'justify-start text-left',
+  center: 'justify-center text-center',
+  right:  'justify-end text-right',
+}[props.slice.primary.title_align_x] || 'justify-center text-center'))
+
+const sceneRef     = ref(null) // ScrubScene instance — exposes its section root
+const titlesWrapRef = ref(null) // the scrolling-titles container (scrolled as a unit)
+const headingRef   = ref(null) // the end-title overlay element
+const titleRefs    = []        // collected per-element via the v-for function ref
 
 let ctx = null
 
 onMounted(() => {
-  if (!inSimulator) setupTitleScrub()
+  if (!inSimulator) setupScrub()
 })
 
-// Sequentially brighten each title from 20% → 100% opacity across the section's
-// pinned travel, staggered so they reveal one after another (see reference).
-// Anchored to ScrubScene's root section, the same element driving the video scrub.
-async function setupTitleScrub() {
-  const els     = titleRefs.filter(Boolean)
-  const trigger = sceneRef.value?.root
-  if (!els.length || !trigger) return
+// Drive two phases off the section's pinned travel:
+//   • first half  — brighten each title from 20% → 100% in turn (the existing
+//     one-at-a-time reveal), then
+//   • second half — once the last title is lit, the titles scroll up and away
+//     while the end <h2> scrolls up into place behind them (the video keeps
+//     scrubbing throughout, driven independently by ScrubScene).
+// When there's no end title we keep the original behaviour: the title reveal
+// simply spans the full travel. Anchored to ScrubScene's root — the same
+// element driving the video scrub.
+async function setupScrub() {
+  const els        = titleRefs.filter(Boolean)
+  const titlesWrap = titlesWrapRef.value
+  const heading    = headingRef.value
+  const trigger    = sceneRef.value?.root
+  if ((!els.length && !heading) || !trigger) return
 
   const { gsap }              = await import('gsap')
   const { ScrollTrigger: ST } = await import('gsap/ScrollTrigger')
@@ -101,6 +149,35 @@ async function setupTitleScrub() {
         tl.fromTo(next, { opacity: 0.2 }, { opacity: 1, ease: 'none' }, '<')
       }
     })
+
+    // Second half: scroll the handoff. We pad it to the title reveal's length so
+    // the reveal owns the first half of the scroll and the scroll-out/scroll-in
+    // owns the second, the two moving together like a conveyor — titles travel
+    // up by a screen and exit the top as the heading rises a screen from below
+    // into its resting position.
+    if (heading) {
+      const firstHalf = tl.duration() || 1
+      const screen    = window.innerHeight
+      if (titlesWrap) {
+        tl.fromTo(
+          titlesWrap,
+          { y: 0 },
+          { y: -screen, ease: 'none', duration: firstHalf },
+          firstHalf,
+        )
+      }
+      // Slide the heading up a full screen into place — pixel-based `y`, exactly
+      // mirroring the titles above so the motion matches and there's no inline
+      // transform for GSAP to misparse. It's hidden by default via the
+      // `opacity-0` class (covering the no-JS / simulator state and any
+      // pre-scrub flash); GSAP fades it in as it rises.
+      tl.fromTo(
+        heading,
+        { y: screen, opacity: 0 },
+        { y: 0, opacity: 1, ease: 'none', duration: firstHalf },
+        firstHalf,
+      )
+    }
   }, trigger)
 }
 

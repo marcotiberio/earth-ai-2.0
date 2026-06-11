@@ -265,7 +265,77 @@ export type HomePageDocument<Lang extends string = string> =
     Lang
   >;
 
-export type AllDocumentTypes = FooterDocument | HomePageDocument;
+type PageDocumentDataSlicesSlice =
+  | HeroImageSlice
+  | VideoScrollSlice
+  | VideoScrollTitlesSlice
+  | RaceBarsSlice
+  | SupplyGapSlice
+  | DrilledStatsSlice
+  | MapTargetsSlice
+  | TextContentSlice
+  | PressQuotesSlice;
+
+/**
+ * Content for Page documents
+ */
+interface PageDocumentData {
+  /**
+   * Slice Zone field in *Page*
+   *
+   * - **Field Type**: Slice Zone
+   * - **Placeholder**: *None*
+   * - **API ID Path**: page.slices[]
+   * - **Tab**: Main
+   * - **Documentation**: https://prismic.io/docs/slices
+   */
+  slices: prismic.SliceZone<PageDocumentDataSlicesSlice>; /**
+   * Meta Title field in *Page*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: A title of the page used for social media and search engines
+   * - **API ID Path**: page.meta_title
+   * - **Tab**: SEO & Metadata
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  meta_title: prismic.KeyTextField;
+
+  /**
+   * Meta Description field in *Page*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: A brief summary of the page
+   * - **API ID Path**: page.meta_description
+   * - **Tab**: SEO & Metadata
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  meta_description: prismic.KeyTextField;
+
+  /**
+   * Meta Image field in *Page*
+   *
+   * - **Field Type**: Image
+   * - **Placeholder**: *None*
+   * - **API ID Path**: page.meta_image
+   * - **Tab**: SEO & Metadata
+   * - **Documentation**: https://prismic.io/docs/fields/image
+   */
+  meta_image: prismic.ImageField<never>;
+}
+
+/**
+ * Page document from Prismic
+ *
+ * - **API ID**: `page`
+ * - **Repeatable**: `true`
+ * - **Documentation**: https://prismic.io/docs/content-modeling
+ *
+ * @typeParam Lang - Language API ID of the document.
+ */
+export type PageDocument<Lang extends string = string> =
+  prismic.PrismicDocumentWithUID<Simplify<PageDocumentData>, "page", Lang>;
+
+export type AllDocumentTypes = FooterDocument | HomePageDocument | PageDocument;
 
 /**
  * Item in *DrilledStats → Default → Primary → Stats (max 4)*
@@ -1080,6 +1150,82 @@ export type SupplyGapSlice = prismic.SharedSlice<
 >;
 
 /**
+ * Primary content in *TextContent → Default → Primary*
+ */
+export interface TextContentSliceDefaultPrimary {
+  /**
+   * Hide slice field in *TextContent → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: text_content.default.primary.is_hidden
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  is_hidden: prismic.BooleanField;
+
+  /**
+   * Title field in *TextContent → Default → Primary*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. Terms of Service
+   * - **API ID Path**: text_content.default.primary.title
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  title: prismic.KeyTextField;
+
+  /**
+   * Sub-line field in *TextContent → Default → Primary*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Optional, e.g. Last modified: September 6th 2023
+   * - **API ID Path**: text_content.default.primary.subtitle
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  subtitle: prismic.KeyTextField;
+
+  /**
+   * Content field in *TextContent → Default → Primary*
+   *
+   * - **Field Type**: Rich Text
+   * - **Placeholder**: Write the page content…
+   * - **API ID Path**: text_content.default.primary.content
+   * - **Documentation**: https://prismic.io/docs/fields/rich-text
+   */
+  content: prismic.RichTextField;
+}
+
+/**
+ * Default variation for TextContent Slice
+ *
+ * - **API ID**: `default`
+ * - **Description**: Heading, optional sub-line, and a rich-text body.
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type TextContentSliceDefault = prismic.SharedSliceVariation<
+  "default",
+  Simplify<TextContentSliceDefaultPrimary>,
+  never
+>;
+
+/**
+ * Slice variation for *TextContent*
+ */
+type TextContentSliceVariation = TextContentSliceDefault;
+
+/**
+ * TextContent Shared Slice
+ *
+ * - **API ID**: `text_content`
+ * - **Description**: A simple rich-text block — heading plus formatted body copy. Use it to build text-only pages like Terms of Service or Privacy Policy.
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type TextContentSlice = prismic.SharedSlice<
+  "text_content",
+  TextContentSliceVariation
+>;
+
+/**
  * Primary content in *VideoScroll → Overlay → Primary*
  */
 export interface VideoScrollSliceOverlayPrimary {
@@ -1285,6 +1431,36 @@ export interface VideoScrollTitlesSliceDefaultPrimary {
   scrub_start: prismic.SelectField<"top" | "middle">;
 
   /**
+   * End title field in *VideoScrollTitles → Default → Primary*
+   *
+   * - **Field Type**: Rich Text
+   * - **Placeholder**: Headline that wipes in over the second half of the scroll
+   * - **API ID Path**: video_scroll_titles.default.primary.title
+   * - **Documentation**: https://prismic.io/docs/fields/rich-text
+   */
+  title: prismic.RichTextField;
+
+  /**
+   * End title vertical alignment field in *VideoScrollTitles → Default → Primary*
+   *
+   * - **Field Type**: Select
+   * - **Placeholder**: center
+   * - **API ID Path**: video_scroll_titles.default.primary.title_align
+   * - **Documentation**: https://prismic.io/docs/fields/select
+   */
+  title_align: prismic.SelectField<"top" | "center" | "bottom">;
+
+  /**
+   * End title horizontal alignment field in *VideoScrollTitles → Default → Primary*
+   *
+   * - **Field Type**: Select
+   * - **Placeholder**: center
+   * - **API ID Path**: video_scroll_titles.default.primary.title_align_x
+   * - **Documentation**: https://prismic.io/docs/fields/select
+   */
+  title_align_x: prismic.SelectField<"left" | "center" | "right">;
+
+  /**
    * Titles field in *VideoScrollTitles → Default → Primary*
    *
    * - **Field Type**: Group
@@ -1356,6 +1532,9 @@ declare module "@prismicio/client" {
       HomePageDocument,
       HomePageDocumentData,
       HomePageDocumentDataSlicesSlice,
+      PageDocument,
+      PageDocumentData,
+      PageDocumentDataSlicesSlice,
       AllDocumentTypes,
       DrilledStatsSlice,
       DrilledStatsSliceDefaultPrimaryStatsItem,
@@ -1389,6 +1568,10 @@ declare module "@prismicio/client" {
       SupplyGapSliceDefaultPrimary,
       SupplyGapSliceVariation,
       SupplyGapSliceDefault,
+      TextContentSlice,
+      TextContentSliceDefaultPrimary,
+      TextContentSliceVariation,
+      TextContentSliceDefault,
       VideoScrollSlice,
       VideoScrollSliceOverlayPrimary,
       VideoScrollSliceVariation,

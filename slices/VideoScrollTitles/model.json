@@ -55,6 +55,39 @@
             ]
           }
         },
+        "title": {
+          "type": "StructuredText",
+          "config": {
+            "label": "End title",
+            "placeholder": "Headline that wipes in over the second half of the scroll",
+            "allowTargetBlank": true,
+            "single": "paragraph,strong,em"
+          }
+        },
+        "title_align": {
+          "type": "Select",
+          "config": {
+            "label": "End title vertical alignment",
+            "placeholder": "center",
+            "options": [
+              "top",
+              "center",
+              "bottom"
+            ]
+          }
+        },
+        "title_align_x": {
+          "type": "Select",
+          "config": {
+            "label": "End title horizontal alignment",
+            "placeholder": "center",
+            "options": [
+              "left",
+              "center",
+              "right"
+            ]
+          }
+        },
         "items": {
           "type": "Group",
           "config": {

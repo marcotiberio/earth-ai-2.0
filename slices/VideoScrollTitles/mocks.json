@@ -52,6 +52,35 @@
 				"value": "middle",
 				"type": "Select"
 			},
+			"title": {
+				"__TYPE__": "StructuredTextContent",
+				"value": [
+					{
+						"type": "paragraph",
+						"content": {
+							"text": "The future is being drilled",
+							"spans": [
+								{
+									"type": "em",
+									"start": 11,
+									"end": 18
+								}
+							]
+						},
+						"direction": "ltr"
+					}
+				]
+			},
+			"title_align": {
+				"__TYPE__": "FieldContent",
+				"value": "center",
+				"type": "Select"
+			},
+			"title_align_x": {
+				"__TYPE__": "FieldContent",
+				"value": "center",
+				"type": "Select"
+			},
 			"items": {
 				"__TYPE__": "GroupContentType",
 				"value": [

@@ -14,6 +14,7 @@ export const components = defineSliceZoneComponents({
   drilled_stats:   defineAsyncComponent(() => import("./DrilledStats/index.vue")),
   map_targets:     defineAsyncComponent(() => import("./MapTargets/index.vue")),
   wysiwyg:         defineAsyncComponent(() => import("./Wysiwyg/index.vue")),
+  text_content:    defineAsyncComponent(() => import("./TextContent/index.vue")),
   feature_media:   defineAsyncComponent(() => import("./FeatureMedia/index.vue")),
   cta:             defineAsyncComponent(() => import("./Cta/index.vue")),
   press_quotes:    defineAsyncComponent(() => import("./PressQuotes/index.vue")),
