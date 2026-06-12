@@ -1,13 +1,17 @@
 <template>
-  <footer
-    ref="footerRef"
-    class="text-darkblue boxed !pb-sm !pt-[62px] overflow-hidden"
-    :class="reveal ? 'sticky bottom-0 z-0' : ''"
-  >
-    <!-- Inner wrapper is the drag target (fallback mode only): it slides up
-         inside the (clipping) footer so the document's scroll height never
-         changes mid-entrance. -->
-    <div ref="innerRef">
+  <!-- Sticky reveal: the footer is a viewport-high panel pinned behind the
+       page (z-0, under app.vue's z-10 content) and uncovered in place as the
+       last pinned section scrolls away. `bottom-0` rather than `top-0`: with a
+       panel exactly viewport-high the two pin to the same place, but only the
+       bottom pin engages while the panel is still covered — a top pin never
+       sticks for the document's last element, so the footer would scroll in
+       normally and snap in after the pinned section, the original problem. -->
+  <footer class="sticky bottom-0 z-0 h-dvh w-full bg-darkblue text-darkblue">
+    <!-- Content taller than the panel (the stacked press quotes on phones)
+         scrolls inside it; min-h-full + justify-end keeps shorter content at
+         the page bottom. -->
+    <div class="h-full overflow-y-auto" data-lenis-prevent>
+    <div class="min-h-full flex flex-col justify-end boxed !pb-sm !pt-[62px]">
     <!-- Top Bar -->
     <div class="flex flex-col items-start justify-between gap-sm mb-sm w-full">
       <div class="flex flex-row items-start justify-between gap-sm w-full">
@@ -63,6 +67,7 @@
       <span class="whitespace-nowrap flex justify-center">© EARTH AI – {{ new Date().getFullYear() }}</span>
     </div>
     </div>
+    </div>
   </footer>
 </template>
 
@@ -94,77 +99,4 @@ const press = computed(() => {
 const mainTitle = computed(
   () => footer.value?.data?.footer_main_title || 'Follow our journey.',
 )
-
-// --- Entrance after the pinned section before us -----------------------------
-// The footer follows a pinned VideoScroll section: after 1000vh of pinned
-// scroll the user's touch momentum dumps into whatever comes next, so a footer
-// that scrolls in normally flies past in a few frames.
-//
-// Reveal mode (preferred): the footer pins behind the page (sticky bottom,
-// z-0, under app.vue's z-10 content) and is uncovered in place as the last
-// section wipes away — nothing small moves fast because the footer never
-// moves at all. This only works while the footer fits the viewport: pinned to
-// the bottom, anything above one viewport-height can never scroll into view.
-//
-// Fallback (footer taller than the viewport, common on phones): the previous
-// scrub-lerped drag entrance — content starts shifted down and is dragged up
-// into place, heavier on coarse pointers where touch momentum is native (same
-// lag as SupplyGap / RaceBars / MapTargets). Reduced motion skips the drag.
-const footerRef = ref(null)
-const innerRef  = ref(null)
-const reveal    = ref(false)
-let ctx = null
-let removeResize = null
-
-onMounted(async () => {
-  const trigger = footerRef.value
-  const target  = innerRef.value
-  if (!trigger || !target) return
-
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  const coarse  = window.matchMedia('(pointer: coarse)').matches
-
-  const { gsap }              = await import('gsap')
-  const { ScrollTrigger: ST } = await import('gsap/ScrollTrigger')
-  gsap.registerPlugin(ST)
-
-  const createDrag = () => {
-    ctx = gsap.context(() => {
-      gsap.from(target, {
-        y: () => trigger.offsetHeight * 0.6,
-        ease: 'none',
-        scrollTrigger: {
-          trigger,
-          start: 'top bottom',
-          end: 'bottom bottom',
-          scrub: coarse ? 3 : 1.2,
-          invalidateOnRefresh: true,
-        },
-      })
-    }, trigger)
-  }
-
-  // Pick the mode now and again on resize (rotation can flip which one fits).
-  // Toggling sticky doesn't change the document height, so other ScrollTriggers
-  // keep their positions.
-  const applyMode = () => {
-    const fits = trigger.offsetHeight <= window.innerHeight
-    if (fits === reveal.value && (fits || ctx || reduced)) return
-    reveal.value = fits
-    if (fits) {
-      ctx?.revert()
-      ctx = null
-    } else if (!reduced) {
-      createDrag()
-    }
-  }
-  applyMode()
-  window.addEventListener('resize', applyMode)
-  removeResize = () => window.removeEventListener('resize', applyMode)
-})
-
-onUnmounted(() => {
-  removeResize?.()
-  ctx?.revert()
-})
 </script>
