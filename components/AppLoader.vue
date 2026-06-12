@@ -1,7 +1,8 @@
 <template>
-  <!-- Launch overlay: holds the viewport until the homepage media is buffered.
-       The four bars of the Earth AI logomark fill from the bottom up, one per
-       25% of real download progress; at 100% the overlay fades away. -->
+  <!-- Launch overlay: holds the viewport until the homepage media is fully
+       downloaded (or the safety cap fires). The four bars of the Earth AI
+       logomark fill from the bottom up, one per 25% of real download progress;
+       at 100% the overlay fades away. -->
   <Transition name="loader-fade" @after-leave="onHidden">
     <div v-if="visible" class="app-loader" role="status" aria-live="polite" aria-label="Loading">
       <svg
@@ -30,15 +31,18 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { collectMediaUrls, registerAssets, startLoading, useAssetLoader } from '~/composables/useAssetLoader'
 
-// The overlay is a timed splash, not a real byte-meter: it holds the viewport
-// for a fixed beat so the homepage's <video> elements get a head start buffering
-// in the background, then lifts. We deliberately don't gate on real downloads —
-// forcing full fetches up front made first paint slower than just letting the
-// videos stream lazily as the page needs them.
-const HOLD_MS = 2000   // total time the bars take to fill from 0 → 100%
-const FADE_HOLD_MS = 220 // beat to admire the filled mark before fading out
+// The bars track REAL byte progress: we fully download every homepage video so
+// any scrub position is instantly seekable, even on a fast scroll. A hard cap in
+// startLoading() (its `timeout`) guarantees the overlay still lifts on a slow
+// connection — past the cap, stragglers finish in the background.
 
+// Smallest time the overlay stays up, so a fast/cached load doesn't flash.
+const MIN_DISPLAY_MS = 600
+
+const { progress, state } = useAssetLoader()
+const prismic = usePrismic()
 const { $lenis } = useNuxtApp()
 
 const visible = ref(true)
@@ -54,31 +58,38 @@ function barStyle(order) {
   return { fillOpacity: DIM + (1 - DIM) * t }
 }
 
-// Ease-out so the fill starts brisk and settles into 100% — feels like loading,
-// not a linear timer.
-const easeOut = (t) => 1 - Math.pow(1 - t, 2)
-
 function tick() {
-  const elapsed = performance.now() - startedAt
-  displayed.value = easeOut(Math.min(elapsed / HOLD_MS, 1))
+  // Ease toward live progress; only ever move forward, and snap to a clean 1
+  // once loading is done (all assets buffered, or the safety cap fired).
+  const target = state.done ? 1 : Math.max(displayed.value, progress.value)
+  displayed.value += (target - displayed.value) * 0.1
 
-  if (elapsed >= HOLD_MS && !hiding) {
+  const elapsed = performance.now() - startedAt
+  if (state.done && displayed.value > 0.99 && elapsed >= MIN_DISPLAY_MS && !hiding) {
     displayed.value = 1
     hiding = true
     // Hold the filled mark a beat, then trigger the fade-out.
-    setTimeout(() => { visible.value = false }, FADE_HOLD_MS)
+    setTimeout(() => { visible.value = false }, 220)
     return
   }
   rafId = requestAnimationFrame(tick)
 }
 
-onMounted(() => {
-  // Lock the page while the splash holds: stop Lenis and pin the scroll to the
-  // top so the videos below can buffer without the user scrolling into them.
+onMounted(async () => {
+  // Lock the page while we load: stop Lenis and pin the scroll to the top so the
+  // videos below can buffer without the user scrolling into them.
   $lenis?.stop?.()
   document.documentElement.style.overflow = 'hidden'
   window.scrollTo(0, 0)
 
+  // Collect every homepage media URL straight from the Prismic document, then
+  // download them all in full before lifting the overlay.
+  try {
+    const doc = await prismic.client.getSingle('home_page')
+    registerAssets([...collectMediaUrls(doc)])
+  } catch { /* no document / offline → overlay still resolves via the cap */ }
+
+  startLoading()
   startedAt = performance.now()
   rafId = requestAnimationFrame(tick)
 })
