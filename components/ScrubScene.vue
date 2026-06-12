@@ -10,7 +10,7 @@
        whatever follows the section, and they make the scrub feel sluggish. -->
   <section
     ref="rootRef"
-    class="relative w-full bg-darkblue h-[min(var(--scrub-length),600dvh)] md:h-[var(--scrub-length)]"
+    class="relative w-full bg-darkblue h-[min(var(--scrub-length),400dvh)] md:h-[var(--scrub-length)]"
     :style="{ '--scrub-length': inSimulator ? '100dvh' : `${scrollLength}dvh` }"
   >
     <!-- Pinned stage: video background AND content both pin to the top for the
