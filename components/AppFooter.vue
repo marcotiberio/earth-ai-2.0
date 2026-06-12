@@ -1,5 +1,8 @@
 <template>
-  <footer class="text-darkblue boxed !pb-sm !pt-[62px]">
+  <footer ref="footerRef" class="text-darkblue boxed !pb-sm !pt-[62px] overflow-hidden">
+    <!-- Inner wrapper is the drag target: it slides up inside the (clipping)
+         footer so the document's scroll height never changes mid-entrance. -->
+    <div ref="innerRef">
     <!-- Top Bar -->
     <div class="flex flex-col items-start justify-between gap-sm mb-md w-full">
       <div class="flex flex-row items-start justify-between gap-sm w-full">
@@ -54,6 +57,7 @@
       </nav>
       <span class="whitespace-nowrap flex justify-center">© EARTH AI – {{ new Date().getFullYear() }}</span>
     </div>
+    </div>
   </footer>
 </template>
 
@@ -85,4 +89,44 @@ const press = computed(() => {
 const mainTitle = computed(
   () => footer.value?.data?.footer_main_title || 'Follow our journey.',
 )
+
+// --- Scrubbed entrance (same drag as the SVG chart slices) -------------------
+// The footer follows a pinned VideoScroll section, so without easing it snaps
+// into view the instant the pin releases. The content starts shifted down and
+// is dragged up into place by a scrub-lerped ScrollTrigger — the same lag
+// (heavier on coarse pointers, where touch momentum is native) used by
+// SupplyGap / RaceBars / MapTargets. Reduced motion skips the effect entirely.
+const footerRef = ref(null)
+const innerRef  = ref(null)
+let ctx = null
+
+onMounted(async () => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+  const trigger = footerRef.value
+  const target  = innerRef.value
+  if (!trigger || !target) return
+
+  const coarse = window.matchMedia('(pointer: coarse)').matches
+
+  const { gsap }              = await import('gsap')
+  const { ScrollTrigger: ST } = await import('gsap/ScrollTrigger')
+  gsap.registerPlugin(ST)
+
+  ctx = gsap.context(() => {
+    gsap.from(target, {
+      y: () => trigger.offsetHeight * 0.6,
+      ease: 'none',
+      scrollTrigger: {
+        trigger,
+        start: 'top bottom',
+        end: 'bottom bottom',
+        scrub: coarse ? 3 : 1.2,
+        invalidateOnRefresh: true,
+      },
+    })
+  }, trigger)
+})
+
+onUnmounted(() => ctx?.revert())
 </script>
