@@ -1,0 +1,35 @@
+{
+  "id": "splasher",
+  "type": "SharedSlice",
+  "name": "Splasher",
+  "description": "Site gate — a fixed full-screen overlay with the Earth AI logomark and a short label, same design as the launch loader. While this slice is present and visible, it hides the whole site; flip \"Hide slice\" (or remove it) to reveal the site.",
+  "variations": [
+    {
+      "id": "default",
+      "name": "Default",
+      "docURL": "...",
+      "version": "initial",
+      "description": "Full-screen gate: logomark with an editable label.",
+      "imageUrl": "",
+      "primary": {
+        "is_hidden": {
+          "type": "Boolean",
+          "config": {
+            "label": "Hide slice",
+            "placeholder_false": "Visible",
+            "placeholder_true": "Hidden",
+            "default_value": false
+          }
+        },
+        "label": {
+          "type": "Text",
+          "config": {
+            "label": "Label",
+            "placeholder": "e.g. New website coming soon."
+          }
+        }
+      },
+      "items": {}
+    }
+  ]
+}

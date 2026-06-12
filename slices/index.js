@@ -18,4 +18,5 @@ export const components = defineSliceZoneComponents({
   feature_media:   defineAsyncComponent(() => import("./FeatureMedia/index.vue")),
   cta:             defineAsyncComponent(() => import("./Cta/index.vue")),
   press_quotes:    defineAsyncComponent(() => import("./PressQuotes/index.vue")),
+  splasher:        defineAsyncComponent(() => import("./Splasher/index.vue")),
 });

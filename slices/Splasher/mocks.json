@@ -1,0 +1,13 @@
+[
+	{
+		"__TYPE__": "SharedSliceContent",
+		"variation": "default",
+		"primary": {
+			"label": {
+				"__TYPE__": "FieldContent",
+				"type": "Text",
+				"value": "New website coming soon."
+			}
+		}
+	}
+]

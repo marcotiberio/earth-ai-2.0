@@ -11,7 +11,7 @@
          scrolls inside it; min-h-full + justify-end keeps shorter content at
          the page bottom. -->
     <div class="h-full overflow-y-auto" data-lenis-prevent>
-    <div class="min-h-full flex flex-col justify-end boxed !pb-sm !pt-[62px]">
+    <div class="min-h-full flex flex-col justify-start boxed !pb-sm !pt-[62px]">
     <!-- Top Bar -->
     <div class="flex flex-col items-start justify-between gap-sm mb-sm w-full">
       <div class="flex flex-row items-start justify-between gap-sm w-full">

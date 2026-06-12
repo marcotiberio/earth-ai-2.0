@@ -44,6 +44,9 @@
             },
             "press_quotes": {
               "type": "SharedSlice"
+            },
+            "splasher": {
+              "type": "SharedSlice"
             }
           }
         }

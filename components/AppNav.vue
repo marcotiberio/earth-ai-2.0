@@ -52,22 +52,25 @@ function scrollToTop(e) {
 
 // The footer shares the nav's beige palette, so once you scroll into it the
 // fixed nav logo overlays the footer's title/logo. Instead of leaving the nav
-// pinned, let the footer's top edge "push" it off-screen: we translate the nav
-// up by exactly how far the footer has crossed into the nav's band, so the
-// nav's bottom edge stays flush with the footer's top edge — no overlap, no gap.
-let footerEl = null
+// pinned, let the footer reveal "push" it off-screen. The footer itself is a
+// sticky viewport-high panel whose top sits at ~0 the whole time (it's just
+// covered by the page content above it), so the reveal's visible seam is the
+// page-content wrapper's bottom edge: translate the nav up by exactly how far
+// that seam has crossed into the nav's band, so the nav's bottom edge stays
+// flush with the seam — no overlap, no gap.
+let contentEl = null
 
 function updateNavPush() {
   const header = headerRef.value
   if (!header) return
 
-  if (!footerEl || !footerEl.isConnected) footerEl = document.querySelector('footer')
-  if (!footerEl) return
+  if (!contentEl || !contentEl.isConnected) contentEl = document.getElementById('page-content')
+  if (!contentEl) return
 
   const navHeight = header.offsetHeight
-  const footerTop = footerEl.getBoundingClientRect().top
-  // 0 until the footer reaches the nav's lower edge, then grows to navHeight.
-  const overlap = Math.min(Math.max(navHeight - footerTop, 0), navHeight)
+  const seam = contentEl.getBoundingClientRect().bottom
+  // 0 until the seam reaches the nav's lower edge, then grows to navHeight.
+  const overlap = Math.min(Math.max(navHeight - seam, 0), navHeight)
   header.style.transform = `translate3d(0, ${-overlap}px, 0)`
 }
 
