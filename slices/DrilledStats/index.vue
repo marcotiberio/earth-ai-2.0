@@ -99,10 +99,8 @@ const feetValue = computed(() => props.slice.primary.feet_value || '')
 const feetLabel = computed(() => props.slice.primary.feet_label || '')
 // Scrub video (Link-to-Media) + poster/fallback image.
 const videoUrl     = computed(() => mediaUrl(props.slice.primary.video_url))
-const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
 const posterUrl    = computed(() => props.slice.primary.image?.url || '')
-// SSR keeps the desktop URL so hydration matches; onMounted swaps in the mobile
-// clip on small viewports.
+// SSR renders this src; onMounted queues the background warm-up.
 const videoSrc = ref(videoUrl.value)
 // Group field lives in primary; cap at 6 rows (the design only has room for six).
 const stats = computed(() => (props.slice.primary.stats || []).slice(0, 6))
@@ -231,12 +229,7 @@ let ctx = null
 
 onMounted(async () => {
   if (videoUrl.value) {
-    // Prefer the mobile clip on small viewports when one is provided; otherwise
-    // use the desktop video.
-    const isMobile = window.matchMedia('(max-width: 767px)').matches
-    videoSrc.value = isMobile && videoUrlMobile.value
-      ? videoUrlMobile.value
-      : videoUrl.value
+    videoSrc.value = videoUrl.value
     prefetchScrubVideo(videoSrc.value)
   }
 

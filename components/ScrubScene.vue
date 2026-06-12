@@ -4,10 +4,14 @@
        the top as the background while the content slot scrolls up over it. The
        video's currentTime is scrubbed across the pinned scroll distance. When
        the section ends, the sticky releases and the next section enters. -->
+  <!-- The editor's scroll_length is the desktop intent. On phones the pinned
+       travel is capped (CSS min(), so SSR markup is already correct): very
+       long pins train hard repeated flicking whose momentum then dumps into
+       whatever follows the section, and they make the scrub feel sluggish. -->
   <section
     ref="rootRef"
-    class="relative w-full bg-darkblue"
-    :style="{ height: inSimulator ? '100dvh' : `${scrollLength}dvh` }"
+    class="relative w-full bg-darkblue h-[min(var(--scrub-length),600dvh)] md:h-[var(--scrub-length)]"
+    :style="{ '--scrub-length': inSimulator ? '100dvh' : `${scrollLength}dvh` }"
   >
     <!-- Pinned stage: video background AND content both pin to the top for the
          whole scrub, then wipe away together when the section ends. In `frame`
@@ -67,9 +71,6 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref } from 'vue
 
 const props = defineProps({
   videoUrl:     { type: String, default: '' },
-  // Optional mobile-specific clip. When provided, it's served instead of the
-  // desktop video on small viewports (a separate, lighter encode).
-  videoUrlMobile: { type: String, default: '' },
   image:        { type: Object, default: () => ({}) },
   // Total pinned scroll distance in vh. With 200, the video stays pinned for
   // ~one full screen of scroll, over which the content travels in and out.
@@ -103,9 +104,6 @@ const inSimulator = inject('inSliceSimulator', false)
 const rootRef  = ref(null)
 const videoRef = ref(null)
 
-// Resolved clip URL. Starts as the desktop URL so SSR markup and hydration
-// match; onMounted swaps in the mobile clip on small viewports when provided.
-const chosenUrl = ref(props.videoUrl)
 // Lazy src: empty until the section nears the viewport (or immediately if eager).
 const videoSrc = ref(props.eager ? props.videoUrl : '')
 let observer = null
@@ -126,25 +124,14 @@ const alignXClass = computed(() => ({
 }[props.alignX] || 'justify-start text-left'))
 
 onMounted(() => {
-  if (!props.videoUrl) return
-  // On small viewports prefer the dedicated mobile clip when one is set;
-  // otherwise use the desktop video.
-  const isMobile = window.matchMedia('(max-width: 767px)').matches
-  chosenUrl.value = isMobile && props.videoUrlMobile
-    ? props.videoUrlMobile
-    : props.videoUrl
-  if (props.eager) {
-    // Swap to the supported codec right after hydration — the h264 fetch has
-    // barely started at this point, so the restart is cheap.
-    videoSrc.value = chosenUrl.value
-    return
-  }
+  // Eager clips already have their src in the SSR markup; nothing to do.
+  if (!props.videoUrl || props.eager) return
   // Queue a sequential background warm-up of the clip (starts after window
   // load + idle), so by the time the lazy src attaches it's usually cached.
-  prefetchScrubVideo(chosenUrl.value)
+  prefetchScrubVideo(props.videoUrl)
   const el = rootRef.value
   if (!el || typeof IntersectionObserver === 'undefined') {
-    videoSrc.value = chosenUrl.value // no IO support → just load it
+    videoSrc.value = props.videoUrl // no IO support → just load it
     return
   }
   // Start fetching ~1.5 screens before the section enters (3 on mobile, where
@@ -153,7 +140,7 @@ onMounted(() => {
   const margin = window.matchMedia('(max-width: 767px)').matches ? '300%' : '150%'
   observer = new IntersectionObserver((entries) => {
     if (entries.some(e => e.isIntersecting)) {
-      videoSrc.value = chosenUrl.value
+      videoSrc.value = props.videoUrl
       // Setting src alone isn't enough — kick load() + a muted inline play() so
       // the clip actually buffers and (on iOS) unlocks frame painting for the
       // scrub. The composable's own kick already ran at mount, before this src

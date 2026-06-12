@@ -1,7 +1,12 @@
 <template>
-  <footer ref="footerRef" class="text-darkblue boxed !pb-sm !pt-[62px] overflow-hidden">
-    <!-- Inner wrapper is the drag target: it slides up inside the (clipping)
-         footer so the document's scroll height never changes mid-entrance. -->
+  <footer
+    ref="footerRef"
+    class="text-darkblue boxed !pb-sm !pt-[62px] overflow-hidden"
+    :class="reveal ? 'sticky bottom-0 z-0' : ''"
+  >
+    <!-- Inner wrapper is the drag target (fallback mode only): it slides up
+         inside the (clipping) footer so the document's scroll height never
+         changes mid-entrance. -->
     <div ref="innerRef">
     <!-- Top Bar -->
     <div class="flex flex-col items-start justify-between gap-sm mb-sm w-full">
@@ -10,7 +15,7 @@
           <span class="font-h2 font-serif text-beige">{{ mainTitle }}</span>
           <!-- ToDo: Add contact link -->
           <a
-            href="mailto:info@earthai.com"
+            href="mailto:info@earth-ai.com"
             class="btn btn-primary mt-auto font-label text-darkblue hover:underline"
           >Contact us</a>
         </div>
@@ -90,43 +95,76 @@ const mainTitle = computed(
   () => footer.value?.data?.footer_main_title || 'Follow our journey.',
 )
 
-// --- Scrubbed entrance (same drag as the SVG chart slices) -------------------
-// The footer follows a pinned VideoScroll section, so without easing it snaps
-// into view the instant the pin releases. The content starts shifted down and
-// is dragged up into place by a scrub-lerped ScrollTrigger — the same lag
-// (heavier on coarse pointers, where touch momentum is native) used by
-// SupplyGap / RaceBars / MapTargets. Reduced motion skips the effect entirely.
+// --- Entrance after the pinned section before us -----------------------------
+// The footer follows a pinned VideoScroll section: after 1000vh of pinned
+// scroll the user's touch momentum dumps into whatever comes next, so a footer
+// that scrolls in normally flies past in a few frames.
+//
+// Reveal mode (preferred): the footer pins behind the page (sticky bottom,
+// z-0, under app.vue's z-10 content) and is uncovered in place as the last
+// section wipes away — nothing small moves fast because the footer never
+// moves at all. This only works while the footer fits the viewport: pinned to
+// the bottom, anything above one viewport-height can never scroll into view.
+//
+// Fallback (footer taller than the viewport, common on phones): the previous
+// scrub-lerped drag entrance — content starts shifted down and is dragged up
+// into place, heavier on coarse pointers where touch momentum is native (same
+// lag as SupplyGap / RaceBars / MapTargets). Reduced motion skips the drag.
 const footerRef = ref(null)
 const innerRef  = ref(null)
+const reveal    = ref(false)
 let ctx = null
+let removeResize = null
 
 onMounted(async () => {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-
   const trigger = footerRef.value
   const target  = innerRef.value
   if (!trigger || !target) return
 
-  const coarse = window.matchMedia('(pointer: coarse)').matches
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const coarse  = window.matchMedia('(pointer: coarse)').matches
 
   const { gsap }              = await import('gsap')
   const { ScrollTrigger: ST } = await import('gsap/ScrollTrigger')
   gsap.registerPlugin(ST)
 
-  ctx = gsap.context(() => {
-    gsap.from(target, {
-      y: () => trigger.offsetHeight * 0.6,
-      ease: 'none',
-      scrollTrigger: {
-        trigger,
-        start: 'top bottom',
-        end: 'bottom bottom',
-        scrub: coarse ? 3 : 1.2,
-        invalidateOnRefresh: true,
-      },
-    })
-  }, trigger)
+  const createDrag = () => {
+    ctx = gsap.context(() => {
+      gsap.from(target, {
+        y: () => trigger.offsetHeight * 0.6,
+        ease: 'none',
+        scrollTrigger: {
+          trigger,
+          start: 'top bottom',
+          end: 'bottom bottom',
+          scrub: coarse ? 3 : 1.2,
+          invalidateOnRefresh: true,
+        },
+      })
+    }, trigger)
+  }
+
+  // Pick the mode now and again on resize (rotation can flip which one fits).
+  // Toggling sticky doesn't change the document height, so other ScrollTriggers
+  // keep their positions.
+  const applyMode = () => {
+    const fits = trigger.offsetHeight <= window.innerHeight
+    if (fits === reveal.value && (fits || ctx || reduced)) return
+    reveal.value = fits
+    if (fits) {
+      ctx?.revert()
+      ctx = null
+    } else if (!reduced) {
+      createDrag()
+    }
+  }
+  applyMode()
+  window.addEventListener('resize', applyMode)
+  removeResize = () => window.removeEventListener('resize', applyMode)
 })
 
-onUnmounted(() => ctx?.revert())
+onUnmounted(() => {
+  removeResize?.()
+  ctx?.revert()
+})
 </script>

@@ -51,16 +51,8 @@
         "video_url": {
           "type": "Link",
           "config": {
-            "label": "Scrub video (desktop)",
+            "label": "Scrub video",
             "placeholder": "Upload or select a video from the Media Library",
-            "select": "media"
-          }
-        },
-        "video_url_mobile": {
-          "type": "Link",
-          "config": {
-            "label": "Scrub video (mobile, optional)",
-            "placeholder": "Optional — served on small screens; falls back to the desktop video",
             "select": "media"
           }
         },

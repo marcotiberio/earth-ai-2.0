@@ -3,7 +3,6 @@
   <ScrubScene
     v-if="slice.variation === 'overlay'"
     :video-url="videoUrl"
-    :video-url-mobile="videoUrlMobile"
     :image="slice.primary.image || {}"
     :scroll-length="slice.primary.scroll_length || 300"
     :scrub-start="slice.primary.scrub_start || ''"
@@ -116,7 +115,6 @@ const mediaUrl = (field) =>
 const titleHtml    = computed(() => toHtml(props.slice.primary.title))
 const subtitleHtml = computed(() => toHtml(props.slice.primary.subtitle))
 const videoUrl     = computed(() => mediaUrl(props.slice.primary.video_url))
-const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
 
 // Subtitle resting position over the pinned video. Mirrors ScrubScene's own
 // alignment mapping so the subtitle can be placed independently of the title.
@@ -135,18 +133,11 @@ const subtitleAlignXClass = computed(() => ({
 // Only used by the non-pinned "default" band variation.
 const rootRef  = ref(null)
 const videoRef = ref(null)
-// SSR keeps the desktop URL so hydration matches; onMounted swaps in the mobile
-// clip on small viewports, and queues the background warm-up.
+// SSR renders this src; onMounted queues the background warm-up.
 const videoSrc = ref(videoUrl.value)
 
 if (props.slice.variation !== 'overlay' && props.slice.primary.video_url) {
   onMounted(() => {
-    // Prefer the mobile clip on small viewports when one is provided; otherwise
-    // use the desktop video.
-    const isMobile = window.matchMedia('(max-width: 767px)').matches
-    videoSrc.value = isMobile && videoUrlMobile.value
-      ? videoUrlMobile.value
-      : videoUrl.value
     prefetchScrubVideo(videoSrc.value)
   })
   // `scrub_start` ('top' | 'middle') is set per section in the Prismic field.
