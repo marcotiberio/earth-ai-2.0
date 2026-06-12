@@ -24,16 +24,16 @@
         "video_url": {
           "type": "Link",
           "config": {
-            "label": "Background video",
+            "label": "Background video (desktop)",
             "placeholder": "Upload or select a video from the Media Library",
             "select": "media"
           }
         },
-        "video_url_hevc": {
+        "video_url_mobile": {
           "type": "Link",
           "config": {
-            "label": "Background video (HEVC, optional)",
-            "placeholder": "Optional .scrub.hevc.mp4 — served to Safari/iOS, ~40% smaller",
+            "label": "Background video (mobile, optional)",
+            "placeholder": "Optional — served on small screens; falls back to the desktop video",
             "select": "media"
           }
         },

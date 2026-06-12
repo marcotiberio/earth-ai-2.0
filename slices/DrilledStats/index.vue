@@ -100,6 +100,7 @@ const feetLabel = computed(() => props.slice.primary.feet_label || '')
 // Scrub video (Link-to-Media) + poster/fallback image.
 const videoUrl     = computed(() => mediaUrl(props.slice.primary.video_url))
 const videoUrlHevc = computed(() => mediaUrl(props.slice.primary.video_url_hevc))
+const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
 const posterUrl    = computed(() => props.slice.primary.image?.url || '')
 // SSR keeps the h264 URL so hydration matches; onMounted swaps in the HEVC
 // sibling when the browser can play it.
@@ -231,7 +232,12 @@ let ctx = null
 
 onMounted(async () => {
   if (videoUrl.value) {
-    videoSrc.value = pickScrubSource(videoUrl.value, videoUrlHevc.value)
+    // Prefer the mobile clip on small viewports when one is provided; otherwise
+    // fall back to the desktop video (with its HEVC sibling).
+    const isMobile = window.matchMedia('(max-width: 767px)').matches
+    videoSrc.value = isMobile && videoUrlMobile.value
+      ? videoUrlMobile.value
+      : pickScrubSource(videoUrl.value, videoUrlHevc.value)
     prefetchScrubVideo(videoSrc.value)
   }
 

@@ -71,6 +71,10 @@ const props = defineProps({
   // instead of videoUrl when the browser hardware-decodes it (Safari/iOS — the
   // platform where the scrub starved on slow networks).
   videoUrlHevc: { type: String, default: '' },
+  // Optional mobile-specific clip. When provided, it's served instead of the
+  // desktop video on small viewports (a separate, lighter encode rather than a
+  // codec swap of the same source).
+  videoUrlMobile: { type: String, default: '' },
   image:        { type: Object, default: () => ({}) },
   // Total pinned scroll distance in vh. With 200, the video stays pinned for
   // ~one full screen of scroll, over which the content travels in and out.
@@ -128,7 +132,12 @@ const alignXClass = computed(() => ({
 
 onMounted(() => {
   if (!props.videoUrl) return
-  chosenUrl.value = pickScrubSource(props.videoUrl, props.videoUrlHevc)
+  // On small viewports prefer the dedicated mobile clip when one is set;
+  // otherwise fall back to the desktop video (and its HEVC sibling).
+  const isMobile = window.matchMedia('(max-width: 767px)').matches
+  chosenUrl.value = isMobile && props.videoUrlMobile
+    ? props.videoUrlMobile
+    : pickScrubSource(props.videoUrl, props.videoUrlHevc)
   if (props.eager) {
     // Swap to the supported codec right after hydration — the h264 fetch has
     // barely started at this point, so the restart is cheap.

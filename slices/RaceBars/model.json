@@ -25,7 +25,7 @@
           "type": "Number",
           "config": {
             "label": "Scroll length (vh)",
-            "placeholder": "Pinned scroll distance in vh (default: 360)"
+            "placeholder": "Desktop pinned scroll distance in vh (default: 360). Mobile is scaled up automatically."
           }
         },
         "scrub_start": {

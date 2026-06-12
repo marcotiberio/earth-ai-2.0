@@ -30,19 +30,37 @@
             "default_value": false
           }
         },
+        "gradient_top": {
+          "type": "Boolean",
+          "config": {
+            "label": "Top gradient",
+            "placeholder_false": "Hidden",
+            "placeholder_true": "Visible",
+            "default_value": true
+          }
+        },
+        "gradient_bottom": {
+          "type": "Boolean",
+          "config": {
+            "label": "Bottom gradient",
+            "placeholder_false": "Hidden",
+            "placeholder_true": "Visible",
+            "default_value": true
+          }
+        },
         "video_url": {
           "type": "Link",
           "config": {
-            "label": "Background video",
+            "label": "Background video (desktop)",
             "placeholder": "Upload or select a video from the Media Library",
             "select": "media"
           }
         },
-        "video_url_hevc": {
+        "video_url_mobile": {
           "type": "Link",
           "config": {
-            "label": "Background video (HEVC, optional)",
-            "placeholder": "Optional .scrub.hevc.mp4 — served to Safari/iOS, ~40% smaller",
+            "label": "Background video (mobile, optional)",
+            "placeholder": "Optional — served on small screens; falls back to the desktop video",
             "select": "media"
           }
         },

@@ -4,6 +4,7 @@
     v-if="slice.variation === 'overlay'"
     :video-url="videoUrl"
     :video-url-hevc="videoUrlHevc"
+    :video-url-mobile="videoUrlMobile"
     :image="slice.primary.image || {}"
     :scroll-length="slice.primary.scroll_length || 300"
     :scrub-start="slice.primary.scrub_start || ''"
@@ -15,8 +16,8 @@
     <!-- Top and bottom fades (each a quarter of the section height) so the
          pinned video feathers into the sections above and below. -->
     <template #pinned>
-      <div class="bg-gradient-to-b from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 top-0 h-1/4 pointer-events-none" />
-      <div class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
+      <div v-if="slice.primary.gradient_top !== false" class="bg-gradient-to-b from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 top-0 h-1/4 pointer-events-none" />
+      <div v-if="slice.primary.gradient_bottom !== false" class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
 
       <!-- Subtitle: an independently-aligned caption layer over the video. Its
            own vertical/horizontal alignment lets it sit apart from the title. -->
@@ -59,8 +60,8 @@
       <!-- Top and bottom fades (each a quarter of the band height) so the media
            band feathers into the darkblue page background, blending each section
            into its neighbours. -->
-      <div class="bg-gradient-to-b from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 top-0 h-1/4 pointer-events-none" />
-      <div class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
+      <div v-if="slice.primary.gradient_top !== false" class="bg-gradient-to-b from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 top-0 h-1/4 pointer-events-none" />
+      <div v-if="slice.primary.gradient_bottom !== false" class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
     </div>
 
     <div class="mt-12 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
@@ -117,6 +118,7 @@ const titleHtml    = computed(() => toHtml(props.slice.primary.title))
 const subtitleHtml = computed(() => toHtml(props.slice.primary.subtitle))
 const videoUrl     = computed(() => mediaUrl(props.slice.primary.video_url))
 const videoUrlHevc = computed(() => mediaUrl(props.slice.primary.video_url_hevc))
+const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
 
 // Subtitle resting position over the pinned video. Mirrors ScrubScene's own
 // alignment mapping so the subtitle can be placed independently of the title.
@@ -141,7 +143,12 @@ const videoSrc = ref(videoUrl.value)
 
 if (props.slice.variation !== 'overlay' && props.slice.primary.video_url) {
   onMounted(() => {
-    videoSrc.value = pickScrubSource(videoUrl.value, videoUrlHevc.value)
+    // Prefer the mobile clip on small viewports when one is provided; otherwise
+    // fall back to the desktop video (with its HEVC sibling) as before.
+    const isMobile = window.matchMedia('(max-width: 767px)').matches
+    videoSrc.value = isMobile && videoUrlMobile.value
+      ? videoUrlMobile.value
+      : pickScrubSource(videoUrl.value, videoUrlHevc.value)
     prefetchScrubVideo(videoSrc.value)
   })
   // `scrub_start` ('top' | 'middle') is set per section in the Prismic field.

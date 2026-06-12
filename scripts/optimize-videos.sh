@@ -39,38 +39,43 @@ command -v ffmpeg >/dev/null || { echo "ffmpeg not found — 'brew install ffmpe
 
 shopt -s nullglob
 for src in "$SRC_DIR"/*.mp4; do
-  case "$src" in *.scrub.mp4|*.scrub.hevc.mp4) continue;; esac # never re-encode our own outputs
+  case "$src" in *.scrub.*) continue;; esac # never re-encode our own outputs
   base="$OUT_DIR/$(basename "${src%.mp4}")"
 
   echo "→ $(basename "$src")  (GOP=$GOP, maxW=$MAXW)"
 
   # Resume support: skip outputs that already exist and are newer than their
   # source. (Delete partials from an interrupted run before re-running.)
-  out="$base.scrub.mp4"
+  out="$base.scrub.gop$GOP.mp4"
   if [ -f "$out" ] && [ "$out" -nt "$src" ]; then
-    echo "   h264: exists, skipping"
+    echo "   h264: $(basename "$out") exists, skipping"
   else
-  ffmpeg -y -i "$src" -an \
-    -vf "scale='min($MAXW,iw)':-2" \
-    -c:v libx264 -profile:v high -pix_fmt yuv420p \
-    -g "$GOP" -keyint_min "$GOP" -sc_threshold 0 \
-    -crf "$CRF" -preset slow \
-    -movflags +faststart \
-    "$out" </dev/null
-  printf '   h264: %s → %s\n' \
-    "$(du -h "$src" | cut -f1)" "$(du -h "$out" | cut -f1)"
+    ffmpeg -y -i "$src" -an \
+      -vf "scale='min($MAXW,iw)':-2" \
+      -c:v libx264 -profile:v high -pix_fmt yuv420p \
+      -g "$GOP" -keyint_min "$GOP" -sc_threshold 0 \
+      -crf "$CRF" -preset slow \
+      -movflags +faststart \
+      "$out" </dev/null
+    printf '   h264: %s → %s\n' \
+      "$(du -h "$src" | cut -f1)" "$(du -h "$out" | cut -f1)"
+  fi
 
   # HEVC must be tagged hvc1 (not the default hev1) or Safari refuses to play it.
-  hevc="$base.scrub.hevc.mp4"
-  ffmpeg -y -i "$src" -an \
-    -vf "scale='min($MAXW,iw)':-2" \
-    -c:v libx265 -pix_fmt yuv420p -tag:v hvc1 \
-    -x265-params "keyint=$GOP:min-keyint=$GOP:scenecut=0:log-level=error" \
-    -crf "$HEVC_CRF" -preset medium \
-    -movflags +faststart \
-    "$hevc" </dev/null
-  printf '   hevc: %s → %s\n' \
-    "$(du -h "$src" | cut -f1)" "$(du -h "$hevc" | cut -f1)"
+  hevc="$base.scrub.gop$GOP.hevc.mp4"
+  if [ -f "$hevc" ] && [ "$hevc" -nt "$src" ]; then
+    echo "   hevc: $(basename "$hevc") exists, skipping"
+  else
+    ffmpeg -y -i "$src" -an \
+      -vf "scale='min($MAXW,iw)':-2" \
+      -c:v libx265 -pix_fmt yuv420p -tag:v hvc1 \
+      -x265-params "keyint=$GOP:min-keyint=$GOP:scenecut=0:log-level=error" \
+      -crf "$HEVC_CRF" -preset medium \
+      -movflags +faststart \
+      "$hevc" </dev/null
+    printf '   hevc: %s → %s\n' \
+      "$(du -h "$src" | cut -f1)" "$(du -h "$hevc" | cut -f1)"
+  fi
 done
 
 echo "Done. Review the outputs, then upload both to Prismic: .scrub.mp4 → video_url, .scrub.hevc.mp4 → video_url_hevc."

@@ -11,7 +11,7 @@
   <section
     ref="rootRef"
     class="relative w-full bg-darkblue"
-    :style="tall ? { height: `${scrollLength}vh` } : null"
+    :style="tall ? { height: `${totalVh}vh` } : null"
   >
     <div
       class="w-full boxed"
@@ -107,7 +107,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { asHTML } from '@prismicio/client'
 
 const props = defineProps({
@@ -133,8 +133,21 @@ const items = (g) => (Array.isArray(g) ? g : []).map((it) => (it && typeof it ==
 
 const headingHtml = computed(() => toHtml(props.slice.primary.heading))
 const body    = computed(() => props.slice.primary.body || '')
-// Pinned scroll distance (vh) — editable per section; defaults to 220.
+// Pinned scroll distance (vh) — editable per section; defaults to 300.
 const scrollLength = computed(() => Number(props.slice.primary.scroll_length) || 300)
+
+// Touch scrolling is native (Lenis only smooths wheel input), so a momentum
+// flick out of the tall pinned video sections rips through this scene. On
+// coarse pointers the same animation is stretched over more scroll. On every
+// device the animation finishes `dwellVh` of pinned scroll before the sticky
+// releases, holding the completed chart + figures on screen so they can be
+// digested (the scrub lerp settles during this dwell too).
+const COARSE_LENGTH_MULT = 1.4
+const coarse  = ref(false)
+const dwellVh = computed(() => (coarse.value ? 100 : 60))
+const totalVh = computed(
+  () => scrollLength.value * (coarse.value ? COARSE_LENGTH_MULT : 1) + dwellVh.value,
+)
 const demand  = computed(() => ({ label: 'DEMAND', value: '', ...obj(props.slice.primary.demand) }))
 const supply  = computed(() => ({ label: '', value: '', ...obj(props.slice.primary.supply) }))
 const xLabels = computed(() => {
@@ -270,7 +283,9 @@ onMounted(async () => {
   const trigger = rootRef.value
   if (!trigger) return
 
-  const coarse = window.matchMedia('(pointer: coarse)').matches
+  coarse.value = window.matchMedia('(pointer: coarse)').matches
+  // Let the coarse multiplier reach the section's height before measuring.
+  await nextTick()
 
   const { gsap }              = await import('gsap')
   const { ScrollTrigger: ST } = await import('gsap/ScrollTrigger')
@@ -283,13 +298,13 @@ onMounted(async () => {
       ease: 'none',
       scrollTrigger: {
         trigger,
-        start: 'top center',
-        // Touch scrolling is native (Lenis only smooths wheel input), so a
-        // momentum flick after the heavy pinned video sections rips through
-        // this scene. A heavier scrub lerp and a longer end dwell keep the
-        // chart readable and hold the finished state on screen.
-        end: () => `bottom bottom+=${window.innerHeight * (coarse ? 0.75 : 0.5)}`,
-        scrub: coarse ? 3 : 1.2,
+        // Start at the pin (not 'top center'): the section's scroll-in is the
+        // momentum buffer after the video sections — the chart waits at 0%
+        // while a flick decays instead of drawing half off-screen.
+        start: 'top top',
+        // Finish `dwellVh` before the pin releases (cf. ScrubScene's tailVh).
+        end: () => `+=${trigger.offsetHeight - window.innerHeight * (1 + dwellVh.value / 100)}`,
+        scrub: coarse.value ? 3 : 1.2,
       },
       onUpdate: () => { progress.value = state.p },
     })
