@@ -16,7 +16,7 @@
       class="w-full overflow-hidden boxed"
       :class="tall ? 'sticky top-0 flex h-screen items-center' : 'flex min-h-screen items-center py-lg'"
     >
-      <div class="flex h-full w-full flex-col gap-0 lg:flex-row lg:items-stretch md:gap-sm lg:gap-lg">
+      <div class="flex h-full w-full flex-col gap-xs lg:flex-row lg:items-stretch md:gap-sm lg:gap-lg">
         <!-- Text column -->
         <div class="w-full h-full flex flex-col justify-start lg:justify-between gap-xs md:gap-sm lg:gap-lg lg:w-5/12">
           <h2
@@ -24,10 +24,10 @@
             v-html="titleHtml"
           />
 
-          <ul class="mt-6 grid lg:max-w-[550px] grid-cols-2 gap-x-8 gap-y-6 lg:mt-20 xl:gap-x-20">
+          <ul class="mt-0 grid lg:max-w-[550px] grid-cols-2 gap-x-8 gap-y-6 lg:mt-20 xl:gap-x-20">
             <li v-for="(stat, i) in stats" :key="i" class="relative flex flex-col">
               <DottedLine class="w-full" />
-              <h2 class="mt-4 mb-2 font-serif font-h2">
+              <h2 class="mt-2 mb-2 font-serif font-h2">
                 {{ counter(stat.value) }}
               </h2>
               <span class="font-caption font-medium tracking-wide">{{ stat.label }}</span>
@@ -40,7 +40,7 @@
              footage and the metrics scrub together. -->
         <div class="flex w-full items-center justify-center lg:w-7/12 lg:justify-end">
           <div
-            class="relative aspect-square md:aspect-4/3 lg:aspect-[4/5] w-full max-h-[650px] overflow-hidden rounded lg:max-h-[850px]"
+            class="relative aspect-[8/7] md:aspect-4/3 lg:aspect-[4/5] w-full max-h-[650px] overflow-hidden rounded lg:max-h-[850px]"
             role="img"
             :aria-label="`${counter(feetValue)} ${feetLabel}`"
           >
