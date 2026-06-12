@@ -3,7 +3,6 @@
   <ScrubScene
     v-if="slice.variation === 'overlay'"
     :video-url="videoUrl"
-    :video-url-hevc="videoUrlHevc"
     :video-url-mobile="videoUrlMobile"
     :image="slice.primary.image || {}"
     :scroll-length="slice.primary.scroll_length || 300"
@@ -117,7 +116,6 @@ const mediaUrl = (field) =>
 const titleHtml    = computed(() => toHtml(props.slice.primary.title))
 const subtitleHtml = computed(() => toHtml(props.slice.primary.subtitle))
 const videoUrl     = computed(() => mediaUrl(props.slice.primary.video_url))
-const videoUrlHevc = computed(() => mediaUrl(props.slice.primary.video_url_hevc))
 const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
 
 // Subtitle resting position over the pinned video. Mirrors ScrubScene's own
@@ -137,18 +135,18 @@ const subtitleAlignXClass = computed(() => ({
 // Only used by the non-pinned "default" band variation.
 const rootRef  = ref(null)
 const videoRef = ref(null)
-// SSR keeps the h264 URL so hydration matches; onMounted swaps in the HEVC
-// sibling when the browser can play it, and queues the background warm-up.
+// SSR keeps the desktop URL so hydration matches; onMounted swaps in the mobile
+// clip on small viewports, and queues the background warm-up.
 const videoSrc = ref(videoUrl.value)
 
 if (props.slice.variation !== 'overlay' && props.slice.primary.video_url) {
   onMounted(() => {
     // Prefer the mobile clip on small viewports when one is provided; otherwise
-    // fall back to the desktop video (with its HEVC sibling) as before.
+    // use the desktop video.
     const isMobile = window.matchMedia('(max-width: 767px)').matches
     videoSrc.value = isMobile && videoUrlMobile.value
       ? videoUrlMobile.value
-      : pickScrubSource(videoUrl.value, videoUrlHevc.value)
+      : videoUrl.value
     prefetchScrubVideo(videoSrc.value)
   })
   // `scrub_start` ('top' | 'middle') is set per section in the Prismic field.

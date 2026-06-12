@@ -67,13 +67,8 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref } from 'vue
 
 const props = defineProps({
   videoUrl:     { type: String, default: '' },
-  // Optional HEVC sibling (.scrub.hevc.mp4, hvc1-tagged): ~40% smaller, served
-  // instead of videoUrl when the browser hardware-decodes it (Safari/iOS — the
-  // platform where the scrub starved on slow networks).
-  videoUrlHevc: { type: String, default: '' },
   // Optional mobile-specific clip. When provided, it's served instead of the
-  // desktop video on small viewports (a separate, lighter encode rather than a
-  // codec swap of the same source).
+  // desktop video on small viewports (a separate, lighter encode).
   videoUrlMobile: { type: String, default: '' },
   image:        { type: Object, default: () => ({}) },
   // Total pinned scroll distance in vh. With 200, the video stays pinned for
@@ -108,8 +103,8 @@ const inSimulator = inject('inSliceSimulator', false)
 const rootRef  = ref(null)
 const videoRef = ref(null)
 
-// Final URL after codec selection. Starts as the h264 URL so SSR markup and
-// hydration match; onMounted swaps in the HEVC sibling when supported.
+// Resolved clip URL. Starts as the desktop URL so SSR markup and hydration
+// match; onMounted swaps in the mobile clip on small viewports when provided.
 const chosenUrl = ref(props.videoUrl)
 // Lazy src: empty until the section nears the viewport (or immediately if eager).
 const videoSrc = ref(props.eager ? props.videoUrl : '')
@@ -133,11 +128,11 @@ const alignXClass = computed(() => ({
 onMounted(() => {
   if (!props.videoUrl) return
   // On small viewports prefer the dedicated mobile clip when one is set;
-  // otherwise fall back to the desktop video (and its HEVC sibling).
+  // otherwise use the desktop video.
   const isMobile = window.matchMedia('(max-width: 767px)').matches
   chosenUrl.value = isMobile && props.videoUrlMobile
     ? props.videoUrlMobile
-    : pickScrubSource(props.videoUrl, props.videoUrlHevc)
+    : props.videoUrl
   if (props.eager) {
     // Swap to the supported codec right after hydration — the h264 fetch has
     // barely started at this point, so the restart is cheap.

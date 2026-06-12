@@ -12,19 +12,21 @@
 # is already near-free. All-intra triples the bitrate for nothing — it's what
 # caused the 7–16 Mbps files that choked mobile connections.
 #
-# Each source produces two outputs:
-#   <name>.scrub.mp4       h264 (works everywhere)
-#   <name>.scrub.hevc.mp4  HEVC, hvc1-tagged (Safari/iOS hardware decode,
-#                          ~40% smaller — served when canPlayType allows)
+# Output: a single HEVC clip, hvc1-tagged — our delivery standard (~40% smaller
+# than the equivalent h264). The site serves one source per video now, so the
+# encode is HEVC-only. Note the support tradeoff: HEVC plays on Safari/iOS and
+# HEVC-capable Chrome (hardware decode); browsers without it fall back to the
+# poster image rather than the clip.
+#
+#   <name>.scrub.gop<GOP>.hevc.mp4   HEVC, hvc1-tagged → upload to video_url
 #
 # Usage:
 #   brew install ffmpeg          # if needed
 #   ./scripts/optimize-videos.sh                 # GOP=5 (smooth, good size)
-#   MAXW=1280 CRF=24 ./scripts/optimize-videos.sh
+#   MAXW=1280 HEVC_CRF=27 ./scripts/optimize-videos.sh
 #
 # Reads the 1920×1080 masters from media-src/videos/_original and writes the
-# web outputs one level up, ready to upload to Prismic
-# (video_url ← .scrub.mp4, video_url_hevc ← .scrub.hevc.mp4).
+# web outputs one level up, ready to upload to Prismic (.hevc.mp4 → video_url).
 set -euo pipefail
 
 DIR="$(cd "$(dirname "$0")/../media-src/videos" && pwd)"
@@ -32,8 +34,7 @@ SRC_DIR="${SRC_DIR:-$DIR/_original}" # override to encode another batch, e.g. SR
 OUT_DIR="${OUT_DIR:-$DIR}"           # where the .scrub outputs land
 GOP="${GOP:-5}"            # keyframe interval in frames
 MAXW="${MAXW:-1600}"       # cap width (background video rarely needs > 1600px)
-CRF="${CRF:-23}"           # h264 quality: lower = better/bigger (18–28 sane range)
-HEVC_CRF="${HEVC_CRF:-26}" # x265 CRF runs ~3 higher than x264 for equal quality
+HEVC_CRF="${HEVC_CRF:-26}" # x265 quality: lower = better/bigger (x265 CRF runs ~3 higher than x264 for equal quality)
 
 command -v ffmpeg >/dev/null || { echo "ffmpeg not found — 'brew install ffmpeg'"; exit 1; }
 
@@ -46,21 +47,6 @@ for src in "$SRC_DIR"/*.mp4; do
 
   # Resume support: skip outputs that already exist and are newer than their
   # source. (Delete partials from an interrupted run before re-running.)
-  out="$base.scrub.gop$GOP.mp4"
-  if [ -f "$out" ] && [ "$out" -nt "$src" ]; then
-    echo "   h264: $(basename "$out") exists, skipping"
-  else
-    ffmpeg -y -i "$src" -an \
-      -vf "scale='min($MAXW,iw)':-2" \
-      -c:v libx264 -profile:v high -pix_fmt yuv420p \
-      -g "$GOP" -keyint_min "$GOP" -sc_threshold 0 \
-      -crf "$CRF" -preset slow \
-      -movflags +faststart \
-      "$out" </dev/null
-    printf '   h264: %s → %s\n' \
-      "$(du -h "$src" | cut -f1)" "$(du -h "$out" | cut -f1)"
-  fi
-
   # HEVC must be tagged hvc1 (not the default hev1) or Safari refuses to play it.
   hevc="$base.scrub.gop$GOP.hevc.mp4"
   if [ -f "$hevc" ] && [ "$hevc" -nt "$src" ]; then
@@ -78,4 +64,4 @@ for src in "$SRC_DIR"/*.mp4; do
   fi
 done
 
-echo "Done. Review the outputs, then upload both to Prismic: .scrub.mp4 → video_url, .scrub.hevc.mp4 → video_url_hevc."
+echo "Done. Review the outputs, then upload to Prismic: .scrub.gop$GOP.hevc.mp4 → video_url."
