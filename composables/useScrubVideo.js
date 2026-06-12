@@ -8,7 +8,9 @@ import { onMounted, onUnmounted, unref } from 'vue'
  * Uses "play-chase": rather than paused-seeking each frame (which doesn't
  * repaint on Android Chrome — the picture freezes while the timestamp moves),
  * it plays the clip forward toward the scroll target and only seeks for
- * backward motion. See the chase loop below for the full rationale.
+ * backward motion. On WebKit (iOS browsers, macOS Safari) the trade-off
+ * inverts — seeks paint fine but rate-boosted playback judders — so both
+ * directions scrub via gated seeks there. See the chase loop for details.
  *
  * Options:
  *   startAt     — named start preset ('top' | 'middle'); see SCRUB_PRESETS.
@@ -20,6 +22,20 @@ import { onMounted, onUnmounted, unref } from 'vue'
  * Priming still matters: we wait for the duration and kick the decode pipeline
  * with a muted play()/pause() so the clip buffers and (on iOS) unlocks paint.
  */
+
+// WebKit scrubs by seeking, not play-chase. Safari is the inverse of Android
+// Chrome: paused `currentTime` seeks DO repaint reliably, while playback at
+// elevated playbackRate (the chase's catch-up mechanism, up to 8×) drops and
+// judders frames — so the chase makes Safari look worse than a plain seek
+// would. Covers every iOS browser (all WebKit by platform rule; iPadOS
+// masquerades as Mac, hence the touch-points check) plus macOS Safari.
+const isSeekScrubEngine = () => {
+  const ua = navigator.userAgent
+  const iOS = /iP(hone|ad|od)/.test(ua) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  const macSafari = /Safari\//.test(ua) && !/Chrom(e|ium)|Edg\/|OPR\//.test(ua)
+  return iOS || macSafari
+}
 
 // Named start/end presets, selectable per section (e.g. via a `scrub_start`
 // content field). Both scrub across the section's transit — they differ only
@@ -133,17 +149,32 @@ export function useScrubVideo(videoRef, triggerRef, options = {}) {
     const RATE_GAIN = options.rateGain ?? 4 // how aggressively playbackRate tracks the gap
     const BUF_MARGIN = 0.15                 // s — stay this far inside the buffered range
 
-    // Backward scrubbing pays the GOP cost: every seek decodes forward from the
-    // nearest keyframe (≤ GOP frames with the .scrub encodes). Setting
+    // Seek-based scrubbing pays the GOP cost: every seek decodes forward from
+    // the nearest keyframe (≤ GOP frames with the .scrub encodes). Setting
     // currentTime every rAF cancels the in-flight seek before it can paint, so
-    // on mobile almost no frame completes and the reverse scrub stutters.
-    // Instead, issue a new seek only after the previous one has painted —
-    // frames then arrive at whatever rate the decoder sustains. For large gaps
-    // (fast flick upward) fastSeek trades frame-accuracy for nearest-keyframe
-    // speed; at GOP=5 that's ≤ 5/fps s off, invisible mid-flick.
+    // on mobile almost no frame completes and the scrub stutters. Instead,
+    // issue a new seek only after the previous one has painted — frames then
+    // arrive at whatever rate the decoder sustains. For large gaps (fast
+    // flicks) fastSeek trades frame-accuracy for nearest-keyframe speed; at
+    // GOP=5 that's ≤ 5/fps s off, invisible mid-flick. Used for backward
+    // motion everywhere (reverse playback doesn't exist) and for BOTH
+    // directions on WebKit, where seeks paint well and the chase doesn't.
     const SEEK_STALL_MS = 250 // re-issue if a seek silently never completes
     const FAST_SEEK_GAP = 0.5 // s — beyond this, keyframe accuracy is enough
+    const seekScrub = isSeekScrubEngine()
     let lastSeekAt = 0
+
+    const seekToward = (target) => {
+      const now = performance.now()
+      if (video.seeking && now - lastSeekAt <= SEEK_STALL_MS) return
+      lastSeekAt = now
+      if (typeof video.fastSeek === 'function' &&
+          Math.abs(target - video.currentTime) > FAST_SEEK_GAP) {
+        video.fastSeek(target)
+      } else {
+        video.currentTime = target
+      }
+    }
 
     // Furthest playable time contiguous with `t` (-1 when `t` isn't buffered).
     const bufferedEndAt = (t) => {
@@ -165,26 +196,19 @@ export function useScrubVideo(videoRef, triggerRef, options = {}) {
       const limit = bufferedEndAt(video.currentTime)
       if (limit >= 0) target = Math.min(target, Math.max(0, limit - BUF_MARGIN))
       const diff   = target - video.currentTime
-      if (diff > DEADBAND) {
+      if (Math.abs(diff) <= DEADBAND) {
+        // Arrived → hold this frame.
+        if (!video.paused) video.pause()
+      } else if (seekScrub || diff < 0) {
+        // Backward (can't play in reverse) — or WebKit in either direction,
+        // where gated seeks paint better than rate-boosted playback.
+        if (!video.paused) video.pause()
+        video.playbackRate = 1
+        seekToward(target)
+      } else {
         // Behind the target → play forward to catch up (repaints every frame).
         if (video.paused) video.play().catch(() => {})
         video.playbackRate = Math.min(MAX_RATE, Math.max(1, diff * RATE_GAIN))
-      } else if (diff < -DEADBAND) {
-        // Ahead of the target (scrolled up) → can't play in reverse, so seek.
-        if (!video.paused) video.pause()
-        video.playbackRate = 1
-        const now = performance.now()
-        if (!video.seeking || now - lastSeekAt > SEEK_STALL_MS) {
-          lastSeekAt = now
-          if (typeof video.fastSeek === 'function' && diff < -FAST_SEEK_GAP) {
-            video.fastSeek(target)
-          } else {
-            video.currentTime = target
-          }
-        }
-      } else if (!video.paused) {
-        // Arrived → hold this frame.
-        video.pause()
       }
     }
     rafId = requestAnimationFrame(loop)
