@@ -15,7 +15,7 @@
             v-if="imageUrl"
             :src="imageUrl"
             :alt="imageAlt"
-            class="h-auto w-full aspect-[16/7] md:aspect-video self-start object-cover rounded grayscale"
+            class="h-auto w-full aspect-[16/6] md:aspect-video self-start object-cover rounded grayscale"
             :class="linkHref ? 'transition-all group-hover:scale-105 group-hover:transition-all ' : ''"
             
           />

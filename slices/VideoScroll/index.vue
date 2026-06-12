@@ -4,7 +4,8 @@
     v-if="slice.variation === 'overlay'"
     :video-url="videoUrl"
     :image="slice.primary.image || {}"
-    :scroll-length="slice.primary.scroll_length || 300"
+    :scroll-length="scrollLength"
+    :tail-vh="hasDwell ? DWELL_VH : 0"
     :scrub-start="slice.primary.scrub_start || ''"
     :align="slice.primary.title_align_vertical || 'bottom'"
     :align-x="slice.primary.title_align_horizontal || 'left'"
@@ -115,6 +116,20 @@ const mediaUrl = (field) =>
 const titleHtml    = computed(() => toHtml(props.slice.primary.title))
 const subtitleHtml = computed(() => toHtml(props.slice.primary.subtitle))
 const videoUrl     = computed(() => mediaUrl(props.slice.primary.video_url))
+
+// Hold the pin for an extra screen after the scrub completes, so the video
+// reaches its last frame (the play-chase catch-up lags behind fast scrolls)
+// and dwells there before the section wipes away. The section grows by the
+// same amount so the dwell is added scroll distance, not a compressed scrub
+// (cf. VideoScrollTitles). A `scrub_start` preset scrubs through the unpin
+// wipe by design, so the dwell only applies to the default scrub.
+const DWELL_VH = 100
+const hasDwell = computed(() =>
+  Boolean(videoUrl.value) && !props.slice.primary.scrub_start && props.slice.variation === 'overlay',
+)
+const scrollLength = computed(
+  () => (props.slice.primary.scroll_length || 300) + (hasDwell.value ? DWELL_VH : 0),
+)
 
 // Subtitle resting position over the pinned video. Mirrors ScrubScene's own
 // alignment mapping so the subtitle can be placed independently of the title.

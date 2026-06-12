@@ -270,7 +270,7 @@ onMounted(async () => {
         // screen before the next section scrolls in. (Section height carries
         // +50vh to fund this dwell; keep the two in step if you tune it.)
         trigger,
-        start: 'top center',
+        start: 'top top',
         // Touch scrolling is native (Lenis only smooths wheel input), so a
         // momentum flick after the heavy pinned video sections rips through
         // this scene. A heavier scrub lerp and a longer end dwell keep the

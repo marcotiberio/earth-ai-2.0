@@ -142,7 +142,7 @@ async function setupScrub() {
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger,
-        start: 'top top',
+        start: 'top center',
         // With an end title the section is a dwell-screen taller (see
         // `scrollLength`); end the timeline that much before the pin releases so
         // GSAP holds the finished state — the title stays put — across the dwell.

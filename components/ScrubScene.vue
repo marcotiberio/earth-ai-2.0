@@ -7,11 +7,15 @@
   <!-- The editor's scroll_length is the desktop intent. On phones the pinned
        travel is capped (CSS min(), so SSR markup is already correct): very
        long pins train hard repeated flicking whose momentum then dumps into
-       whatever follows the section, and they make the scrub feel sluggish. -->
+       whatever follows the section, and they make the scrub feel sluggish.
+       The tail dwell stays OUTSIDE the cap — min(length, 400dvh + tail) ==
+       min(base, 400dvh) + tail when callers pass scrollLength = base + tail —
+       otherwise capped sections would carve the dwell out of the scrub travel
+       (finishing the video a full tail early) instead of appending it. -->
   <section
     ref="rootRef"
-    class="relative w-full bg-darkblue h-[min(var(--scrub-length),400dvh)] md:h-[var(--scrub-length)]"
-    :style="{ '--scrub-length': inSimulator ? '100dvh' : `${scrollLength}dvh` }"
+    class="relative w-full bg-darkblue h-[min(var(--scrub-length),calc(400dvh+var(--scrub-tail)))] md:h-[var(--scrub-length)]"
+    :style="{ '--scrub-length': inSimulator ? '100dvh' : `${scrollLength}dvh`, '--scrub-tail': inSimulator ? '0dvh' : `${tailVh}dvh` }"
   >
     <!-- Pinned stage: video background AND content both pin to the top for the
          whole scrub, then wipe away together when the section ends. In `frame`
@@ -83,7 +87,10 @@ const props = defineProps({
   // Tail (in vh) at the end of the pinned travel where the video scrub is
   // already complete — it finishes at its natural pace and holds its last frame
   // across this dwell before the section unpins. 0 (default) scrubs the full
-  // travel. Only applies to the default (non-`scrubStart`) scrub.
+  // travel. Only applies to the default (non-`scrubStart`) scrub. Callers
+  // grow scrollLength by the same amount (so the dwell is added travel, not a
+  // compressed scrub); the height min() above keeps it intact under the
+  // mobile cap.
   tailVh:       { type: Number, default: 0 },
   overlayClass: { type: String, default: 'bg-darkblue/40' },
   // Frame mode: render the video inset on the darkblue background (rather than
