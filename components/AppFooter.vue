@@ -4,7 +4,7 @@
          footer so the document's scroll height never changes mid-entrance. -->
     <div ref="innerRef">
     <!-- Top Bar -->
-    <div class="flex flex-col items-start justify-between gap-sm mb-md w-full">
+    <div class="flex flex-col items-start justify-between gap-sm mb-sm w-full">
       <div class="flex flex-row items-start justify-between gap-sm w-full">
         <div class="flex flex-col items-start justify-between gap-sm w-full md:w-1/2">
           <span class="font-h2 font-serif text-beige">{{ mainTitle }}</span>
