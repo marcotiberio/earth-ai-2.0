@@ -1,8 +1,8 @@
 <template>
   <!-- Launch overlay: holds the viewport until the homepage media is fully
-       downloaded (or the safety cap fires). The four bars of the Earth AI
-       logomark fill from the bottom up, one per 25% of real download progress;
-       at 100% the overlay fades away. -->
+       downloaded. The four bars of the Earth AI logomark fill from the bottom
+       up, one per 25% of real download progress; at 100% the overlay fades
+       away. -->
   <Transition name="loader-fade" @after-leave="onHidden">
     <div v-if="visible" class="app-loader" role="status" aria-live="polite" aria-label="Loading">
       <svg
@@ -35,9 +35,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { collectMediaUrls, registerAssets, startLoading, useAssetLoader } from '~/composables/useAssetLoader'
 
 // The bars track REAL byte progress: we fully download every homepage video so
-// any scrub position is instantly seekable, even on a fast scroll. A hard cap in
-// startLoading() (its `timeout`) guarantees the overlay still lifts on a slow
-// connection — past the cap, stragglers finish in the background.
+// any scrub position is instantly seekable, even on a fast scroll. There's no
+// time cap — the overlay holds until the media is genuinely buffered.
 
 // Smallest time the overlay stays up, so a fast/cached load doesn't flash.
 const MIN_DISPLAY_MS = 600
@@ -61,7 +60,7 @@ function barStyle(order) {
 
 function tick() {
   // Ease toward live progress; only ever move forward, and snap to a clean 1
-  // once loading is done (all assets buffered, or the safety cap fired).
+  // once loading is done (all assets buffered).
   const target = state.done ? 1 : Math.max(displayed.value, progress.value)
   displayed.value += (target - displayed.value) * 0.1
 
@@ -88,7 +87,7 @@ onMounted(async () => {
   try {
     const doc = await prismic.client.getSingle('home_page')
     registerAssets([...collectMediaUrls(doc)])
-  } catch { /* no document / offline → overlay still resolves via the cap */ }
+  } catch { /* no document / offline → no assets registered, overlay resolves at once */ }
 
   startLoading()
   startedAt = performance.now()

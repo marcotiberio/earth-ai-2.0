@@ -10,11 +10,8 @@ import { reactive, computed, readonly } from 'vue'
  * site's media is genuinely buffered. Full downloads matter here because the
  * scrub interaction (composables/useScrubVideo.js) seeks to arbitrary timestamps
  * and plays faster than real-time — so every byte needs to be present for a
- * fast scroll to stay smooth, not just "enough to play at 1x".
- *
- * A hard cap in startLoading() guarantees the overlay can never trap the user on
- * a slow connection: past the cap it lifts and any stragglers finish in the
- * background (their bytes already warming the HTTP cache for the real elements).
+ * fast scroll to stay smooth, not just "enough to play at 1x". There's no time
+ * cap: the overlay holds until the media is genuinely buffered.
  *
  * State lives at module scope so it's a single shared store across the app.
  */
@@ -146,21 +143,15 @@ async function loadOne(a) {
 }
 
 /**
- * Begin downloading every registered asset in full. Resolves when all are ready,
- * or when `timeout` ms elapse — the safety cap, so a slow/stalled connection can
- * never trap the user behind the overlay. Any assets still downloading when the
- * cap fires simply finish in the background. Idempotent.
+ * Begin downloading every registered asset in full. Resolves only once all are
+ * ready — there's no time cap, so the overlay holds until the media is genuinely
+ * buffered. Idempotent.
  */
-export async function startLoading({ timeout = 8000 } = {}) {
+export async function startLoading() {
   if (state.started) return
   state.started = true
 
-  const all = Promise.all(state.assets.map(loadOne))
-  let timer
-  const cap = new Promise((resolve) => { timer = setTimeout(resolve, timeout) })
-
-  await Promise.race([all, cap])
-  clearTimeout(timer)
+  await Promise.all(state.assets.map(loadOne))
   state.done = true
 }
 

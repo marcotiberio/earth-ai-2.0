@@ -16,8 +16,22 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
  *   const { $lenis } = useNuxtApp()
  *   $lenis.scrollTo('#section', { offset: -80 })
  */
+// TEMP testing toggle: set true to disable Lenis entirely and use native
+// scrolling. ScrollTrigger still drives the pinned scrub scenes off the native
+// scroll, and $lenis is left undefined (consumers are null-safe / fall back to
+// native scroll events). Flip back to false to restore smooth scrolling.
+const DISABLE_LENIS = true
+
 export default defineNuxtPlugin((nuxtApp) => {
   gsap.registerPlugin(ScrollTrigger)
+
+  if (DISABLE_LENIS) {
+    // Native scroll only. Keep ignoreMobileResize so the scrub measurements
+    // still survive the mobile URL-bar resize; ScrollTrigger listens to native
+    // scroll by default, so pins/scrub keep working without Lenis.
+    ScrollTrigger.config({ ignoreMobileResize: true })
+    return
+  }
 
   // Android Chrome (and iOS Safari) show/hide the URL bar as you scroll, which
   // fires a `resize` and changes `innerHeight`/`vh` mid-scroll. By default
