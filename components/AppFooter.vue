@@ -19,7 +19,7 @@
           <span class="font-h2 font-serif text-beige">{{ mainTitle }}</span>
           <!-- ToDo: Add contact link -->
           <a
-            href="mailto:info@earth-ai.com"
+            href="mailto:contact@earth-ai.com"
             class="btn btn-primary mt-auto font-label text-darkblue hover:underline"
           >Contact us</a>
         </div>
