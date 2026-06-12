@@ -24,6 +24,7 @@
         <!-- bottom bar -->
         <path :style="barStyle(3)" d="M26.9623 60.671L18.4537 60.6663C18.0039 60.6663 17.6708 60.2917 17.6246 59.863L16.4883 49.4538C16.446 49.0636 16.7477 48.707 17.1442 48.707H28.3627C28.7459 48.7078 29.0672 49.0753 29.0256 49.4546L27.8917 59.8591C27.8353 60.3755 27.4694 60.6702 26.9631 60.6702L26.9623 60.671Z" fill="#FAF3E4" />
       </svg>
+      <p class="font-label leading-tight text-center">We're loading a great experience.<br> It's worth the wait.</p>
     </div>
   </Transition>
 </template>
@@ -113,14 +114,26 @@ onBeforeUnmount(() => {
   inset: 0;
   z-index: 100; /* above the fixed nav (z-50) */
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 3rem;
   background: #0d111b; /* darkblue */
 }
 
 .app-loader__mark {
   width: 52px;
   height: auto;
+}
+
+.app-loader__text {
+  max-width: 22rem;
+  padding: 0 1.5rem;
+  color: #faf3e4; /* beige */
+  text-align: center;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  opacity: 0.7;
 }
 
 /* rAF drives the fill, so no per-bar transition is needed — keep it crisp. */
