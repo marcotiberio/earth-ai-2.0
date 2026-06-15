@@ -234,7 +234,7 @@ onMounted(async () => {
     // post-hydration swap from the SSR desktop src, so no markup mismatch);
     // otherwise the desktop clip. The scrub drives whichever loaded.
     const mobile = window.matchMedia('(max-width: 767px)').matches
-    videoSrc.value = (mobile && videoUrlMobile.value) ? videoUrlMobile.value : videoUrl.value
+    videoSrc.value = (MOBILE_VIDEO_ENABLED && mobile && videoUrlMobile.value) ? videoUrlMobile.value : videoUrl.value
     prefetchScrubVideo(videoSrc.value)
   }
 

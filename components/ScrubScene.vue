@@ -126,7 +126,7 @@ let observer = null
 // is present on the client, absent on the server (where onMounted never runs).
 const isMobile = typeof window !== 'undefined'
   && window.matchMedia('(max-width: 767px)').matches
-const sourceUrl = () => (isMobile && props.videoUrlMobile) ? props.videoUrlMobile : props.videoUrl
+const sourceUrl = () => (MOBILE_VIDEO_ENABLED && isMobile && props.videoUrlMobile) ? props.videoUrlMobile : props.videoUrl
 
 // Attach the device-appropriate src and kick its decode. Setting src alone isn't
 // enough — load() + a muted inline play() makes the clip buffer and (on iOS)

@@ -157,7 +157,8 @@ if (props.slice.variation !== 'overlay' && props.slice.primary.video_url) {
   onMounted(() => {
     // Swap to the lighter mobile encode on phones (a post-hydration reactive
     // update from the SSR-rendered desktop src, so no markup mismatch).
-    if (typeof window !== 'undefined'
+    if (MOBILE_VIDEO_ENABLED
+      && typeof window !== 'undefined'
       && window.matchMedia('(max-width: 767px)').matches
       && videoUrlMobile.value) {
       videoSrc.value = videoUrlMobile.value

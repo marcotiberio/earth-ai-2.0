@@ -69,7 +69,7 @@ export function collectMediaUrls(node, found = new Map(), opts = {}) {
     const hasVideoPair = 'video_url' in node || 'video_url_mobile' in node
     const mobileVal = node.video_url_mobile
     const mobileUrl = typeof mobileVal === 'string' ? mobileVal : mobileVal?.url
-    const chosenVideo = (opts.mobile && mobileUrl) ? mobileVal : node.video_url
+    const chosenVideo = (MOBILE_VIDEO_ENABLED && opts.mobile && mobileUrl) ? mobileVal : node.video_url
 
     for (const key in node) {
       if (key === 'url') continue
