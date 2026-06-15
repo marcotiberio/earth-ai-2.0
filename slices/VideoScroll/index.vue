@@ -3,6 +3,7 @@
   <ScrubScene
     v-if="slice.variation === 'overlay'"
     :video-url="videoUrl"
+    :video-url-mobile="videoUrlMobile"
     :image="slice.primary.image || {}"
     :scroll-length="scrollLength"
     :tail-vh="hasDwell ? DWELL_VH : 0"
@@ -113,9 +114,10 @@ const toHtml = (field) => {
 const mediaUrl = (field) =>
   typeof field === 'string' ? field : field?.url || ''
 
-const titleHtml    = computed(() => toHtml(props.slice.primary.title))
-const subtitleHtml = computed(() => toHtml(props.slice.primary.subtitle))
-const videoUrl     = computed(() => mediaUrl(props.slice.primary.video_url))
+const titleHtml      = computed(() => toHtml(props.slice.primary.title))
+const subtitleHtml   = computed(() => toHtml(props.slice.primary.subtitle))
+const videoUrl       = computed(() => mediaUrl(props.slice.primary.video_url))
+const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
 
 // Hold the pin for an extra screen after the scrub completes, so the video
 // reaches its last frame (the play-chase catch-up lags behind fast scrolls)
@@ -153,6 +155,13 @@ const videoSrc = ref(videoUrl.value)
 
 if (props.slice.variation !== 'overlay' && props.slice.primary.video_url) {
   onMounted(() => {
+    // Swap to the lighter mobile encode on phones (a post-hydration reactive
+    // update from the SSR-rendered desktop src, so no markup mismatch).
+    if (typeof window !== 'undefined'
+      && window.matchMedia('(max-width: 767px)').matches
+      && videoUrlMobile.value) {
+      videoSrc.value = videoUrlMobile.value
+    }
     prefetchScrubVideo(videoSrc.value)
   })
   // `scrub_start` ('top' | 'middle') is set per section in the Prismic field.

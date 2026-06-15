@@ -47,6 +47,14 @@
             "select": "media"
           }
         },
+        "video_url_mobile": {
+          "type": "Link",
+          "config": {
+            "label": "Background video (mobile)",
+            "placeholder": "Optional lighter encode served to phones (falls back to the desktop video)",
+            "select": "media"
+          }
+        },
         "image": {
           "type": "Image",
           "config": {
