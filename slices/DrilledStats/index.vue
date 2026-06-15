@@ -97,7 +97,7 @@ const mediaUrl = (field) =>
 const titleHtml = computed(() => toHtml(props.slice.primary.title))
 const feetValue = computed(() => props.slice.primary.feet_value || '')
 const feetLabel = computed(() => props.slice.primary.feet_label || '')
-// Scrub video (Link-to-Media) + optional lighter mobile encode + poster image.
+// Scrub video (Link-to-Media) + optional lighter mobile encode + poster/fallback image.
 const videoUrl       = computed(() => mediaUrl(props.slice.primary.video_url))
 const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
 const posterUrl      = computed(() => props.slice.primary.image?.url || '')
