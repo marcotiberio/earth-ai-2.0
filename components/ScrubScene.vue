@@ -159,6 +159,14 @@ const alignXClass = computed(() => ({
   right:  'justify-end text-right',
 }[props.alignX] || 'justify-start text-left'))
 
+// Whether THIS device autoplays the clip (phones) rather than scroll-scrubbing
+// it (desktop / `:autoplay="false"`). Read once at setup from the viewport;
+// `window` is present on the client setup pass and absent on the server — where
+// neither driver's onMounted runs anyway, so the server's choice is moot.
+const autoplayOnThisDevice = props.autoplay
+  && typeof window !== 'undefined'
+  && window.matchMedia('(max-width: 767px)').matches
+
 onMounted(() => {
   // Eager clips already have their src in the SSR markup; nothing to do.
   if (!props.videoUrl || props.eager) return
@@ -171,10 +179,17 @@ onMounted(() => {
   const margin = window.matchMedia('(max-width: 767px)').matches ? '300%' : '150%'
   stopObserve = observeNear(rootRef.value, () => {
     videoSrc.value = props.videoUrl
-    // Setting src alone isn't enough — kick the clip so it buffers and (on iOS)
-    // unlocks frame painting. The composable's own kick ran at mount, before
-    // this src existed, so we re-trigger it once the source is attached.
-    nextTick(() => kickScrubVideo(videoRef.value))
+    // Setting src alone isn't enough to start buffering. On the SCRUB path, kick
+    // the clip (muted play()/pause()) so it buffers and unlocks iOS painting. On
+    // the AUTOPLAY path we must NOT kick: the kick's deferred pause() would race
+    // useAutoplayVideo's play-on-view and could freeze the section paused — just
+    // load() to start buffering and let the in-view play() do the unlock.
+    nextTick(() => {
+      const v = videoRef.value
+      if (!v) return
+      if (autoplayOnThisDevice) { try { v.load() } catch { /* ignore */ } }
+      else kickScrubVideo(v)
+    })
   }, margin)
 })
 
@@ -186,15 +201,7 @@ onBeforeUnmount(() => stopObserve?.())
 // engine: map currentTime 0 → duration across the section's pinned travel (top
 // hits viewport top → bottom hits viewport bottom), matching the sticky pin. A
 // `scrubStart` preset overrides this with a per-section start ('top'|'middle').
-//
-// The mobile check is read once at setup from the viewport (mirrors the
-// lazy-margin breakpoint in onMounted above). `window` is present on the client
-// setup pass and absent on the server — where neither driver's onMounted runs
-// anyway, so the server's branch choice is inconsequential.
-const autoplayOnThisDevice = props.autoplay
-  && typeof window !== 'undefined'
-  && window.matchMedia('(max-width: 767px)').matches
-
+// `autoplayOnThisDevice` (the mobile check) is computed once above.
 if (props.videoUrl && !inSimulator) {
   if (autoplayOnThisDevice) {
     useAutoplayVideo(videoRef, rootRef)

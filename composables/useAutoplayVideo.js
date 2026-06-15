@@ -37,20 +37,22 @@ export function useAutoplayVideo(videoRef, triggerRef) {
 
     // Honour reduced-motion: hold a still frame rather than looping motion.
     // kickScrubVideo runs a muted play()/pause(), which paints the first frame
-    // (and on iOS unlocks painting) without leaving the clip in motion.
+    // (and on iOS unlocks painting) without leaving the clip in motion. This is
+    // the ONLY place we kick — there's no IntersectionObserver here to race it.
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     if (reduce) {
-      observeNear(trigger, () => kickScrubVideo(video), '200%')
+      stopObserve = observeNear(trigger, () => kickScrubVideo(video), '200%')
       return
     }
 
-    // Warm the decode pipeline ~2 screens out so the clip is buffered and (on
-    // iOS) paint-unlocked by the time the section enters and we play it.
-    stopObserve = observeNear(trigger, () => kickScrubVideo(video), '200%')
-
-    // Play while the section is on screen; pause when it leaves. A play()
-    // rejection (autoplay blocked) leaves the poster up rather than a black
-    // frame — the failure mode is graceful, unlike a stalled scrub.
+    // Play while the section is on screen; pause when it leaves. The in-view
+    // play() is itself the iOS paint-unlock, so we deliberately do NOT kick the
+    // clip first: a kick's deferred pause() (from its play().then(pause)) could
+    // land on top of this play() and freeze a section that's already visible at
+    // load — the hero would then stay paused until scrolled out of view and back.
+    // IntersectionObserver always delivers an initial callback, so a section
+    // visible on load plays immediately. A play() rejection (autoplay blocked)
+    // leaves the poster up rather than a black frame — a graceful failure.
     io = new IntersectionObserver((entries) => {
       for (const e of entries) {
         if (e.isIntersecting) video.play().catch(() => {})
