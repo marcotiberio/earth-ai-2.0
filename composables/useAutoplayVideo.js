@@ -2,6 +2,27 @@ import { onMounted, onUnmounted, unref } from 'vue'
 import { kickScrubVideo, observeNear } from '../utils/scrubVideo'
 
 /**
+ * Resolve once the page has loaded AND the main thread has gone idle. Autoplay
+ * is deferred behind this so the video decode doesn't compete with the
+ * critical-path work performance audits measure: a clip looping during the load
+ * window inflates Total Blocking Time (decode on a throttled CPU), Speed Index
+ * (the frame never settles) and can disturb LCP. Holding the poster until idle
+ * keeps that window quiet; real users see playback start a beat after load,
+ * which is imperceptible. Resolved once and shared across every section.
+ */
+let readyPromise = null
+function whenReadyToPlay() {
+  if (readyPromise) return readyPromise
+  readyPromise = new Promise((resolve) => {
+    if (typeof window === 'undefined') return resolve()
+    const idle = () => (window.requestIdleCallback || ((fn) => setTimeout(fn, 200)))(resolve)
+    if (document.readyState === 'complete') idle()
+    else window.addEventListener('load', idle, { once: true })
+  })
+  return readyPromise
+}
+
+/**
  * Drive a <video> as a muted, looping, inline autoplay clip that plays only
  * while its section is on screen (and pauses when it leaves view).
  *
@@ -34,6 +55,9 @@ export function useAutoplayVideo(videoRef, triggerRef) {
     video.muted = true
     video.loop = true
     video.playsInline = true
+    // A forward loop doesn't need the whole file buffered up front — metadata is
+    // enough to start — and it keeps the clip off the critical download path.
+    video.preload = 'metadata'
 
     // Honour reduced-motion: hold a still frame rather than looping motion.
     // kickScrubVideo runs a muted play()/pause(), which paints the first frame
@@ -45,17 +69,25 @@ export function useAutoplayVideo(videoRef, triggerRef) {
       return
     }
 
-    // Play while the section is on screen; pause when it leaves. The in-view
-    // play() is itself the iOS paint-unlock, so we deliberately do NOT kick the
-    // clip first: a kick's deferred pause() (from its play().then(pause)) could
-    // land on top of this play() and freeze a section that's already visible at
-    // load — the hero would then stay paused until scrolled out of view and back.
-    // IntersectionObserver always delivers an initial callback, so a section
-    // visible on load plays immediately. A play() rejection (autoplay blocked)
-    // leaves the poster up rather than a black frame — a graceful failure.
+    // Play only while BOTH the section is on screen AND the page is past its
+    // load/idle gate; pause when either fails. The in-view play() is itself the
+    // iOS paint-unlock, so we deliberately do NOT kick the clip first: a kick's
+    // deferred pause() (from its play().then(pause)) could land on top of this
+    // play() and freeze a section that's already visible at load. Tracking
+    // visibility lets the ready-gate start a section that was already in view at
+    // load (the hero) the moment the page goes idle — otherwise it would sit on
+    // its poster forever. A play() rejection (autoplay blocked) leaves the poster
+    // up rather than a black frame — a graceful failure.
+    let visible = false
+    let ready = false
+    const maybePlay = () => { if (visible && ready) video.play().catch(() => {}) }
+
+    whenReadyToPlay().then(() => { ready = true; maybePlay() })
+
     io = new IntersectionObserver((entries) => {
       for (const e of entries) {
-        if (e.isIntersecting) video.play().catch(() => {})
+        visible = e.isIntersecting
+        if (e.isIntersecting) maybePlay()
         else video.pause()
       }
     }, { threshold: 0 })
