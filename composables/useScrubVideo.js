@@ -1,4 +1,5 @@
 import { onMounted, onUnmounted, unref } from 'vue'
+import { primeScrubVideo, createSeeker, observeNear } from '../utils/scrubVideo'
 
 /**
  * Drive a <video> from scroll position (scroll-scrub), instead of autoplaying
@@ -50,7 +51,7 @@ export const SCRUB_PRESETS = {
 export function useScrubVideo(videoRef, triggerRef, options = {}) {
   let ctx = null
   let rafId = 0
-  let io = null
+  let stopObserve = null
 
   // Resolve a named preset into positions. An explicit start/end always wins.
   const preset = SCRUB_PRESETS[options.startAt] || {}
@@ -66,63 +67,21 @@ export function useScrubVideo(videoRef, triggerRef, options = {}) {
     const { ScrollTrigger: ST } = await import('gsap/ScrollTrigger')
     gsap.registerPlugin(ST)
 
-    video.muted = true // required for an unattended play()
-
     // Don't touch the network until the section is anywhere near the viewport.
-    // The kick below forces a full fetch, and running it for every section at
+    // The prime below forces a full fetch, and running it for every section at
     // mount made all clips download in parallel on page load — starving the
     // hero's scrub on mobile connections. ~2 screens out is still early enough
     // to buffer before the section pins. (ScrubScene lazy-attaches the src with
     // its own observer; this gate covers sections whose src is set at mount.)
-    await new Promise((resolve) => {
-      if (typeof IntersectionObserver === 'undefined') return resolve()
-      io = new IntersectionObserver((entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          io.disconnect()
-          io = null
-          resolve()
-        }
-      }, { rootMargin: '200% 0px 200% 0px' })
-      io.observe(trigger)
-    })
+    await new Promise((resolve) => { stopObserve = observeNear(trigger, resolve, '200%') })
 
-    // Kick the pipeline BEFORE waiting for data. iOS Safari ignores
-    // preload="auto" — it won't fetch the clip (and won't paint seeked frames)
-    // until a muted inline play() has run. Doing this after the wait deadlocks:
-    // the data never arrives, so loadeddata never fires. A muted play() is
-    // allowed without a user gesture, so it both starts buffering and unlocks
-    // painting; we pause immediately and drive currentTime from scroll instead.
-    // Only force a load() when the element is idle with nothing buffered (the
-    // iOS case). On desktop it's already NETWORK_LOADING, so we skip it to
-    // avoid interrupting / re-fetching.
-    if (video.readyState === 0 && video.networkState !== 2 /* LOADING */) {
-      try { video.load() } catch { /* ignore */ }
-    }
-    const kick = video.play()
-    if (kick && kick.then) kick.then(() => video.pause()).catch(() => {})
-
-    // Build the scrub off the clip's duration, so wait until the duration is
-    // actually known. No timeout: lazy scenes only get their src when the
-    // section nears the viewport (which can be many seconds after mount), so a
-    // timeout would fire first and build the tween with duration 0 — leaving
-    // deep sections frozen on the first frame. Resolve only once duration is
-    // real; if a clip never loads, that section simply never wires up (no harm).
-    const hasDuration = () => Number.isFinite(video.duration) && video.duration > 0
-    await new Promise((resolve) => {
-      if (hasDuration()) return resolve()
-      const events = ['loadedmetadata', 'durationchange', 'loadeddata', 'canplay']
-      const check = () => {
-        if (!hasDuration()) return
-        events.forEach((e) => video.removeEventListener(e, check))
-        resolve()
-      }
-      events.forEach((e) => video.addEventListener(e, check))
-    })
-
-    try {
-      video.pause()
-      video.currentTime = 0
-    } catch { /* ignore */ }
+    // Kick the decode pipeline, wait for a real duration, reset to frame 0. We
+    // build the scrub off the clip's duration, so the wait can't be skipped: a
+    // lazy scene only gets its src once near the viewport (seconds after mount),
+    // so resolving early would build the tween with duration 0 and freeze the
+    // section on its first frame. If a clip never loads it simply never wires up
+    // (no harm). See primeScrubVideo for the iOS preload/paint workaround.
+    await primeScrubVideo(video)
 
     // "Play-chase" scrub. A paused seek (`video.currentTime = t`) advances the
     // timestamp but does NOT repaint the picture on Android Chrome — the frame
@@ -149,32 +108,11 @@ export function useScrubVideo(videoRef, triggerRef, options = {}) {
     const RATE_GAIN = options.rateGain ?? 4 // how aggressively playbackRate tracks the gap
     const BUF_MARGIN = 0.15                 // s — stay this far inside the buffered range
 
-    // Seek-based scrubbing pays the GOP cost: every seek decodes forward from
-    // the nearest keyframe (≤ GOP frames with the .scrub encodes). Setting
-    // currentTime every rAF cancels the in-flight seek before it can paint, so
-    // on mobile almost no frame completes and the scrub stutters. Instead,
-    // issue a new seek only after the previous one has painted — frames then
-    // arrive at whatever rate the decoder sustains. For large gaps (fast
-    // flicks) fastSeek trades frame-accuracy for nearest-keyframe speed; at
-    // GOP=5 that's ≤ 5/fps s off, invisible mid-flick. Used for backward
-    // motion everywhere (reverse playback doesn't exist) and for BOTH
-    // directions on WebKit, where seeks paint well and the chase doesn't.
-    const SEEK_STALL_MS = 250 // re-issue if a seek silently never completes
-    const FAST_SEEK_GAP = 0.5 // s — beyond this, keyframe accuracy is enough
+    // Backward scrubbing (and both directions on WebKit) seeks rather than
+    // play-chases. createSeeker gates those seeks so each one paints before the
+    // next is issued — see its definition for the GOP/fastSeek reasoning.
     const seekScrub = isSeekScrubEngine()
-    let lastSeekAt = 0
-
-    const seekToward = (target) => {
-      const now = performance.now()
-      if (video.seeking && now - lastSeekAt <= SEEK_STALL_MS) return
-      lastSeekAt = now
-      if (typeof video.fastSeek === 'function' &&
-          Math.abs(target - video.currentTime) > FAST_SEEK_GAP) {
-        video.fastSeek(target)
-      } else {
-        video.currentTime = target
-      }
-    }
+    const seekToward = createSeeker(video)
 
     // Furthest playable time contiguous with `t` (-1 when `t` isn't buffered).
     const bufferedEndAt = (t) => {
@@ -216,7 +154,7 @@ export function useScrubVideo(videoRef, triggerRef, options = {}) {
 
   onUnmounted(() => {
     if (rafId) cancelAnimationFrame(rafId)
-    io?.disconnect()
+    stopObserve?.()
     ctx?.revert()
   })
 }

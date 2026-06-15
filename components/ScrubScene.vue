@@ -113,7 +113,7 @@ const videoRef = ref(null)
 
 // Lazy src: empty until the section nears the viewport (or immediately if eager).
 const videoSrc = ref(props.eager ? props.videoUrl : '')
-let observer = null
+let stopObserve = null
 
 // Vertical resting position while pinned. Bottom anchors the content 5% up
 // from the bottom edge (per design), matching the live site's held caption.
@@ -136,38 +136,20 @@ onMounted(() => {
   // Queue a sequential background warm-up of the clip (starts after window
   // load + idle), so by the time the lazy src attaches it's usually cached.
   prefetchScrubVideo(props.videoUrl)
-  const el = rootRef.value
-  if (!el || typeof IntersectionObserver === 'undefined') {
-    videoSrc.value = props.videoUrl // no IO support → just load it
-    return
-  }
-  // Start fetching ~1.5 screens before the section enters (3 on mobile, where
-  // slower networks need a longer head start) so it has time to buffer enough
+  // Attach the lazy src ~1.5 screens before the section enters (3 on mobile,
+  // where slower networks need a longer head start) so it has time to buffer
   // for a smooth scrub by the time it pins.
   const margin = window.matchMedia('(max-width: 767px)').matches ? '300%' : '150%'
-  observer = new IntersectionObserver((entries) => {
-    if (entries.some(e => e.isIntersecting)) {
-      videoSrc.value = props.videoUrl
-      // Setting src alone isn't enough — kick load() + a muted inline play() so
-      // the clip actually buffers and (on iOS) unlocks frame painting for the
-      // scrub. The composable's own kick already ran at mount, before this src
-      // existed, so we re-trigger it here once the source is attached.
-      nextTick(() => {
-        const v = videoRef.value
-        if (!v) return
-        v.muted = true
-        try { v.load() } catch { /* ignore */ }
-        const p = v.play()
-        if (p && p.then) p.then(() => v.pause()).catch(() => {})
-      })
-      observer.disconnect()
-      observer = null
-    }
-  }, { rootMargin: `${margin} 0px ${margin} 0px` })
-  observer.observe(el)
+  stopObserve = observeNear(rootRef.value, () => {
+    videoSrc.value = props.videoUrl
+    // Setting src alone isn't enough — kick the clip so it buffers and (on iOS)
+    // unlocks frame painting. The composable's own kick ran at mount, before
+    // this src existed, so we re-trigger it once the source is attached.
+    nextTick(() => kickScrubVideo(videoRef.value))
+  }, margin)
 })
 
-onBeforeUnmount(() => observer?.disconnect())
+onBeforeUnmount(() => stopObserve?.())
 
 // Pinned scrub: map currentTime 0 → duration across the section's pinned travel
 // (top hits viewport top → bottom hits viewport bottom), matching the sticky pin.
