@@ -86,7 +86,10 @@ onMounted(async () => {
   // download them all in full before lifting the overlay.
   try {
     const doc = await prismic.client.getSingle('home_page')
-    registerAssets([...collectMediaUrls(doc)])
+    // On phones, collect the lighter mobile encodes (and skip their desktop
+    // siblings) so we don't pull the heavy clips the page won't play.
+    const mobile = window.matchMedia('(max-width: 767px)').matches
+    registerAssets([...collectMediaUrls(doc, new Map(), { mobile })])
   } catch { /* no document / offline → no assets registered, overlay resolves at once */ }
 
   startLoading()

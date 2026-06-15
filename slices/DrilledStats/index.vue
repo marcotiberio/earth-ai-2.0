@@ -97,9 +97,10 @@ const mediaUrl = (field) =>
 const titleHtml = computed(() => toHtml(props.slice.primary.title))
 const feetValue = computed(() => props.slice.primary.feet_value || '')
 const feetLabel = computed(() => props.slice.primary.feet_label || '')
-// Scrub video (Link-to-Media) + poster/fallback image.
-const videoUrl     = computed(() => mediaUrl(props.slice.primary.video_url))
-const posterUrl    = computed(() => props.slice.primary.image?.url || '')
+// Scrub video (Link-to-Media) + optional lighter mobile encode + poster/fallback image.
+const videoUrl       = computed(() => mediaUrl(props.slice.primary.video_url))
+const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
+const posterUrl      = computed(() => props.slice.primary.image?.url || '')
 // SSR renders this src; the scrub setup below queues the background warm-up.
 const videoSrc = ref(videoUrl.value)
 // Group field lives in primary; cap at 6 rows (the design only has room for six).
@@ -189,7 +190,12 @@ const { progress, tall } = useScrollProgress(rootRef, {
   // Warm + prime the clip regardless of motion preference, before the trigger.
   onReady: () => {
     if (!videoUrl.value) return
-    prefetchScrubVideo(videoUrl.value)
+    // Serve the lighter mobile encode on phones when one was uploaded (a
+    // post-hydration swap from the SSR desktop src, so no markup mismatch);
+    // otherwise the desktop clip. The scrub drives whichever loaded.
+    const mobile = window.matchMedia('(max-width: 767px)').matches
+    videoSrc.value = (mobile && videoUrlMobile.value) ? videoUrlMobile.value : videoUrl.value
+    prefetchScrubVideo(videoSrc.value)
     primeWhenNear()
   },
   onUpdate: syncVideo,

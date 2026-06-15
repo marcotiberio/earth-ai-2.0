@@ -1,6 +1,7 @@
 <template>
   <ScrubScene
     :video-url="videoUrl"
+    :video-url-mobile="videoUrlMobile"
     :image="slice.primary.image || {}"
     :scroll-length="slice.primary.scroll_length || 300"
     :scrub-start="slice.primary.scrub_start || ''"
@@ -80,9 +81,10 @@ const toHtml = (field) => {
 const mediaUrl = (field) =>
   typeof field === 'string' ? field : field?.url || ''
 
-const titleHtml    = computed(() => toHtml(props.slice.primary.title))
-const subtitleHtml = computed(() => toHtml(props.slice.primary.subtitle))
-const videoUrl     = computed(() => mediaUrl(props.slice.primary.video_url))
+const titleHtml      = computed(() => toHtml(props.slice.primary.title))
+const subtitleHtml   = computed(() => toHtml(props.slice.primary.subtitle))
+const videoUrl       = computed(() => mediaUrl(props.slice.primary.video_url))
+const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
 
 // Number of dashed telemetry-style guide lines drawn over the hero.
 const LINE_COUNT = 4
