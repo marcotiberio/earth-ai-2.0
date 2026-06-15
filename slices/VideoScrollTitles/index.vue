@@ -12,6 +12,7 @@
     align="bottom"
     align-x="left"
     overlay-class=""
+    :cap-mobile-height="false"
   >
     <!-- Top and bottom fades so the pinned video feathers into its neighbours. -->
     <template #pinned>

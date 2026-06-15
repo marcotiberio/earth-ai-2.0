@@ -8,13 +8,23 @@
        travel is capped (CSS min(), so SSR markup is already correct): very
        long pins train hard repeated flicking whose momentum then dumps into
        whatever follows the section, and they make the scrub feel sluggish.
-       The tail dwell stays OUTSIDE the cap — min(length, 400dvh + tail) ==
-       min(base, 400dvh) + tail when callers pass scrollLength = base + tail —
-       otherwise capped sections would carve the dwell out of the scrub travel
-       (finishing the video a full tail early) instead of appending it. -->
+       Two mobile caps, picked by class below:
+       • Autoplay (the mobile default): the video loops on its own clock, so the
+         tall travel that scrubbing needed is just dead scroll — cap hard to
+         200dvh. The content still scrolls over the looping video, across less
+         emptiness. No tail: the dwell only existed to hold the video's last
+         scrubbed frame, which autoplay doesn't have.
+       • Scrub (desktop default / `:autoplay="false"`): keep the 400dvh cap with
+         the tail dwell OUTSIDE it — min(length, 400dvh + tail) == min(base,
+         400dvh) + tail when callers pass scrollLength = base + tail — otherwise
+         capped sections would carve the dwell out of the scrub travel (finishing
+         the video a full tail early) instead of appending it. -->
   <section
     ref="rootRef"
-    class="relative w-full bg-darkblue h-[min(var(--scrub-length),calc(400dvh+var(--scrub-tail)))] md:h-[var(--scrub-length)]"
+    class="relative w-full bg-darkblue md:h-[var(--scrub-length)]"
+    :class="autoplay && capMobileHeight
+      ? 'h-[min(var(--scrub-length),200dvh)]'
+      : 'h-[min(var(--scrub-length),calc(400dvh+var(--scrub-tail)))]'"
     :style="{ '--scrub-length': inSimulator ? '100dvh' : `${scrollLength}dvh`, '--scrub-tail': inSimulator ? '0dvh' : `${tailVh}dvh` }"
   >
     <!-- Pinned stage: video background AND content both pin to the top for the
@@ -112,6 +122,13 @@ const props = defineProps({
   // swap leaves them unaffected. Pass `:autoplay="false"` to force scroll-scrub
   // on phones too, for a section where the scroll-to-footage coupling is the point.
   autoplay:     { type: Boolean, default: true },
+  // When autoplaying on mobile, cap the pinned section to 200dvh (the tall
+  // travel only existed to scrub the video, which we no longer do on phones).
+  // Set false for sections whose pinned travel drives a CONTENT animation that
+  // genuinely needs the extra distance — e.g. VideoScrollTitles, whose title
+  // reveal + hand-off timeline is sized to the taller section and would break
+  // if squeezed into 200dvh. Only affects the autoplay (mobile) path.
+  capMobileHeight: { type: Boolean, default: true },
 })
 
 // True when rendered inside the Slice Simulator (Page Builder sidebar previews
