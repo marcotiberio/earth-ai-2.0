@@ -174,7 +174,7 @@ const isMobile = typeof window !== 'undefined'
 const autoplayOnThisDevice = props.autoplay && isMobile
 // Phones load the lighter mobile encode when one was uploaded; otherwise (and
 // always on desktop) the standard clip.
-const sourceUrl = () => (isMobile && props.videoUrlMobile) ? props.videoUrlMobile : props.videoUrl
+const sourceUrl = () => (MOBILE_VIDEO_ENABLED && isMobile && props.videoUrlMobile) ? props.videoUrlMobile : props.videoUrl
 
 // Attach the device-appropriate src and start its decode. Setting src alone
 // isn't enough to buffer. On the SCRUB path, kick the clip (muted play()/pause())

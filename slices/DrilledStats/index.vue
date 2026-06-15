@@ -208,7 +208,7 @@ const { progress, tall } = useScrollProgress(rootRef, {
 if (isMobile && videoUrl.value) {
   // Serve the lighter mobile encode when one was uploaded — a post-hydration
   // swap from the SSR-rendered desktop src, so no markup mismatch.
-  onMounted(() => { if (videoUrlMobile.value) videoSrc.value = videoUrlMobile.value })
+  onMounted(() => { if (MOBILE_VIDEO_ENABLED && videoUrlMobile.value) videoSrc.value = videoUrlMobile.value })
   useAutoplayVideo(videoRef, rootRef)
 }
 
