@@ -125,7 +125,7 @@ const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mob
 // same amount so the dwell is added scroll distance, not a compressed scrub
 // (cf. VideoScrollTitles). A `scrub_start` preset scrubs through the unpin
 // wipe by design, so the dwell only applies to the default scrub.
-const DWELL_VH = 100
+const DWELL_VH = 0
 const hasDwell = computed(() =>
   Boolean(videoUrl.value) && !props.slice.primary.scrub_start && props.slice.variation === 'overlay',
 )
