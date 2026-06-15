@@ -150,28 +150,6 @@ const videoRef = ref(null)
 const videoSrc = ref('')
 let stopObserve = null
 
-// Phones load the lighter mobile encode when one was uploaded; otherwise (and
-// always on desktop) the standard clip. Read once from the viewport — `window`
-// is present on the client, absent on the server (where onMounted never runs).
-const isMobile = typeof window !== 'undefined'
-  && window.matchMedia('(max-width: 767px)').matches
-const sourceUrl = () => (MOBILE_VIDEO_ENABLED && isMobile && props.videoUrlMobile) ? props.videoUrlMobile : props.videoUrl
-
-// Attach the device-appropriate src and kick its decode. Setting src alone isn't
-// enough — load() + a muted inline play() makes the clip buffer and (on iOS)
-// unlock frame painting for the scrub; we pause again immediately.
-const attachSrc = () => {
-  videoSrc.value = sourceUrl()
-  nextTick(() => {
-    const v = videoRef.value
-    if (!v) return
-    v.muted = true
-    try { v.load() } catch { /* ignore */ }
-    const p = v.play()
-    if (p && p.then) p.then(() => v.pause()).catch(() => {})
-  })
-}
-
 // Vertical resting position while pinned. Bottom anchors the content 5% up
 // from the bottom edge (per design), matching the live site's held caption.
 const alignClass = computed(() => ({
