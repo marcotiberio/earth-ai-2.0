@@ -75,6 +75,10 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref } from 'vue
 
 const props = defineProps({
   videoUrl:     { type: String, default: '' },
+  // Optional lighter, mobile-optimised encode of the same clip. When set, phones
+  // load this instead of `videoUrl` (desktop always uses `videoUrl`). Falls back
+  // to `videoUrl` when empty, so it's safe to leave unset per section.
+  videoUrlMobile: { type: String, default: '' },
   image:        { type: Object, default: () => ({}) },
   // Total pinned scroll distance in vh. With 200, the video stays pinned for
   // ~one full screen of scroll, over which the content travels in and out.
@@ -111,9 +115,33 @@ const inSimulator = inject('inSliceSimulator', false)
 const rootRef  = ref(null)
 const videoRef = ref(null)
 
-// Lazy src: empty until the section nears the viewport (or immediately if eager).
-const videoSrc = ref(props.eager ? props.videoUrl : '')
+// Poster-first: the src is attached on the client (immediately if eager, else as
+// the section nears) so SSR/first paint is just the poster and the device picks
+// its own source — phones never start fetching the heavy desktop clip.
+const videoSrc = ref('')
 let observer = null
+
+// Phones load the lighter mobile encode when one was uploaded; otherwise (and
+// always on desktop) the standard clip. Read once from the viewport — `window`
+// is present on the client, absent on the server (where onMounted never runs).
+const isMobile = typeof window !== 'undefined'
+  && window.matchMedia('(max-width: 767px)').matches
+const sourceUrl = () => (isMobile && props.videoUrlMobile) ? props.videoUrlMobile : props.videoUrl
+
+// Attach the device-appropriate src and kick its decode. Setting src alone isn't
+// enough — load() + a muted inline play() makes the clip buffer and (on iOS)
+// unlock frame painting for the scrub; we pause again immediately.
+const attachSrc = () => {
+  videoSrc.value = sourceUrl()
+  nextTick(() => {
+    const v = videoRef.value
+    if (!v) return
+    v.muted = true
+    try { v.load() } catch { /* ignore */ }
+    const p = v.play()
+    if (p && p.then) p.then(() => v.pause()).catch(() => {})
+  })
+}
 
 // Vertical resting position while pinned. Bottom anchors the content 5% up
 // from the bottom edge (per design), matching the live site's held caption.
@@ -131,35 +159,24 @@ const alignXClass = computed(() => ({
 }[props.alignX] || 'justify-start text-left'))
 
 onMounted(() => {
-  // Eager clips already have their src in the SSR markup; nothing to do.
-  if (!props.videoUrl || props.eager) return
+  if (!props.videoUrl) return
+  // Eager (the hero): attach immediately — it's visible at load. Otherwise defer.
+  if (props.eager) { attachSrc(); return }
   // Queue a sequential background warm-up of the clip (starts after window
   // load + idle), so by the time the lazy src attaches it's usually cached.
-  prefetchScrubVideo(props.videoUrl)
+  prefetchScrubVideo(sourceUrl())
   const el = rootRef.value
   if (!el || typeof IntersectionObserver === 'undefined') {
-    videoSrc.value = props.videoUrl // no IO support → just load it
+    attachSrc() // no IO support → just load it
     return
   }
   // Start fetching ~1.5 screens before the section enters (3 on mobile, where
   // slower networks need a longer head start) so it has time to buffer enough
   // for a smooth scrub by the time it pins.
-  const margin = window.matchMedia('(max-width: 767px)').matches ? '300%' : '150%'
+  const margin = isMobile ? '300%' : '150%'
   observer = new IntersectionObserver((entries) => {
     if (entries.some(e => e.isIntersecting)) {
-      videoSrc.value = props.videoUrl
-      // Setting src alone isn't enough — kick load() + a muted inline play() so
-      // the clip actually buffers and (on iOS) unlocks frame painting for the
-      // scrub. The composable's own kick already ran at mount, before this src
-      // existed, so we re-trigger it here once the source is attached.
-      nextTick(() => {
-        const v = videoRef.value
-        if (!v) return
-        v.muted = true
-        try { v.load() } catch { /* ignore */ }
-        const p = v.play()
-        if (p && p.then) p.then(() => v.pause()).catch(() => {})
-      })
+      attachSrc()
       observer.disconnect()
       observer = null
     }
