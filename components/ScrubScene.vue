@@ -100,6 +100,18 @@ const props = defineProps({
   // fetched lazily as the section approaches, so we don't pull every video at
   // once on first paint.
   eager:        { type: Boolean, default: false },
+  // Mobile playback mode. When true (default), PHONES autoplay the clip as a
+  // muted, forward-only loop that plays while the section is on screen, instead
+  // of scroll-scrubbing it. Scroll-scrubbing seeks the decoder every frame —
+  // fine on desktop GPUs, but mobile silicon handles it unreliably: it stalls
+  // and judders per device (the jitter / "doesn't play at all" reports).
+  // Forward decode is the path every decoder is built for, so autoplay is robust
+  // on phones. Desktop ALWAYS keeps the scroll-scrub engine (the coupling is
+  // smooth there and is part of the intended feel). The content reveals over the
+  // video are driven by their own ScrollTriggers, not video time, so the mobile
+  // swap leaves them unaffected. Pass `:autoplay="false"` to force scroll-scrub
+  // on phones too, for a section where the scroll-to-footage coupling is the point.
+  autoplay:     { type: Boolean, default: true },
 })
 
 // True when rendered inside the Slice Simulator (Page Builder sidebar previews
@@ -151,24 +163,40 @@ onMounted(() => {
 
 onBeforeUnmount(() => stopObserve?.())
 
-// Pinned scrub: map currentTime 0 → duration across the section's pinned travel
-// (top hits viewport top → bottom hits viewport bottom), matching the sticky pin.
-// A `scrubStart` preset overrides this with a per-section start ('top'|'middle').
+// Drive the pinned video. On phones it autoplays as a muted forward-only loop
+// while the section is on screen (robust where scrub stalls — see `autoplay`).
+// Desktop, and any section with `:autoplay="false"`, use the scroll-scrub
+// engine: map currentTime 0 → duration across the section's pinned travel (top
+// hits viewport top → bottom hits viewport bottom), matching the sticky pin. A
+// `scrubStart` preset overrides this with a per-section start ('top'|'middle').
+//
+// The mobile check is read once at setup from the viewport (mirrors the
+// lazy-margin breakpoint in onMounted above). `window` is present on the client
+// setup pass and absent on the server — where neither driver's onMounted runs
+// anyway, so the server's branch choice is inconsequential.
+const autoplayOnThisDevice = props.autoplay
+  && typeof window !== 'undefined'
+  && window.matchMedia('(max-width: 767px)').matches
+
 if (props.videoUrl && !inSimulator) {
-  // With a `tailVh`, end the scrub that many vh before the pin releases so the
-  // video reaches its last frame at its natural pace, then holds across the
-  // dwell. Expressed as a px offset from the start (`+=…`) — a `bottom bottom-=`
-  // offset would push the end past the scrollable max and never complete.
-  const defaultEnd = props.tailVh > 0
-    ? () => `+=${rootRef.value.offsetHeight - window.innerHeight * (1 + props.tailVh / 100)}`
-    : 'bottom bottom'
-  useScrubVideo(
-    videoRef,
-    rootRef,
-    props.scrubStart
-      ? { startAt: props.scrubStart }
-      : { start: 'top top', end: defaultEnd },
-  )
+  if (autoplayOnThisDevice) {
+    useAutoplayVideo(videoRef, rootRef)
+  } else {
+    // With a `tailVh`, end the scrub that many vh before the pin releases so the
+    // video reaches its last frame at its natural pace, then holds across the
+    // dwell. Expressed as a px offset from the start (`+=…`) — a `bottom bottom-=`
+    // offset would push the end past the scrollable max and never complete.
+    const defaultEnd = props.tailVh > 0
+      ? () => `+=${rootRef.value.offsetHeight - window.innerHeight * (1 + props.tailVh / 100)}`
+      : 'bottom bottom'
+    useScrubVideo(
+      videoRef,
+      rootRef,
+      props.scrubStart
+        ? { startAt: props.scrubStart }
+        : { start: 'top top', end: defaultEnd },
+    )
+  }
 }
 
 // Expose the section root so slotted content (e.g. VideoScrollTitles' per-title
