@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { asHTML } from '@prismicio/client'
 
 const props = defineProps({
@@ -97,9 +97,10 @@ const mediaUrl = (field) =>
 const titleHtml = computed(() => toHtml(props.slice.primary.title))
 const feetValue = computed(() => props.slice.primary.feet_value || '')
 const feetLabel = computed(() => props.slice.primary.feet_label || '')
-// Scrub video (Link-to-Media) + poster/fallback image.
-const videoUrl     = computed(() => mediaUrl(props.slice.primary.video_url))
-const posterUrl    = computed(() => props.slice.primary.image?.url || '')
+// Scrub video (Link-to-Media) + optional lighter mobile encode + poster image.
+const videoUrl       = computed(() => mediaUrl(props.slice.primary.video_url))
+const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
+const posterUrl      = computed(() => props.slice.primary.image?.url || '')
 // SSR renders this src; the scrub setup below queues the background warm-up.
 const videoSrc = ref(videoUrl.value)
 // Group field lives in primary; cap at 6 rows (the design only has room for six).
@@ -205,6 +206,9 @@ const { progress, tall } = useScrollProgress(rootRef, {
 // of seeking it. Only the footage is decoupled — the count-ups keep scrubbing
 // with scroll via `progress` above (so the section stays tall, uncapped).
 if (isMobile && videoUrl.value) {
+  // Serve the lighter mobile encode when one was uploaded — a post-hydration
+  // swap from the SSR-rendered desktop src, so no markup mismatch.
+  onMounted(() => { if (videoUrlMobile.value) videoSrc.value = videoUrlMobile.value })
   useAutoplayVideo(videoRef, rootRef)
 }
 
