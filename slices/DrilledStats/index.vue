@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { asHTML } from '@prismicio/client'
 
 const props = defineProps({
@@ -97,11 +97,11 @@ const mediaUrl = (field) =>
 const titleHtml = computed(() => toHtml(props.slice.primary.title))
 const feetValue = computed(() => props.slice.primary.feet_value || '')
 const feetLabel = computed(() => props.slice.primary.feet_label || '')
-// Scrub video (Link-to-Media) + optional lighter mobile encode + poster image.
+// Scrub video (Link-to-Media) + optional lighter mobile encode + poster/fallback image.
 const videoUrl       = computed(() => mediaUrl(props.slice.primary.video_url))
 const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
 const posterUrl      = computed(() => props.slice.primary.image?.url || '')
-// SSR renders this src; onMounted queues the background warm-up.
+// SSR renders this src; the scrub setup below queues the background warm-up.
 const videoSrc = ref(videoUrl.value)
 // Group field lives in primary; cap at 6 rows (the design only has room for six).
 const stats = computed(() => (props.slice.primary.stats || []).slice(0, 6))
@@ -139,160 +139,67 @@ function counter(value) {
   return `${p.prefix}${num}${p.suffix}`
 }
 
-// --- Scroll-driven progress (GSAP ScrollTrigger scrub) -----------------------
+// --- In-frame video scrub ----------------------------------------------------
+// Drive the clip's currentTime straight off the same `progress` that powers the
+// count-ups, so footage and metrics share one scrub source and stay in step (no
+// second ScrollTrigger). `videoDuration`/`seek` fill once the clip primes; until
+// then syncVideo is a no-op.
 const rootRef  = ref(null)
 const videoRef = ref(null)
-const progress = ref(0)
-// `tall` controls the sticky/scroll-distance layout. It starts true so server
-// and client render identically (no hydration mismatch); reduced-motion clients
-// drop it to a normal-height section in onMounted, after the first paint.
-const tall = ref(true)
-
-// --- In-frame video scrub ----------------------------------------------------
-// Rather than spawning a second ScrollTrigger for the video, we drive its
-// currentTime straight off `progress` so the clip and the counters share one
-// scrub source and stay perfectly in step. `videoDuration` is filled once the
-// clip's metadata loads; until then syncVideo is a no-op.
 let videoDuration = 0
-
-// Seek-gating (mirrors useScrubVideo's backward path): re-issuing a seek on
-// every scroll update cancels the in-flight one before it can paint, which
-// stutters on mobile now that the encodes are GOP=5 (each seek decodes up to 5
-// frames from a keyframe) instead of all-intra. Wait for the previous seek to
-// paint, and use nearest-keyframe fastSeek for large jumps.
-let lastSeekAt = 0
+let seek = null
 
 function syncVideo(p) {
   const v = videoRef.value
-  if (!v || !videoDuration) return
+  if (!v || !videoDuration || !seek) return
   const t = videoDuration * p
-  if (!Number.isFinite(t)) return
-  const now = performance.now()
-  if (v.seeking && now - lastSeekAt < 250) return
-  lastSeekAt = now
-  if (typeof v.fastSeek === 'function' && Math.abs(t - v.currentTime) > 0.5) {
-    v.fastSeek(t)
-  } else {
-    v.currentTime = t
-  }
+  if (Number.isFinite(t)) seek(t)
 }
 
-// Prime the clip for scroll-scrubbing (mirrors useScrubVideo): a muted inline
-// play()/pause() kicks the decode pipeline so seeks actually repaint (iOS
-// Safari ignores preload="auto" otherwise), then we wait for a real duration
-// before wiring currentTime to scroll.
+// Prime the clip for scrubbing (kick the decoder, wait for a real duration — see
+// primeScrubVideo), then bind a gated seeker and land on the current scroll
+// position.
 async function primeVideo() {
   const v = videoRef.value
   if (!v || !videoUrl.value) return
-  v.muted = true
-  if (v.readyState === 0 && v.networkState !== 2 /* LOADING */) {
-    try { v.load() } catch { /* ignore */ }
-  }
-  const kick = v.play()
-  if (kick && kick.then) kick.then(() => v.pause()).catch(() => {})
-
-  const hasDuration = () => Number.isFinite(v.duration) && v.duration > 0
-  await new Promise((resolve) => {
-    if (hasDuration()) return resolve()
-    const events = ['loadedmetadata', 'durationchange', 'loadeddata', 'canplay']
-    const check = () => {
-      if (!hasDuration()) return
-      events.forEach((e) => v.removeEventListener(e, check))
-      resolve()
-    }
-    events.forEach((e) => v.addEventListener(e, check))
-  })
-
-  try { v.pause(); v.currentTime = 0 } catch { /* ignore */ }
+  await primeScrubVideo(v)
   videoDuration = v.duration
+  seek = createSeeker(v)
   syncVideo(progress.value) // land on the current scroll position (or last frame)
 }
 
-// Priming forces a full fetch, so don't run it until the section is anywhere
-// near the viewport — priming every section at mount made all clips download
-// in parallel on page load, starving the hero on mobile connections. ~2
-// screens out still leaves time to buffer before the panel pins.
-let primeIo = null
+// Priming forces a full fetch, so defer it until the section nears the viewport
+// (cf. useScrubVideo) instead of pulling every clip at mount and starving the
+// hero on mobile connections.
+let stopPrimeObserve = null
 function primeWhenNear() {
-  const el = rootRef.value
-  if (!el || typeof IntersectionObserver === 'undefined') return primeVideo()
-  primeIo = new IntersectionObserver((entries) => {
-    if (entries.some((e) => e.isIntersecting)) {
-      primeIo.disconnect()
-      primeIo = null
-      primeVideo()
-    }
-  }, { rootMargin: '200% 0px 200% 0px' })
-  primeIo.observe(el)
+  stopPrimeObserve = observeNear(rootRef.value, primeVideo, '200%')
 }
 
-let ctx = null
-
-onMounted(async () => {
-  if (videoUrl.value) {
+// --- Scroll-driven progress (pinned scrub) -----------------------------------
+// One source drives the count-ups (via `progress`) and the video (via onUpdate
+// → syncVideo). `tall` starts true so SSR/first paint match; reduced-motion
+// collapses the section and shows the finished scene (final counts + last frame).
+const { progress, tall } = useScrollProgress(rootRef, {
+  start: 'top top',
+  // Finish 50vh (75vh on coarse pointers, where a momentum flick rips through)
+  // before the panel unpins, holding the completed stats + last frame on screen.
+  // The section height carries the extra travel to fund this dwell.
+  end: (_, coarse) => `bottom bottom+=${window.innerHeight * (coarse ? 0.75 : 0.5)}`,
+  scrub: { fine: 1, coarse: 3 },
+  // Warm + prime the clip regardless of motion preference, before the trigger.
+  onReady: () => {
+    if (!videoUrl.value) return
     // Serve the lighter mobile encode on phones when one was uploaded (a
     // post-hydration swap from the SSR desktop src, so no markup mismatch);
     // otherwise the desktop clip. The scrub drives whichever loaded.
     const mobile = window.matchMedia('(max-width: 767px)').matches
     videoSrc.value = (MOBILE_VIDEO_ENABLED && mobile && videoUrlMobile.value) ? videoUrlMobile.value : videoUrl.value
     prefetchScrubVideo(videoSrc.value)
-  }
-
-  // Reduced motion: collapse the scroll distance and show the finished scene
-  // (final counts + the clip's last frame).
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    tall.value = false
-    progress.value = 1
     primeWhenNear()
-    return
-  }
-
-  const trigger = rootRef.value
-  if (!trigger) return
-
-  primeWhenNear()
-
-  const coarse = window.matchMedia('(pointer: coarse)').matches
-
-  const { gsap }              = await import('gsap')
-  const { ScrollTrigger: ST } = await import('gsap/ScrollTrigger')
-  gsap.registerPlugin(ST)
-
-  // Scrub progress 0→1 across the section's sticky travel, mirroring the
-  // React scene's useScroll/useTransform mapping. Lenis already drives
-  // ScrollTrigger.update, so this stays in sync with the smooth scroll.
-  ctx = gsap.context(() => {
-    const state = { p: 0 }
-    gsap.to(state, {
-      p: 1,
-      ease: 'none',
-      scrollTrigger: {
-        // Begin the scrub when the section's top reaches the viewport's
-        // vertical center — on the vertical mobile layout this keeps the graph
-        // in view before it animates, so we don't lose the opening of the
-        // count-up/video scrub. Finish it 50vh before the panel unpins — that
-        // trailing 50vh keeps the section pinned so the completed stats sit on
-        // screen before the next section scrolls in. (Section height carries
-        // +50vh to fund this dwell; keep the two in step if you tune it.)
-        trigger,
-        start: 'top top',
-        // Touch scrolling is native (Lenis only smooths wheel input), so a
-        // momentum flick after the heavy pinned video sections rips through
-        // this scene. A heavier scrub lerp and a longer end dwell keep the
-        // count-up readable and hold the finished state on screen.
-        end: () => `bottom bottom+=${window.innerHeight * (coarse ? 0.75 : 0.5)}`,
-        scrub: coarse ? 3 : 1,
-      },
-      onUpdate: () => {
-        progress.value = state.p
-        syncVideo(state.p)
-      },
-    })
-  }, trigger)
+  },
+  onUpdate: syncVideo,
 })
 
-onUnmounted(() => {
-  primeIo?.disconnect()
-  ctx?.revert()
-})
+onUnmounted(() => stopPrimeObserve?.())
 </script>

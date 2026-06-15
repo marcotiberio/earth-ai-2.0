@@ -83,6 +83,15 @@ export function collectMediaUrls(node, found = new Map(), opts = {}) {
   return found
 }
 
+/**
+ * True once `url` has been registered for full download by the launch overlay.
+ * The scrub prefetch queue (utils/scrubVideo.js) checks this so it doesn't fetch
+ * a clip the loader is already pulling down in full.
+ */
+export function isManagedAsset(url) {
+  return state.assets.some((a) => a.url === url)
+}
+
 /** Register [url, type] entries (e.g. from collectMediaUrls(...).entries()). */
 export function registerAssets(entries) {
   for (const [url, type] of entries) {

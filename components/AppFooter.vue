@@ -93,7 +93,7 @@ const { data: footer } = await useAsyncData('footer', () =>
 
 const press = computed(() => {
   const slices = footer.value?.data?.slices
-  return slices?.length ? slices : fallbackPress
+  return slices?.length ? slices : []
 })
 
 const mainTitle = computed(

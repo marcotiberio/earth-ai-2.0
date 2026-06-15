@@ -107,7 +107,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { asHTML } from '@prismicio/client'
 
 const props = defineProps({
@@ -136,14 +136,29 @@ const body    = computed(() => props.slice.primary.body || '')
 // Pinned scroll distance (vh) — editable per section; defaults to 300.
 const scrollLength = computed(() => Number(props.slice.primary.scroll_length) || 300)
 
+// Pinned scrub progress 0→1 (see useScrollProgress); the chart geometry and the
+// reveal below read `progress`. `tall` starts true so SSR/first paint match;
+// reduced-motion clients collapse the section and show the finished chart.
+const rootRef = ref(null)
+const { progress, tall, coarse } = useScrollProgress(rootRef, {
+  // Start at the pin (not 'top center'): the section's scroll-in is the momentum
+  // buffer after the video sections — the chart waits at 0% while a flick decays
+  // instead of drawing half off-screen.
+  start: 'top top',
+  // Finish `dwellVh` before the pin releases (cf. ScrubScene's tailVh), as a
+  // `+=` px offset from the start so the end can't overshoot the scrollable max.
+  end: (trigger) => `+=${trigger.offsetHeight - window.innerHeight * (1 + dwellVh.value / 100)}`,
+  scrub: { fine: 1.2, coarse: 3 },
+  // Let the coarse multiplier reach the section height before measuring.
+  waitForLayout: true,
+})
+
 // Touch scrolling is native (Lenis only smooths wheel input), so a momentum
 // flick out of the tall pinned video sections rips through this scene. On
-// coarse pointers the same animation is stretched over more scroll. On every
-// device the animation finishes `dwellVh` of pinned scroll before the sticky
-// releases, holding the completed chart + figures on screen so they can be
-// digested (the scrub lerp settles during this dwell too).
+// coarse pointers the same animation is stretched over more scroll, and on every
+// device it finishes `dwellVh` of pinned scroll before the sticky releases,
+// holding the completed chart + figures on screen so they can be digested.
 const COARSE_LENGTH_MULT = 1.4
-const coarse  = ref(false)
 const dwellVh = computed(() => (coarse.value ? 100 : 60))
 const totalVh = computed(
   () => scrollLength.value * (coarse.value ? COARSE_LENGTH_MULT : 1) + dwellVh.value,
@@ -245,15 +260,10 @@ const supplyTotal = computed(() => fmt(Math.round(num(supply.value.value) * sPro
 const fadeDemand = computed(() => lerp(0, 1, (progress.value - 0.40) / 0.06))
 const fadeSupply = computed(() => lerp(0, 1, (progress.value - 0.85) / 0.05))
 
-// --- Scroll-driven progress (pinned scrub) -----------------------------------
-// `tall` starts true so SSR and client render identically; reduced-motion
-// clients drop to a normal-height section and show the finished chart.
-const rootRef  = ref(null)
+// --- Chart measurement -------------------------------------------------------
+// Geometry maps into the chart's live pixel box, so track its size. Scroll
+// progress and the reduced-motion fallback are owned by useScrollProgress above.
 const chartRef = ref(null)
-const progress = ref(0)
-const tall     = ref(true)
-
-let ctx = null
 let ro = null
 let mqlMobile = null
 const onMobileChange = (e) => { isMobile.value = e.matches }
@@ -263,7 +273,7 @@ function measure() {
   if (el) bounds.value = { width: el.clientWidth, height: el.clientHeight }
 }
 
-onMounted(async () => {
+onMounted(() => {
   measure()
   ro = new ResizeObserver(measure)
   if (chartRef.value) ro.observe(chartRef.value)
@@ -272,47 +282,9 @@ onMounted(async () => {
   mqlMobile = window.matchMedia('(max-width: 767px)')
   isMobile.value = mqlMobile.matches
   mqlMobile.addEventListener('change', onMobileChange)
-
-  // Reduced motion: collapse the scroll distance and show the finished chart.
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    tall.value = false
-    progress.value = 1
-    return
-  }
-
-  const trigger = rootRef.value
-  if (!trigger) return
-
-  coarse.value = window.matchMedia('(pointer: coarse)').matches
-  // Let the coarse multiplier reach the section's height before measuring.
-  await nextTick()
-
-  const { gsap }              = await import('gsap')
-  const { ScrollTrigger: ST } = await import('gsap/ScrollTrigger')
-  gsap.registerPlugin(ST)
-
-  ctx = gsap.context(() => {
-    const state = { p: 0 }
-    gsap.to(state, {
-      p: 1,
-      ease: 'none',
-      scrollTrigger: {
-        trigger,
-        // Start at the pin (not 'top center'): the section's scroll-in is the
-        // momentum buffer after the video sections — the chart waits at 0%
-        // while a flick decays instead of drawing half off-screen.
-        start: 'top top',
-        // Finish `dwellVh` before the pin releases (cf. ScrubScene's tailVh).
-        end: () => `+=${trigger.offsetHeight - window.innerHeight * (1 + dwellVh.value / 100)}`,
-        scrub: coarse.value ? 3 : 1.2,
-      },
-      onUpdate: () => { progress.value = state.p },
-    })
-  }, trigger)
 })
 
 onUnmounted(() => {
-  ctx?.revert()
   ro?.disconnect()
   mqlMobile?.removeEventListener('change', onMobileChange)
 })

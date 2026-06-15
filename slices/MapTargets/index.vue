@@ -83,7 +83,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import { asHTML } from '@prismicio/client'
 import australiaRaw from './australia.svg?raw'
 import markersRaw from './markers.svg?raw'
@@ -146,54 +146,19 @@ function counter(value) {
   return `${p.prefix}${num}${p.suffix}`
 }
 
-// --- Scroll-driven progress (GSAP ScrollTrigger scrub) -----------------------
-const rootRef  = ref(null)
-const progress = ref(0)
-// `tall` controls the sticky/scroll-distance layout. It starts true so server
-// and client render identically (no hydration mismatch); reduced-motion clients
-// drop it to a normal-height section in onMounted, after the first paint.
-const tall = ref(true)
-
-let ctx = null
-
-onMounted(async () => {
-  // Reduced motion: collapse the scroll distance and show the finished scene.
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    tall.value = false
-    progress.value = 1
-    return
-  }
-
-  const trigger = rootRef.value
-  if (!trigger) return
-
-  const coarse = window.matchMedia('(pointer: coarse)').matches
-
-  const { gsap }              = await import('gsap')
-  const { ScrollTrigger: ST } = await import('gsap/ScrollTrigger')
-  gsap.registerPlugin(ST)
-
-  ctx = gsap.context(() => {
-    const state = { p: 0 }
-    gsap.to(state, {
-      p: 1,
-      ease: 'none',
-      scrollTrigger: {
-        trigger,
-        start: 'top center',
-        // Touch scrolling is native (Lenis only smooths wheel input), so a
-        // momentum flick after the heavy pinned video sections rips through
-        // this scene. A heavier scrub lerp and a longer end dwell keep the
-        // wipe readable and hold the finished map on screen.
-        end: () => `bottom bottom+=${window.innerHeight * (coarse ? 0.75 : 0.5)}`,
-        scrub: coarse ? 3 : 1,
-      },
-      onUpdate: () => { progress.value = state.p },
-    })
-  }, trigger)
+// --- Scroll-driven progress (pinned scrub) -----------------------------------
+// `tall` starts true so SSR and client render identically; reduced-motion
+// clients drop to a normal-height section showing the finished map.
+const rootRef = ref(null)
+const { progress, tall } = useScrollProgress(rootRef, {
+  start: 'top center',
+  // Touch scrolling is native (Lenis only smooths wheel input), so a momentum
+  // flick after the heavy pinned video sections rips through this scene. A
+  // heavier scrub lerp and a longer end dwell keep the wipe readable and hold
+  // the finished map on screen.
+  end: (_, coarse) => `bottom bottom+=${window.innerHeight * (coarse ? 0.75 : 0.5)}`,
+  scrub: { fine: 1, coarse: 3 },
 })
-
-onUnmounted(() => ctx?.revert())
 
 // --- Map assets ------------------------------------------------------------
 // The grey landmass (australia.svg, viewBox 933×822) and the orange target

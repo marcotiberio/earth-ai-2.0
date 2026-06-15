@@ -73,7 +73,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import { asHTML } from '@prismicio/client'
 
 const props = defineProps({
@@ -104,14 +104,29 @@ const groups = computed(() => props.slice.primary.items || props.slice.items || 
 // slowly. Each group only gets ~1/N of this, so bump it when adding groups.
 const scrollLength = computed(() => Number(props.slice.primary.scroll_length) || 360)
 
+// --- Scroll-driven progress (pinned scrub) -----------------------------------
+// The section is tall so its inner panel sticks and scrubs progress 0→1 as you
+// scroll past, growing every bar's width and counting its number up together.
+// `tall` starts true so SSR and client render identically; reduced-motion
+// clients drop to a normal-height section showing the finished state.
+const rootRef = ref(null)
+const { progress, tall, coarse } = useScrollProgress(rootRef, {
+  start: 'top top',
+  // Finish `dwellVh` before the pin releases (cf. ScrubScene's tailVh).
+  // Expressed as a `+=` px offset from the start: a `bottom bottom-=` offset
+  // would push the end past the scrollable max and never complete.
+  end: (trigger) => `+=${trigger.offsetHeight - window.innerHeight * (1 + dwellVh.value / 100)}`,
+  scrub: { fine: 2.5, coarse: 3 },
+  // Let the coarse multiplier reach the section height before measuring.
+  waitForLayout: true,
+})
+
 // Touch scrolling is native (Lenis only smooths wheel input), so a momentum
 // flick out of the tall pinned video sections rips through this scene. On
-// coarse pointers the same animation is stretched over more scroll. On every
-// device the animation finishes `dwellVh` of pinned scroll before the sticky
-// releases, holding the completed bars + numbers on screen so they can be
-// digested (the scrub lerp settles during this dwell too).
+// coarse pointers the same animation is stretched over more scroll, and on every
+// device it finishes `dwellVh` of pinned scroll before the sticky releases,
+// holding the completed bars + numbers on screen so they can be digested.
 const COARSE_LENGTH_MULT = 1.4
-const coarse  = ref(false)
 const dwellVh = computed(() => (coarse.value ? 100 : 60))
 const totalVh = computed(
   () => scrollLength.value * (coarse.value ? COARSE_LENGTH_MULT : 1) + dwellVh.value,
@@ -187,58 +202,4 @@ function barStyle(row) {
       }
 }
 
-// --- Scroll-driven progress (pinned scrub) -----------------------------------
-// The section is tall so its inner panel can stick and scrub progress 0→1 as you
-// scroll past, growing every bar's width and counting its number up together.
-// `tall` starts true so SSR and client render identically; reduced-motion
-// clients drop it to a normal-height section and show the finished state.
-const rootRef  = ref(null)
-const progress = ref(0)
-const tall     = ref(true)
-
-let ctx = null
-
-onMounted(async () => {
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    tall.value = false
-    progress.value = 1
-    return
-  }
-
-  const trigger = rootRef.value
-  if (!trigger) return
-
-  coarse.value = window.matchMedia('(pointer: coarse)').matches
-  // Let the coarse multiplier reach the section's height before measuring.
-  await nextTick()
-
-  const { gsap }              = await import('gsap')
-  const { ScrollTrigger: ST } = await import('gsap/ScrollTrigger')
-  gsap.registerPlugin(ST)
-
-  ctx = gsap.context(() => {
-    const state = { p: 0 }
-    gsap.to(state, {
-      p: 1,
-      duration: 2,
-      // Linear scroll→progress mapping: each group's segment is shaped by its own
-      // smoothstep ease (see groupProgress), so the per-group easing isn't skewed
-      // by a curve spanning the whole section.
-      ease: 'none',
-      scrollTrigger: {
-        trigger,
-        // Start at the pin (not 'top center'): the section's scroll-in is the
-        // momentum buffer after the video sections — the chart waits at 0%
-        // while a flick decays instead of playing its first group off-screen.
-        start: 'top top',
-        // Finish `dwellVh` before the pin releases (cf. ScrubScene's tailVh).
-        end: () => `+=${trigger.offsetHeight - window.innerHeight * (1 + dwellVh.value / 100)}`,
-        scrub: coarse.value ? 3 : 2.5,
-      },
-      onUpdate: () => { progress.value = state.p },
-    })
-  }, trigger)
-})
-
-onUnmounted(() => ctx?.revert())
 </script>

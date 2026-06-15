@@ -119,7 +119,7 @@ const videoRef = ref(null)
 // the section nears) so SSR/first paint is just the poster and the device picks
 // its own source — phones never start fetching the heavy desktop clip.
 const videoSrc = ref('')
-let observer = null
+let stopObserve = null
 
 // Phones load the lighter mobile encode when one was uploaded; otherwise (and
 // always on desktop) the standard clip. Read once from the viewport — `window`
@@ -165,26 +165,16 @@ onMounted(() => {
   // Queue a sequential background warm-up of the clip (starts after window
   // load + idle), so by the time the lazy src attaches it's usually cached.
   prefetchScrubVideo(sourceUrl())
-  const el = rootRef.value
-  if (!el || typeof IntersectionObserver === 'undefined') {
-    attachSrc() // no IO support → just load it
-    return
-  }
-  // Start fetching ~1.5 screens before the section enters (3 on mobile, where
-  // slower networks need a longer head start) so it has time to buffer enough
-  // for a smooth scrub by the time it pins.
+  // Attach the lazy src ~1.5 screens before the section enters (3 on mobile,
+  // where slower networks need a longer head start) so it has time to buffer
+  // for a smooth scrub by the time it pins. attachSrc sets the device-appropriate
+  // source and kicks the decode; observeNear fires immediately when there's no
+  // IntersectionObserver, so the clip still loads without IO support.
   const margin = isMobile ? '300%' : '150%'
-  observer = new IntersectionObserver((entries) => {
-    if (entries.some(e => e.isIntersecting)) {
-      attachSrc()
-      observer.disconnect()
-      observer = null
-    }
-  }, { rootMargin: `${margin} 0px ${margin} 0px` })
-  observer.observe(el)
+  stopObserve = observeNear(rootRef.value, attachSrc, margin)
 })
 
-onBeforeUnmount(() => observer?.disconnect())
+onBeforeUnmount(() => stopObserve?.())
 
 // Pinned scrub: map currentTime 0 → duration across the section's pinned travel
 // (top hits viewport top → bottom hits viewport bottom), matching the sticky pin.
