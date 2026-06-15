@@ -1,17 +1,7 @@
 <template>
-  <!-- Sticky reveal: the footer is a viewport-high panel pinned behind the
-       page (z-0, under app.vue's z-10 content) and uncovered in place as the
-       last pinned section scrolls away. `bottom-0` rather than `top-0`: with a
-       panel exactly viewport-high the two pin to the same place, but only the
-       bottom pin engages while the panel is still covered — a top pin never
-       sticks for the document's last element, so the footer would scroll in
-       normally and snap in after the pinned section, the original problem. -->
-  <footer class="sticky bottom-0 z-0 h-dvh w-full bg-darkblue text-darkblue">
-    <!-- Content taller than the panel (the stacked press quotes on phones)
-         scrolls inside it; min-h-full + justify-end keeps shorter content at
-         the page bottom. -->
-    <div class="h-full overflow-y-auto" data-lenis-prevent>
-    <div class="min-h-full flex flex-col justify-start boxed !pb-sm !pt-[62px]">
+  <!-- Standard page footer: flows in at the document bottom after the page
+       content (no sticky reveal). -->
+  <footer class="w-full bg-darkblue text-darkblue boxed !pb-sm !pt-[62px]">
     <!-- Top Bar -->
     <div class="flex flex-col items-start justify-between gap-sm mb-sm w-full">
       <div class="flex flex-row items-start justify-between gap-sm w-full">
@@ -65,8 +55,6 @@
         />
       </nav>
       <span class="whitespace-nowrap flex justify-center">© EARTH AI – {{ new Date().getFullYear() }}</span>
-    </div>
-    </div>
     </div>
   </footer>
 </template>

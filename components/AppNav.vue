@@ -52,12 +52,10 @@ function scrollToTop(e) {
 
 // The footer shares the nav's beige palette, so once you scroll into it the
 // fixed nav logo overlays the footer's title/logo. Instead of leaving the nav
-// pinned, let the footer reveal "push" it off-screen. The footer itself is a
-// sticky viewport-high panel whose top sits at ~0 the whole time (it's just
-// covered by the page content above it), so the reveal's visible seam is the
-// page-content wrapper's bottom edge: translate the nav up by exactly how far
-// that seam has crossed into the nav's band, so the nav's bottom edge stays
-// flush with the seam — no overlap, no gap.
+// pinned, "push" it off-screen as the footer scrolls into view. The seam is the
+// page-content wrapper's bottom edge (where the footer begins): translate the
+// nav up by exactly how far that seam has crossed into the nav's band, so the
+// nav's bottom edge stays flush with the seam — no overlap, no gap.
 let contentEl = null
 
 function updateNavPush() {
