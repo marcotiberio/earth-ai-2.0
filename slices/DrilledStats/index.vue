@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { asHTML } from '@prismicio/client'
 
 const props = defineProps({
@@ -176,10 +176,15 @@ function primeWhenNear() {
   stopPrimeObserve = observeNear(rootRef.value, primeVideo, '200%')
 }
 
+// On phones the in-frame clip autoplays instead of scrubbing (forward decode is
+// robust where seek-scrubbing stalls); the count-ups still scrub with scroll.
+const isMobile = typeof window !== 'undefined'
+  && window.matchMedia('(max-width: 767px)').matches
+
 // --- Scroll-driven progress (pinned scrub) -----------------------------------
-// One source drives the count-ups (via `progress`) and the video (via onUpdate
-// → syncVideo). `tall` starts true so SSR/first paint match; reduced-motion
-// collapses the section and shows the finished scene (final counts + last frame).
+// One source drives the count-ups (via `progress`) and — on desktop — the video
+// (via onUpdate → syncVideo). `tall` starts true so SSR/first paint match;
+// reduced-motion collapses the section and shows the finished scene.
 const { progress, tall } = useScrollProgress(rootRef, {
   start: 'top top',
   // Finish 50vh (75vh on coarse pointers, where a momentum flick rips through)
@@ -187,19 +192,25 @@ const { progress, tall } = useScrollProgress(rootRef, {
   // The section height carries the extra travel to fund this dwell.
   end: (_, coarse) => `bottom bottom+=${window.innerHeight * (coarse ? 0.75 : 0.5)}`,
   scrub: { fine: 1, coarse: 3 },
-  // Warm + prime the clip regardless of motion preference, before the trigger.
+  // Warm + prime the scrub clip — desktop only. On mobile the clip autoplays
+  // (below), so there's nothing to prime and seek stays null (syncVideo no-ops).
   onReady: () => {
-    if (!videoUrl.value) return
-    // Serve the lighter mobile encode on phones when one was uploaded (a
-    // post-hydration swap from the SSR desktop src, so no markup mismatch);
-    // otherwise the desktop clip. The scrub drives whichever loaded.
-    const mobile = window.matchMedia('(max-width: 767px)').matches
-    videoSrc.value = (MOBILE_VIDEO_ENABLED && mobile && videoUrlMobile.value) ? videoUrlMobile.value : videoUrl.value
-    prefetchScrubVideo(videoSrc.value)
+    if (!videoUrl.value || isMobile) return
+    prefetchScrubVideo(videoUrl.value)
     primeWhenNear()
   },
   onUpdate: syncVideo,
 })
+
+// Mobile: drive the in-frame clip as a muted, forward-only autoplay loop instead
+// of seeking it. Only the footage is decoupled — the count-ups keep scrubbing
+// with scroll via `progress` above (so the section stays tall, uncapped).
+if (isMobile && videoUrl.value) {
+  // Serve the lighter mobile encode when one was uploaded — a post-hydration
+  // swap from the SSR-rendered desktop src, so no markup mismatch.
+  onMounted(() => { if (MOBILE_VIDEO_ENABLED && videoUrlMobile.value) videoSrc.value = videoUrlMobile.value })
+  useAutoplayVideo(videoRef, rootRef)
+}
 
 onUnmounted(() => stopPrimeObserve?.())
 </script>

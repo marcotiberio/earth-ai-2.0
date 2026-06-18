@@ -8,13 +8,23 @@
        travel is capped (CSS min(), so SSR markup is already correct): very
        long pins train hard repeated flicking whose momentum then dumps into
        whatever follows the section, and they make the scrub feel sluggish.
-       The tail dwell stays OUTSIDE the cap — min(length, 400dvh + tail) ==
-       min(base, 400dvh) + tail when callers pass scrollLength = base + tail —
-       otherwise capped sections would carve the dwell out of the scrub travel
-       (finishing the video a full tail early) instead of appending it. -->
+       Two mobile caps, picked by class below:
+       • Autoplay (the mobile default): the video loops on its own clock, so the
+         tall travel that scrubbing needed is just dead scroll — cap hard to
+         200dvh. The content still scrolls over the looping video, across less
+         emptiness. No tail: the dwell only existed to hold the video's last
+         scrubbed frame, which autoplay doesn't have.
+       • Scrub (desktop default / `:autoplay="false"`): keep the 400dvh cap with
+         the tail dwell OUTSIDE it — min(length, 400dvh + tail) == min(base,
+         400dvh) + tail when callers pass scrollLength = base + tail — otherwise
+         capped sections would carve the dwell out of the scrub travel (finishing
+         the video a full tail early) instead of appending it. -->
   <section
     ref="rootRef"
-    class="relative w-full bg-darkblue h-[min(var(--scrub-length),calc(400dvh+var(--scrub-tail)))] md:h-[var(--scrub-length)]"
+    class="relative w-full bg-darkblue md:h-[var(--scrub-length)]"
+    :class="autoplay && capMobileHeight
+      ? 'h-[min(var(--scrub-length),200dvh)]'
+      : 'h-[min(var(--scrub-length),calc(400dvh+var(--scrub-tail)))]'"
     :style="{ '--scrub-length': inSimulator ? '100dvh' : `${scrollLength}dvh`, '--scrub-tail': inSimulator ? '0dvh' : `${tailVh}dvh` }"
   >
     <!-- Pinned stage: video background AND content both pin to the top for the
@@ -104,6 +114,25 @@ const props = defineProps({
   // fetched lazily as the section approaches, so we don't pull every video at
   // once on first paint.
   eager:        { type: Boolean, default: false },
+  // Mobile playback mode. When true (default), PHONES autoplay the clip as a
+  // muted, forward-only loop that plays while the section is on screen, instead
+  // of scroll-scrubbing it. Scroll-scrubbing seeks the decoder every frame —
+  // fine on desktop GPUs, but mobile silicon handles it unreliably: it stalls
+  // and judders per device (the jitter / "doesn't play at all" reports).
+  // Forward decode is the path every decoder is built for, so autoplay is robust
+  // on phones. Desktop ALWAYS keeps the scroll-scrub engine (the coupling is
+  // smooth there and is part of the intended feel). The content reveals over the
+  // video are driven by their own ScrollTriggers, not video time, so the mobile
+  // swap leaves them unaffected. Pass `:autoplay="false"` to force scroll-scrub
+  // on phones too, for a section where the scroll-to-footage coupling is the point.
+  autoplay:     { type: Boolean, default: true },
+  // When autoplaying on mobile, cap the pinned section to 200dvh (the tall
+  // travel only existed to scrub the video, which we no longer do on phones).
+  // Set false for sections whose pinned travel drives a CONTENT animation that
+  // genuinely needs the extra distance — e.g. VideoScrollTitles, whose title
+  // reveal + hand-off timeline is sized to the taller section and would break
+  // if squeezed into 200dvh. Only affects the autoplay (mobile) path.
+  capMobileHeight: { type: Boolean, default: true },
 })
 
 // True when rendered inside the Slice Simulator (Page Builder sidebar previews
@@ -121,28 +150,6 @@ const videoRef = ref(null)
 const videoSrc = ref('')
 let stopObserve = null
 
-// Phones load the lighter mobile encode when one was uploaded; otherwise (and
-// always on desktop) the standard clip. Read once from the viewport — `window`
-// is present on the client, absent on the server (where onMounted never runs).
-const isMobile = typeof window !== 'undefined'
-  && window.matchMedia('(max-width: 767px)').matches
-const sourceUrl = () => (MOBILE_VIDEO_ENABLED && isMobile && props.videoUrlMobile) ? props.videoUrlMobile : props.videoUrl
-
-// Attach the device-appropriate src and kick its decode. Setting src alone isn't
-// enough — load() + a muted inline play() makes the clip buffer and (on iOS)
-// unlock frame painting for the scrub; we pause again immediately.
-const attachSrc = () => {
-  videoSrc.value = sourceUrl()
-  nextTick(() => {
-    const v = videoRef.value
-    if (!v) return
-    v.muted = true
-    try { v.load() } catch { /* ignore */ }
-    const p = v.play()
-    if (p && p.then) p.then(() => v.pause()).catch(() => {})
-  })
-}
-
 // Vertical resting position while pinned. Bottom anchors the content 5% up
 // from the bottom edge (per design), matching the live site's held caption.
 const alignClass = computed(() => ({
@@ -157,6 +164,33 @@ const alignXClass = computed(() => ({
   center: 'justify-center text-center',
   right:  'justify-end text-right',
 }[props.alignX] || 'justify-start text-left'))
+
+// Device read once at setup from the viewport (`window` is present on the client
+// setup pass, absent on the server — where the drivers' onMounted never runs).
+const isMobile = typeof window !== 'undefined'
+  && window.matchMedia('(max-width: 767px)').matches
+// Phones autoplay (forward-only loop, robust where scrub stalls); desktop and
+// `:autoplay="false"` scroll-scrub.
+const autoplayOnThisDevice = props.autoplay && isMobile
+// Phones load the lighter mobile encode when one was uploaded; otherwise (and
+// always on desktop) the standard clip.
+const sourceUrl = () => (MOBILE_VIDEO_ENABLED && isMobile && props.videoUrlMobile) ? props.videoUrlMobile : props.videoUrl
+
+// Attach the device-appropriate src and start its decode. Setting src alone
+// isn't enough to buffer. On the SCRUB path, kick the clip (muted play()/pause())
+// so it buffers and unlocks iOS painting. On the AUTOPLAY path we must NOT kick:
+// the kick's deferred pause() would race useAutoplayVideo's play-on-view and
+// could freeze the section paused — just load() and let the in-view play()
+// (deferred to idle) do the unlock.
+const attachSrc = () => {
+  videoSrc.value = sourceUrl()
+  nextTick(() => {
+    const v = videoRef.value
+    if (!v) return
+    if (autoplayOnThisDevice) { try { v.load() } catch { /* ignore */ } }
+    else kickScrubVideo(v)
+  })
+}
 
 onMounted(() => {
   if (!props.videoUrl) return
@@ -176,24 +210,32 @@ onMounted(() => {
 
 onBeforeUnmount(() => stopObserve?.())
 
-// Pinned scrub: map currentTime 0 → duration across the section's pinned travel
-// (top hits viewport top → bottom hits viewport bottom), matching the sticky pin.
-// A `scrubStart` preset overrides this with a per-section start ('top'|'middle').
+// Drive the pinned video. On phones it autoplays as a muted forward-only loop
+// while the section is on screen (robust where scrub stalls — see `autoplay`).
+// Desktop, and any section with `:autoplay="false"`, use the scroll-scrub
+// engine: map currentTime 0 → duration across the section's pinned travel (top
+// hits viewport top → bottom hits viewport bottom), matching the sticky pin. A
+// `scrubStart` preset overrides this with a per-section start ('top'|'middle').
+// `autoplayOnThisDevice` (the mobile check) is computed once above.
 if (props.videoUrl && !inSimulator) {
-  // With a `tailVh`, end the scrub that many vh before the pin releases so the
-  // video reaches its last frame at its natural pace, then holds across the
-  // dwell. Expressed as a px offset from the start (`+=…`) — a `bottom bottom-=`
-  // offset would push the end past the scrollable max and never complete.
-  const defaultEnd = props.tailVh > 0
-    ? () => `+=${rootRef.value.offsetHeight - window.innerHeight * (1 + props.tailVh / 100)}`
-    : 'bottom bottom'
-  useScrubVideo(
-    videoRef,
-    rootRef,
-    props.scrubStart
-      ? { startAt: props.scrubStart }
-      : { start: 'top top', end: defaultEnd },
-  )
+  if (autoplayOnThisDevice) {
+    useAutoplayVideo(videoRef, rootRef)
+  } else {
+    // With a `tailVh`, end the scrub that many vh before the pin releases so the
+    // video reaches its last frame at its natural pace, then holds across the
+    // dwell. Expressed as a px offset from the start (`+=…`) — a `bottom bottom-=`
+    // offset would push the end past the scrollable max and never complete.
+    const defaultEnd = props.tailVh > 0
+      ? () => `+=${rootRef.value.offsetHeight - window.innerHeight * (1 + props.tailVh / 100)}`
+      : 'bottom bottom'
+    useScrubVideo(
+      videoRef,
+      rootRef,
+      props.scrubStart
+        ? { startAt: props.scrubStart }
+        : { start: 'top top', end: defaultEnd },
+    )
+  }
 }
 
 // Expose the section root so slotted content (e.g. VideoScrollTitles' per-title

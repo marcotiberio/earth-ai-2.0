@@ -13,6 +13,7 @@
     align="bottom"
     align-x="left"
     overlay-class=""
+    :cap-mobile-height="false"
   >
     <!-- Top and bottom fades so the pinned video feathers into its neighbours. -->
     <template #pinned>
@@ -79,7 +80,7 @@ const titles = computed(() => props.slice.primary.items || props.slice.items || 
 // before the section unpins. We grow the section by that much (so there's real
 // scroll distance to dwell over) and end the title timeline a screen early, so
 // GSAP holds it at its final state across the dwell.
-const DWELL_VH = 200
+const DWELL_VH = 400
 const scrollLength = computed(
   () => (props.slice.primary.scroll_length || 300) + (titleHtml.value ? DWELL_VH : 0),
 )
