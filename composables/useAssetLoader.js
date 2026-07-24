@@ -21,16 +21,26 @@ const state = reactive({
   done: false,
 })
 
-// Overall progress 0..1 across every registered asset. Each contributes its real
-// byte fraction when the server sends a Content-Length; otherwise it counts 0
-// until it finishes, then 1.
+// The assets the launch overlay actually waits on. With PERF_MODE we block only
+// on the "critical" set (the hero image(s) + the FIRST scrub clip, tagged by
+// AppLoader) and let the rest keep downloading in the background after the
+// overlay lifts. Without the flag every asset is critical — the current
+// behaviour (overlay holds until everything is buffered).
+function gatingAssets() {
+  return PERF_MODE ? state.assets.filter((a) => a.critical) : state.assets
+}
+
+// Overall progress 0..1 across the assets the overlay is waiting on. Each
+// contributes its real byte fraction when the server sends a Content-Length;
+// otherwise it counts 0 until it finishes, then 1.
 const progress = computed(() => {
-  if (!state.assets.length) return state.done ? 1 : 0
+  const list = gatingAssets()
+  if (!list.length) return state.done ? 1 : 0
   let sum = 0
-  for (const a of state.assets) {
+  for (const a of list) {
     sum += a.total > 0 ? Math.min(a.loaded / a.total, 1) : a.done ? 1 : 0
   }
-  return sum / state.assets.length
+  return sum / list.length
 })
 
 const VIDEO_RE = /\.(mp4|webm|mov|m4v)(\?|#|$)/i
@@ -92,11 +102,16 @@ export function isManagedAsset(url) {
   return state.assets.some((a) => a.url === url)
 }
 
-/** Register [url, type] entries (e.g. from collectMediaUrls(...).entries()). */
+/**
+ * Register [url, type] entries (e.g. from collectMediaUrls(...).entries()). An
+ * optional third tuple element marks an asset non-critical (`false`) so the
+ * overlay doesn't wait on it under PERF_MODE; it defaults to critical, which
+ * keeps every existing caller (and the flag-off path) behaving as before.
+ */
 export function registerAssets(entries) {
-  for (const [url, type] of entries) {
+  for (const [url, type, critical = true] of entries) {
     if (!state.assets.some((a) => a.url === url)) {
-      state.assets.push({ url, type, loaded: 0, total: 0, done: false })
+      state.assets.push({ url, type, loaded: 0, total: 0, done: false, critical })
     }
   }
 }
@@ -164,16 +179,24 @@ async function loadOne(a) {
 }
 
 /**
- * Begin downloading every registered asset in full. Resolves only once all are
- * ready — there's no time cap, so the overlay holds until the media is genuinely
- * buffered. Idempotent.
+ * Begin downloading every registered asset in full. Resolves once the gating set
+ * is ready: without PERF_MODE that's every asset (there's no time cap, so the
+ * overlay holds until all media is buffered — the original behaviour); with it,
+ * only the critical set, while the remaining clips keep downloading in the
+ * background and warm the cache their <video> elements later reuse. Idempotent.
  */
 export async function startLoading() {
   if (state.started) return
   state.started = true
 
-  await Promise.all(state.assets.map(loadOne))
+  // Kick every registered asset now (so the background clips warm too), tracking
+  // each job so the overlay can await just the gating subset.
+  const jobs = new Map(state.assets.map((a) => [a, loadOne(a)]))
+  await Promise.all(gatingAssets().map((a) => jobs.get(a)))
   state.done = true
+  // Let the non-critical jobs finish on their own; swallow any late error so
+  // nothing rejects after the overlay is gone.
+  Promise.all([...jobs.values()]).catch(() => {})
 }
 
 export function useAssetLoader() {

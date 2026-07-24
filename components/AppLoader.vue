@@ -89,7 +89,27 @@ onMounted(async () => {
     // On phones, collect the lighter mobile encodes (and skip their desktop
     // siblings) so we don't pull the heavy clips the page won't play.
     const mobile = window.matchMedia('(max-width: 767px)').matches
-    registerAssets([...collectMediaUrls(doc, new Map(), { mobile })])
+    const media = [...collectMediaUrls(doc, new Map(), { mobile })]
+
+    if (PERF_MODE) {
+      // Hero-only gating: block the overlay on just the first screen — every
+      // image (small, and the hero is the LCP) plus the FIRST scrub clip. Later
+      // clips are registered non-critical: they still download in the background
+      // (warming the cache) but don't hold the overlay, and each buffers as its
+      // section approaches. The scrubber already refuses to seek into an
+      // unbuffered region, so a deep section reached early lags smoothly rather
+      // than stalling. collectMediaUrls preserves document order, so the first
+      // 'video' entry is the hero clip.
+      let firstVideoTagged = false
+      const entries = media.map(([url, type]) => {
+        const critical = type !== 'video' || !firstVideoTagged
+        if (type === 'video') firstVideoTagged = true
+        return [url, type, critical]
+      })
+      registerAssets(entries)
+    } else {
+      registerAssets(media)
+    }
   } catch { /* no document / offline → no assets registered, overlay resolves at once */ }
 
   startLoading()
