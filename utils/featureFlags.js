@@ -8,3 +8,11 @@
 // every device gets the desktop video. Set to `true` (as the autoplay branch
 // does) to serve the mobile encode again once we've decided on autoplay.
 export const MOBILE_VIDEO_ENABLED = false
+
+// PERF_MODE — master switch for the load-time / low-bandwidth work (staging/perf
+// branch). While `false`, every helper gated on it (useMediaMode, overrideVideoUrl,
+// hero-only loader gating) is INERT: the site behaves exactly as it does on main.
+// Flip to `true` only on the staging Netlify branch deploy — never merge it enabled
+// to the production branch. QA can also force a media mode per-request with the
+// `?media=static` / `?media=full` URL override (see composables/useMediaMode.js).
+export const PERF_MODE = false
