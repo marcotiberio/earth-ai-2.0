@@ -15,4 +15,4 @@ export const MOBILE_VIDEO_ENABLED = false
 // Flip to `true` only on the staging Netlify branch deploy — never merge it enabled
 // to the production branch. QA can also force a media mode per-request with the
 // `?media=static` / `?media=full` URL override (see composables/useMediaMode.js).
-export const PERF_MODE = false
+export const PERF_MODE = true
