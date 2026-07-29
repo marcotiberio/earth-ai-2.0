@@ -13,7 +13,9 @@
         <figure class="overflow-hidden rounded flex flex-col gap-xs">
           <img
             v-if="imageUrl"
-            :src="imageUrl"
+            :src="imgixUrl(imageUrl, { w: 800 })"
+            :srcset="imgixSrcset(imageUrl, [400, 800, 1200])"
+            sizes="(max-width: 780px) 100vw, 50vw"
             :alt="imageAlt"
             class="h-auto w-full aspect-[16/6] md:aspect-video self-start object-cover rounded grayscale"
             :class="linkHref ? 'transition-all group-hover:scale-105 group-hover:transition-all ' : ''"

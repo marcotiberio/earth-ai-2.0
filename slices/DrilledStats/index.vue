@@ -48,7 +48,7 @@
               v-if="videoUrl"
               ref="videoRef"
               :src="videoSrc"
-              :poster="posterUrl || undefined"
+              :poster="imgixUrl(posterUrl, { w: 1600 }) || undefined"
               muted
               playsinline
               preload="auto"
@@ -56,7 +56,9 @@
             />
             <img
               v-else-if="posterUrl"
-              :src="posterUrl"
+              :src="imgixUrl(posterUrl, { w: 1280 })"
+              :srcset="imgixSrcset(posterUrl, [768, 1280, 1920])"
+              sizes="100vw"
               :alt="resolveImageAlt(slice.primary.image)"
               class="absolute inset-0 h-full w-full object-cover"
             />

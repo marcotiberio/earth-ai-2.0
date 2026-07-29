@@ -45,7 +45,7 @@
         v-if="videoUrl"
         ref="videoRef"
         :src="videoSrc"
-        :poster="slice.primary.image?.url || undefined"
+        :poster="imgixUrl(slice.primary.image?.url, { w: 1280 }) || undefined"
         class="w-full h-[40vh] md:h-[55vh] object-cover"
         muted
         playsinline
@@ -53,7 +53,9 @@
       />
       <img
         v-else-if="slice.primary.image?.url"
-        :src="slice.primary.image.url"
+        :src="imgixUrl(slice.primary.image.url, { w: 1280 })"
+        :srcset="imgixSrcset(slice.primary.image.url, [768, 1280, 1920])"
+        sizes="100vw"
         :alt="resolveImageAlt(slice.primary.image)"
         class="w-full h-[40vh] md:h-[55vh] object-cover"
       />
