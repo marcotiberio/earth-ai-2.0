@@ -59,6 +59,14 @@ export function useScrubVideo(videoRef, triggerRef, options = {}) {
   const end    = options.end   || preset.end   || 'bottom top'
 
   onMounted(async () => {
+    // `enabled` lets a caller veto scrubbing at mount time — used by ScrubScene
+    // so the scroll-scrub loop only wires up for the 'full' media tier. The
+    // scrub <video> is briefly rendered on first paint for every visitor (it
+    // matches SSR), so an autoplay/static visitor can reach here before the
+    // hydration swap removes it; the guard bails cleanly instead of priming a
+    // clip that tier will never play. Defaults to enabled (existing callers).
+    if (options.enabled && !options.enabled()) return
+
     const video   = unref(videoRef)
     const trigger = unref(triggerRef)
     if (!video || !trigger) return

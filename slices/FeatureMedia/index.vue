@@ -3,6 +3,7 @@
   <ScrubScene
     :video-url="slice.primary.video_url || ''"
     :video-url-mobile="slice.primary.video_url_mobile || ''"
+    :video-url-autoplay="slice.primary.video_url_autoplay || ''"
     :image="slice.primary.image || {}"
     :scroll-length="slice.primary.scroll_length || 300"
     :scrub-start="slice.primary.scrub_start || ''"

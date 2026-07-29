@@ -7,6 +7,7 @@
     ref="sceneRef"
     :video-url="videoUrl"
     :video-url-mobile="videoUrlMobile"
+    :video-url-autoplay="videoUrlAutoplay"
     :image="slice.primary.image || {}"
     :scroll-length="scrollLength"
     :tail-vh="titleHtml ? DWELL_VH : 0"
@@ -68,8 +69,9 @@ const inSimulator = inject('inSliceSimulator', false)
 const mediaUrl = (field) =>
   typeof field === 'string' ? field : field?.url || ''
 
-const videoUrl       = computed(() => mediaUrl(props.slice.primary.video_url))
-const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
+const videoUrl         = computed(() => mediaUrl(props.slice.primary.video_url))
+const videoUrlMobile   = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
+const videoUrlAutoplay = computed(() => mediaUrl(props.slice.primary.video_url_autoplay))
 
 // The repeatable group of titles. Real Prismic returns it under
 // `primary.items` (a Group field); a plain static shape may use top-level `items`.
