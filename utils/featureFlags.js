@@ -1,13 +1,13 @@
 // Frontend feature flags.
 //
 // MOBILE_VIDEO_ENABLED — gates whether phones are served the lighter mobile clip
-// (`video_url_mobile`) instead of the desktop `video_url`. This is part of the
-// in-progress mobile-autoplay work being validated on the `autoplayMobileTest`
-// branch. On `main` we keep the Prismic field available (so editors can upload
-// test encodes and the autoplay branch keeps working) but never SELECT it —
-// every device gets the desktop video. Set to `true` (as the autoplay branch
-// does) to serve the mobile encode again once we've decided on autoplay.
-export const MOBILE_VIDEO_ENABLED = false
+// (`video_url_mobile`) instead of the desktop `video_url`. Phase 3 of the
+// load-time work turns this ON: phones select the phone-sized scrub encode, and
+// the code falls back to the desktop clip when a section has no mobile encode
+// uploaded yet — so enabling it is safe even before every field is filled.
+// Enabled here on `staging/perf` for cross-device QA. Like PERF_MODE, treat the
+// merge to `main` as a deliberate decision, not an automatic carry-over.
+export const MOBILE_VIDEO_ENABLED = true
 
 // PERF_MODE — master switch for the load-time / low-bandwidth work (staging/perf
 // branch). While `false`, every helper gated on it (useMediaMode, overrideVideoUrl,
