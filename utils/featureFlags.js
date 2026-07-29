@@ -1,18 +1,18 @@
 // Frontend feature flags.
 //
 // MOBILE_VIDEO_ENABLED — gates whether phones are served the lighter mobile clip
-// (`video_url_mobile`) instead of the desktop `video_url`. Phase 3 of the
-// load-time work turns this ON: phones select the phone-sized scrub encode, and
-// the code falls back to the desktop clip when a section has no mobile encode
-// uploaded yet — so enabling it is safe even before every field is filled.
-// Enabled here on `staging/perf` for cross-device QA. Like PERF_MODE, treat the
-// merge to `main` as a deliberate decision, not an automatic carry-over.
-export const MOBILE_VIDEO_ENABLED = true
+// (`video_url_mobile`) instead of the desktop `video_url`. This is part of the
+// in-progress mobile-autoplay work being validated on the `autoplayMobileTest`
+// branch. On `main` we keep the Prismic field available (so editors can upload
+// test encodes and the autoplay branch keeps working) but never SELECT it —
+// every device gets the desktop video. Set to `true` (as the autoplay branch
+// does) to serve the mobile encode again once we've decided on autoplay.
+export const MOBILE_VIDEO_ENABLED = false
 
-// PERF_MODE — master switch for the load-time / low-bandwidth work (staging/perf
-// branch). While `false`, every helper gated on it (useMediaMode, overrideVideoUrl,
-// hero-only loader gating) is INERT: the site behaves exactly as it does on main.
-// Flip to `true` only on the staging Netlify branch deploy — never merge it enabled
-// to the production branch. QA can also force a media mode per-request with the
-// `?media=static` / `?media=full` URL override (see composables/useMediaMode.js).
+// PERF_MODE — master switch for the load-time work (staging/perf branch). While
+// `false`, the hero-only launch gating it guards is INERT: the site behaves
+// exactly as it does on main (the overlay waits for every homepage clip). When
+// `true`, the launch overlay blocks only on the hero clip + images and lets the
+// rest download in the background. Flip to `true` only on the staging Netlify
+// branch deploy — never merge it enabled to the production branch.
 export const PERF_MODE = true

@@ -30,51 +30,23 @@
         class="relative w-full overflow-hidden"
         :class="frame ? 'flex-1 rounded' : 'h-full'"
       >
-        <!-- Media matched to the visitor's connection tier (useMediaMode):
-             'full' scrubs the clip, 'autoplay' loops a lighter clip, 'static'
-             shows the poster only and fetches no video. SSR + first client paint
-             are always 'full', so the scrub <video> is what hydrates. -->
         <video
-          v-if="videoUrl && mediaMode === 'full'"
+          v-if="videoUrl"
           ref="videoRef"
           :src="videoSrc || undefined"
-          :poster="posterUrl || undefined"
-          muted
-          playsinline
-          preload="auto"
-          class="absolute inset-0 w-full h-full object-cover"
-        />
-        <video
-          v-else-if="videoUrl && mediaMode === 'autoplay'"
-          ref="autoplayRef"
-          :src="autoplaySrc || undefined"
-          :poster="posterUrl || undefined"
-          autoplay
-          loop
+          :poster="image && image.url ? image.url : undefined"
           muted
           playsinline
           preload="auto"
           class="absolute inset-0 w-full h-full object-cover"
         />
         <img
-          v-else-if="posterUrl"
-          :src="posterUrl"
+          v-else-if="image && image.url"
+          :src="image.url"
           :alt="resolveImageAlt(image)"
           class="absolute inset-0 w-full h-full object-cover"
         />
         <div class="absolute inset-0" :class="overlayClass" />
-
-        <!-- Low-bandwidth escape hatch: a visitor served the still image can opt
-             into motion (the lighter autoplay clip). Sits above the overlay,
-             out of the way of the pinned caption. -->
-        <button
-          v-if="videoUrl && mediaMode === 'static'"
-          type="button"
-          class="absolute z-20 bottom-4 right-4 flex items-center gap-2 rounded-full bg-darkblue/70 px-4 py-2 text-beige text-sm backdrop-blur transition hover:bg-darkblue/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-beige"
-          @click="setMode('autoplay')"
-        >
-          <span aria-hidden="true">&#9654;</span> Play motion
-        </button>
 
         <!-- Decorative layers that should stay pinned with the video -->
         <slot name="pinned" />
@@ -99,7 +71,7 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
 const props = defineProps({
   videoUrl:     { type: String, default: '' },
@@ -107,11 +79,6 @@ const props = defineProps({
   // load this instead of `videoUrl` (desktop always uses `videoUrl`). Falls back
   // to `videoUrl` when empty, so it's safe to leave unset per section.
   videoUrlMobile: { type: String, default: '' },
-  // Optional low-res, linear (autoplay) encode. Served to the 'autoplay' tier —
-  // moderate connections — where it loops muted and streams progressively rather
-  // than being fully downloaded for scrubbing. Falls back to `videoUrl` when
-  // empty, so a section without a dedicated autoplay clip still shows motion.
-  videoUrlAutoplay: { type: String, default: '' },
   image:        { type: Object, default: () => ({}) },
   // Total pinned scroll distance in vh. With 200, the video stays pinned for
   // ~one full screen of scroll, over which the content travels in and out.
@@ -145,23 +112,13 @@ const props = defineProps({
 // cropped top of a tall pinned section. Provided by pages/slice-simulator.vue.
 const inSimulator = inject('inSliceSimulator', false)
 
-const rootRef     = ref(null)
-const videoRef    = ref(null)
-const autoplayRef = ref(null)
-
-// Connection-matched tier. `mediaMode` is 'full' on the server and first client
-// paint (so the scrub <video> hydrates), then re-resolves after mount; `setMode`
-// is the "play motion" escalation. Imperative attach logic below reads the
-// synchronous resolveMediaMode() so it never acts on the transient 'full'.
-const { mode: mediaMode, setMode } = useMediaMode()
-
-const posterUrl = computed(() => props.image?.url || '')
+const rootRef  = ref(null)
+const videoRef = ref(null)
 
 // Poster-first: the src is attached on the client (immediately if eager, else as
 // the section nears) so SSR/first paint is just the poster and the device picks
 // its own source — phones never start fetching the heavy desktop clip.
-const videoSrc    = ref('')
-const autoplaySrc = ref('')
+const videoSrc = ref('')
 let stopObserve = null
 
 // Phones load the lighter mobile encode when one was uploaded; otherwise (and
@@ -169,17 +126,13 @@ let stopObserve = null
 // is present on the client, absent on the server (where onMounted never runs).
 const isMobile = typeof window !== 'undefined'
   && window.matchMedia('(max-width: 767px)').matches
-const scrubUrl    = () => (MOBILE_VIDEO_ENABLED && isMobile && props.videoUrlMobile) ? props.videoUrlMobile : props.videoUrl
-// Autoplay tier prefers the dedicated low-res clip; falls back to the scrub clip
-// so a section without an autoplay encode still shows motion (just heavier).
-const autoplayUrl = () => props.videoUrlAutoplay || props.videoUrl
+const sourceUrl = () => (MOBILE_VIDEO_ENABLED && isMobile && props.videoUrlMobile) ? props.videoUrlMobile : props.videoUrl
 
-// Attach the scrub src and kick its decode. Setting src alone isn't enough —
-// load() + a muted inline play() makes the clip buffer and (on iOS) unlock frame
-// painting for the scrub; we pause again immediately.
-const attachScrubSrc = () => {
-  if (videoSrc.value) return
-  videoSrc.value = scrubUrl()
+// Attach the device-appropriate src and kick its decode. Setting src alone isn't
+// enough — load() + a muted inline play() makes the clip buffer and (on iOS)
+// unlock frame painting for the scrub; we pause again immediately.
+const attachSrc = () => {
+  videoSrc.value = sourceUrl()
   nextTick(() => {
     const v = videoRef.value
     if (!v) return
@@ -187,21 +140,6 @@ const attachScrubSrc = () => {
     try { v.load() } catch { /* ignore */ }
     const p = v.play()
     if (p && p.then) p.then(() => v.pause()).catch(() => {})
-  })
-}
-
-// Attach the autoplay src. The element carries the `autoplay` attribute, but a
-// muted inline play() is the reliable cross-browser kick (iOS especially); it
-// loops and streams progressively, so no full download or scrub priming.
-const attachAutoplaySrc = () => {
-  if (autoplaySrc.value) return
-  autoplaySrc.value = autoplayUrl()
-  nextTick(() => {
-    const v = autoplayRef.value
-    if (!v) return
-    v.muted = true
-    const p = v.play?.()
-    if (p && p.then) p.catch(() => {})
   })
 }
 
@@ -222,32 +160,18 @@ const alignXClass = computed(() => ({
 
 onMounted(() => {
   if (!props.videoUrl) return
-
-  // React to the resolved tier — and to a later manual escalation ("play
-  // motion"). Each attach is idempotent (guards on its own src), so re-entry is
-  // safe. 'static' attaches nothing: no clip is fetched at all.
-  watch(mediaMode, (mode) => {
-    if (mode === 'full') {
-      if (props.eager) { attachScrubSrc(); return }
-      // Queue a sequential background warm-up of the clip (starts after window
-      // load + idle), so by the time the lazy src attaches it's usually cached.
-      prefetchScrubVideo(scrubUrl())
-      // Attach ~1.5 screens before the section enters (3 on mobile, where slower
-      // networks need a longer head start) so it can buffer for a smooth scrub.
-      if (!stopObserve) {
-        const margin = isMobile ? '300%' : '150%'
-        stopObserve = observeNear(rootRef.value, attachScrubSrc, margin)
-      }
-    } else if (mode === 'autoplay') {
-      if (props.eager) { attachAutoplaySrc(); return }
-      // Progressive stream — attach as the section nears; no full-download warm-up.
-      if (!stopObserve) {
-        const margin = isMobile ? '300%' : '150%'
-        stopObserve = observeNear(rootRef.value, attachAutoplaySrc, margin)
-      }
-    }
-    // 'static' → nothing to attach.
-  }, { immediate: true })
+  // Eager (the hero): attach immediately — it's visible at load. Otherwise defer.
+  if (props.eager) { attachSrc(); return }
+  // Queue a sequential background warm-up of the clip (starts after window
+  // load + idle), so by the time the lazy src attaches it's usually cached.
+  prefetchScrubVideo(sourceUrl())
+  // Attach the lazy src ~1.5 screens before the section enters (3 on mobile,
+  // where slower networks need a longer head start) so it has time to buffer
+  // for a smooth scrub by the time it pins. attachSrc sets the device-appropriate
+  // source and kicks the decode; observeNear fires immediately when there's no
+  // IntersectionObserver, so the clip still loads without IO support.
+  const margin = isMobile ? '300%' : '150%'
+  stopObserve = observeNear(rootRef.value, attachSrc, margin)
 })
 
 onBeforeUnmount(() => stopObserve?.())
@@ -255,7 +179,6 @@ onBeforeUnmount(() => stopObserve?.())
 // Pinned scrub: map currentTime 0 → duration across the section's pinned travel
 // (top hits viewport top → bottom hits viewport bottom), matching the sticky pin.
 // A `scrubStart` preset overrides this with a per-section start ('top'|'middle').
-// Only the 'full' tier scrubs — the `enabled` guard bails for autoplay/static.
 if (props.videoUrl && !inSimulator) {
   // With a `tailVh`, end the scrub that many vh before the pin releases so the
   // video reaches its last frame at its natural pace, then holds across the
@@ -267,14 +190,9 @@ if (props.videoUrl && !inSimulator) {
   useScrubVideo(
     videoRef,
     rootRef,
-    {
-      ...(props.scrubStart
-        ? { startAt: props.scrubStart }
-        : { start: 'top top', end: defaultEnd }),
-      // Only wire the scrub loop for the 'full' tier (resolved synchronously,
-      // so it agrees with the template's reactive mediaMode without the race).
-      enabled: () => resolveMediaMode().mode === 'full',
-    },
+    props.scrubStart
+      ? { startAt: props.scrubStart }
+      : { start: 'top top', end: defaultEnd },
   )
 }
 

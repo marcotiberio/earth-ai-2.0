@@ -89,15 +89,9 @@ onMounted(async () => {
     // On phones, collect the lighter mobile encodes (and skip their desktop
     // siblings) so we don't pull the heavy clips the page won't play.
     const mobile = window.matchMedia('(max-width: 767px)').matches
+    const media = [...collectMediaUrls(doc, new Map(), { mobile })]
 
-    // The connection tier decides what the overlay waits on. Only 'full' pulls
-    // scrub video up front; 'autoplay' streams its clips per-section and 'static'
-    // fetches none, so both block on images alone — a near-instant, near-zero-
-    // data load. Without PERF_MODE this stays 'full' (original behaviour).
-    const { mode } = PERF_MODE ? resolveMediaMode() : { mode: 'full' }
-    const media = [...collectMediaUrls(doc, new Map(), { mobile, mode })]
-
-    if (PERF_MODE && mode === 'full') {
+    if (PERF_MODE) {
       // Hero-only gating: block the overlay on just the first screen — every
       // image (small, and the hero is the LCP) plus the FIRST scrub clip. Later
       // clips are registered non-critical: they still download in the background
@@ -114,8 +108,6 @@ onMounted(async () => {
       })
       registerAssets(entries)
     } else {
-      // Low-bandwidth tiers (media = images only, videos skipped above) and the
-      // flag-off path both register everything as critical — small and fast.
       registerAssets(media)
     }
   } catch { /* no document / offline → no assets registered, overlay resolves at once */ }

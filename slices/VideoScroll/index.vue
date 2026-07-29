@@ -4,7 +4,6 @@
     v-if="slice.variation === 'overlay'"
     :video-url="videoUrl"
     :video-url-mobile="videoUrlMobile"
-    :video-url-autoplay="videoUrlAutoplay"
     :image="slice.primary.image || {}"
     :scroll-length="scrollLength"
     :tail-vh="hasDwell ? DWELL_VH : 0"
@@ -117,9 +116,8 @@ const mediaUrl = (field) =>
 
 const titleHtml      = computed(() => toHtml(props.slice.primary.title))
 const subtitleHtml   = computed(() => toHtml(props.slice.primary.subtitle))
-const videoUrl         = computed(() => mediaUrl(props.slice.primary.video_url))
-const videoUrlMobile   = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
-const videoUrlAutoplay = computed(() => mediaUrl(props.slice.primary.video_url_autoplay))
+const videoUrl       = computed(() => mediaUrl(props.slice.primary.video_url))
+const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
 
 // Hold the pin for an extra screen after the scrub completes, so the video
 // reaches its last frame (the play-chase catch-up lags behind fast scrolls)
