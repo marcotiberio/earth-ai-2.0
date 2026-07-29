@@ -37,6 +37,14 @@
             "select": "media"
           }
         },
+        "video_url_autoplay": {
+          "type": "Link",
+          "config": {
+            "label": "Background video (autoplay / low-res)",
+            "placeholder": "Optional low-res clip auto-played on moderate connections (falls back to the main video)",
+            "select": "media"
+          }
+        },
         "image": {
           "type": "Image",
           "config": {

@@ -18,12 +18,19 @@
 # HEVC-capable Chrome (hardware decode); browsers without it fall back to the
 # poster image rather than the clip.
 #
-#   <name>.scrub.gop<GOP>.hevc.mp4   HEVC, hvc1-tagged → upload to video_url
+#   <name>.scrub.gop<GOP>.hevc.mp4    HEVC, hvc1-tagged → upload to video_url
+#   <name>.autoplay.hevc.mp4          low-res linear   → upload to video_url_autoplay
+#
+# The autoplay clip feeds the 'autoplay' media tier (moderate connections): it
+# loops muted and streams progressively, so it needs neither the scrub tier's
+# dense GOP nor its resolution — a normal keyframe interval, a smaller frame and
+# a higher CRF make it markedly lighter. Set AUTOPLAY=0 to skip it.
 #
 # Usage:
 #   brew install ffmpeg          # if needed
-#   ./scripts/optimize-videos.sh                 # GOP=5 (smooth, good size)
+#   ./scripts/optimize-videos.sh                 # GOP=5 scrub + low-res autoplay
 #   MAXW=1280 HEVC_CRF=27 ./scripts/optimize-videos.sh
+#   AUTOPLAY=0 ./scripts/optimize-videos.sh       # scrub output only
 #
 # Reads the 1920×1080 masters from media-src/videos/_original and writes the
 # web outputs one level up, ready to upload to Prismic (.hevc.mp4 → video_url).
@@ -36,11 +43,16 @@ GOP="${GOP:-5}"            # keyframe interval in frames
 MAXW="${MAXW:-1600}"       # cap width (background video rarely needs > 1600px)
 HEVC_CRF="${HEVC_CRF:-26}" # x265 quality: lower = better/bigger (x265 CRF runs ~3 higher than x264 for equal quality)
 
+AUTOPLAY="${AUTOPLAY:-1}"              # also emit the low-res linear autoplay clip
+AUTOPLAY_MAXW="${AUTOPLAY_MAXW:-960}"  # autoplay tier is smaller than the scrub tier
+AUTOPLAY_CRF="${AUTOPLAY_CRF:-30}"     # more compression — it plays, never scrubs
+AUTOPLAY_GOP="${AUTOPLAY_GOP:-48}"     # linear playback needs no dense keyframes
+
 command -v ffmpeg >/dev/null || { echo "ffmpeg not found — 'brew install ffmpeg'"; exit 1; }
 
 shopt -s nullglob
 for src in "$SRC_DIR"/*.mp4; do
-  case "$src" in *.scrub.*) continue;; esac # never re-encode our own outputs
+  case "$src" in *.scrub.*|*.autoplay.*) continue;; esac # never re-encode our own outputs
   base="$OUT_DIR/$(basename "${src%.mp4}")"
 
   echo "→ $(basename "$src")  (GOP=$GOP, maxW=$MAXW)"
@@ -62,6 +74,29 @@ for src in "$SRC_DIR"/*.mp4; do
     printf '   hevc: %s → %s\n' \
       "$(du -h "$src" | cut -f1)" "$(du -h "$hevc" | cut -f1)"
   fi
+
+  # Low-res AUTOPLAY encode for the 'autoplay' media tier. It loops muted and
+  # streams progressively (never scrubs), so a normal keyframe interval, a
+  # smaller frame and a higher CRF keep it much lighter than the scrub clip.
+  # hvc1-tagged like the scrub output so Safari/iOS play it.
+  if [ "$AUTOPLAY" = "1" ]; then
+    auto="$base.autoplay.hevc.mp4"
+    if [ -f "$auto" ] && [ "$auto" -nt "$src" ]; then
+      echo "   autoplay: $(basename "$auto") exists, skipping"
+    else
+      ffmpeg -y -i "$src" -an \
+        -vf "scale='min($AUTOPLAY_MAXW,iw)':-2" \
+        -c:v libx265 -pix_fmt yuv420p -tag:v hvc1 \
+        -x265-params "keyint=$AUTOPLAY_GOP:min-keyint=$AUTOPLAY_GOP:scenecut=0:log-level=error" \
+        -crf "$AUTOPLAY_CRF" -preset medium \
+        -movflags +faststart \
+        "$auto" </dev/null
+      printf '   autoplay: %s → %s\n' \
+        "$(du -h "$src" | cut -f1)" "$(du -h "$auto" | cut -f1)"
+    fi
+  fi
 done
 
-echo "Done. Review the outputs, then upload to Prismic: .scrub.gop$GOP.hevc.mp4 → video_url."
+echo "Done. Review the outputs, then upload to Prismic:"
+echo "  .scrub.gop$GOP.hevc.mp4  → video_url"
+echo "  .autoplay.hevc.mp4       → video_url_autoplay"

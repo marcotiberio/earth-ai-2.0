@@ -72,21 +72,32 @@ export function collectMediaUrls(node, found = new Map(), opts = {}) {
       else if (IMAGE_RE.test(u)) found.set(u, 'image')
     }
 
-    // Device-aware video pairing: a slice's primary may carry both a desktop
-    // (`video_url`) and a lighter mobile (`video_url_mobile`) clip. Collect only
-    // the one THIS device will play, so the loader never downloads both. Mobile
-    // falls back to the desktop clip when no mobile encode was uploaded.
-    const hasVideoPair = 'video_url' in node || 'video_url_mobile' in node
-    const mobileVal = node.video_url_mobile
-    const mobileUrl = typeof mobileVal === 'string' ? mobileVal : mobileVal?.url
-    const chosenVideo = (MOBILE_VIDEO_ENABLED && opts.mobile && mobileUrl) ? mobileVal : node.video_url
+    // Media-tier–aware video pairing. A section may carry several encodes of the
+    // same clip: `video_url` (desktop scrub), `video_url_mobile` (lighter scrub)
+    // and `video_url_autoplay` (low-res linear). The launch overlay downloads at
+    // most ONE per section, and only for the 'full' tier — the 'autoplay' tier
+    // streams its clip per-section (ScrubScene) and 'static' fetches none. So we
+    // pick the scrub source for 'full' and collect no video otherwise.
+    // `video_url_autoplay` is ALWAYS excluded from the generic walk below so the
+    // 'full' tier never bulk-downloads it. `opts.mode` defaults to 'full', so
+    // callers that don't pass a mode keep the original behaviour.
+    const mode = opts.mode || 'full'
+    const hasVideoField =
+      'video_url' in node || 'video_url_mobile' in node || 'video_url_autoplay' in node
+    let chosenVideo = null
+    if (mode === 'full') {
+      const mobileVal = node.video_url_mobile
+      const mobileUrl = typeof mobileVal === 'string' ? mobileVal : mobileVal?.url
+      chosenVideo = (MOBILE_VIDEO_ENABLED && opts.mobile && mobileUrl) ? mobileVal : node.video_url
+    }
 
     for (const key in node) {
       if (key === 'url') continue
-      if (key === 'video_url' || key === 'video_url_mobile') continue // handled below
+      // All three video fields are handled explicitly (or skipped) here.
+      if (key === 'video_url' || key === 'video_url_mobile' || key === 'video_url_autoplay') continue
       collectMediaUrls(node[key], found, opts)
     }
-    if (hasVideoPair) collectMediaUrls(chosenVideo, found, opts)
+    if (hasVideoField && chosenVideo) collectMediaUrls(chosenVideo, found, opts)
     return found
   }
 
