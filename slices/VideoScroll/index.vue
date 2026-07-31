@@ -83,7 +83,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
 import { asHTML } from '@prismicio/client'
 
 const props = defineProps({
@@ -157,6 +157,8 @@ const videoRef = ref(null)
 // SSR renders this src; onMounted queues the background warm-up.
 const videoSrc = ref(videoUrl.value)
 
+let stopWarmObserve = null
+
 if (props.slice.variation !== 'overlay' && props.slice.primary.video_url) {
   onMounted(() => {
     // Swap to the lighter mobile encode on phones (a post-hydration reactive
@@ -167,8 +169,17 @@ if (props.slice.variation !== 'overlay' && props.slice.primary.video_url) {
       && videoUrlMobile.value) {
       videoSrc.value = videoUrlMobile.value
     }
-    prefetchScrubVideo(videoSrc.value)
+    // The element is preload="metadata", so the clip body is only fetched by
+    // this warm-up. Under PERF_MODE hold it until the band nears the viewport —
+    // warming at mount downloads the whole clip for visitors who never scroll
+    // this far, which is what runs up the CDN bill.
+    if (PERF_MODE) {
+      stopWarmObserve = observeNear(rootRef.value, () => prefetchScrubVideo(videoSrc.value), '200%')
+    } else {
+      prefetchScrubVideo(videoSrc.value)
+    }
   })
+  onBeforeUnmount(() => stopWarmObserve?.())
   // `scrub_start` ('top' | 'middle') is set per section in the Prismic field.
   useScrubVideo(videoRef, rootRef, { startAt: props.slice.primary.scrub_start })
 }

@@ -94,12 +94,19 @@ export function collectMediaUrls(node, found = new Map(), opts = {}) {
 }
 
 /**
- * True once `url` has been registered for full download by the launch overlay.
+ * True once the launch overlay has actually STARTED pulling `url` down in full.
  * The scrub prefetch queue (utils/scrubVideo.js) checks this so it doesn't fetch
- * a clip the loader is already pulling down in full.
+ * a clip the loader is already downloading.
+ *
+ * Registration alone is deliberately not enough: under PERF_MODE the loader
+ * registers every homepage asset (so `progress` and the flag-off path still see
+ * the whole set) but only fetches the gating ones, leaving the rest to their
+ * sections' own proximity-triggered load. Keying off `fetching` rather than mere
+ * presence means those deferred clips aren't mistaken for "already handled" and
+ * silently dropped by both paths.
  */
 export function isManagedAsset(url) {
-  return state.assets.some((a) => a.url === url)
+  return state.assets.some((a) => a.url === url && a.fetching)
 }
 
 /**
@@ -111,7 +118,7 @@ export function isManagedAsset(url) {
 export function registerAssets(entries) {
   for (const [url, type, critical = true] of entries) {
     if (!state.assets.some((a) => a.url === url)) {
-      state.assets.push({ url, type, loaded: 0, total: 0, done: false, critical })
+      state.assets.push({ url, type, loaded: 0, total: 0, done: false, critical, fetching: false })
     }
   }
 }
@@ -171,6 +178,7 @@ function loadViaElement(a) {
 }
 
 async function loadOne(a) {
+  a.fetching = true
   try {
     await loadViaFetch(a)
   } catch {
@@ -179,24 +187,30 @@ async function loadOne(a) {
 }
 
 /**
- * Begin downloading every registered asset in full. Resolves once the gating set
- * is ready: without PERF_MODE that's every asset (there's no time cap, so the
- * overlay holds until all media is buffered — the original behaviour); with it,
- * only the critical set, while the remaining clips keep downloading in the
- * background and warm the cache their <video> elements later reuse. Idempotent.
+ * Begin downloading the assets the overlay is waiting on. Resolves once they're
+ * ready. Idempotent.
+ *
+ * Without PERF_MODE that's every registered asset (no time cap — the overlay
+ * holds until all homepage media is buffered; the original behaviour).
+ *
+ * With PERF_MODE we fetch ONLY the gating set. This is the CDN-bandwidth fix:
+ * previously every asset was kicked here and the flag changed nothing but when
+ * the overlay lifted, so a visitor who bounced at the hero still cost the full
+ * ~130 MB of scrub clips. Now the deferred clips are downloaded by their own
+ * sections as they approach the viewport (ScrubScene's `observeNear` attaches
+ * the src ~1.5 screens out, 3 on mobile), so we only ever pay for footage the
+ * visitor actually scrolls to. The scrubber already refuses to seek into an
+ * unbuffered region, so a section reached early lags smoothly rather than
+ * stalling.
  */
 export async function startLoading() {
   if (state.started) return
   state.started = true
 
-  // Kick every registered asset now (so the background clips warm too), tracking
-  // each job so the overlay can await just the gating subset.
-  const jobs = new Map(state.assets.map((a) => [a, loadOne(a)]))
-  await Promise.all(gatingAssets().map((a) => jobs.get(a)))
+  // loadOne never rejects (a failed fetch falls back to element-load, which
+  // resolves on error too), so the overlay can't be wedged by a dead asset.
+  await Promise.all(gatingAssets().map(loadOne))
   state.done = true
-  // Let the non-critical jobs finish on their own; swallow any late error so
-  // nothing rejects after the overlay is gone.
-  Promise.all([...jobs.values()]).catch(() => {})
 }
 
 export function useAssetLoader() {

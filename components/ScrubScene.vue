@@ -173,7 +173,11 @@ onMounted(() => {
   if (props.eager) { attachSrc(); return }
   // Queue a sequential background warm-up of the clip (starts after window
   // load + idle), so by the time the lazy src attaches it's usually cached.
-  prefetchScrubVideo(sourceUrl())
+  // Skipped under PERF_MODE: the queue drains the WHOLE page's clips regardless
+  // of how far the visitor scrolls, which is most of the CDN bandwidth bill. The
+  // observeNear attach below is then the only thing that pulls this clip, so a
+  // section nobody reaches costs nothing.
+  if (!PERF_MODE) prefetchScrubVideo(sourceUrl())
   // Attach the lazy src ~1.5 screens before the section enters (3 on mobile,
   // where slower networks need a longer head start) so it has time to buffer
   // for a smooth scrub by the time it pins. attachSrc sets the device-appropriate
