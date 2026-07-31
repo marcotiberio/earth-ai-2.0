@@ -7,7 +7,7 @@
 // test encodes and the autoplay branch keeps working) but never SELECT it —
 // every device gets the desktop video. Set to `true` (as the autoplay branch
 // does) to serve the mobile encode again once we've decided on autoplay.
-export const MOBILE_VIDEO_ENABLED = false
+export const MOBILE_VIDEO_ENABLED = true
 
 // PERF_MODE — master switch for the load-time work (staging/perf branch). While
 // `false`, the hero-only launch gating it guards is INERT: the site behaves

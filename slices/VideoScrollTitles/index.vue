@@ -8,6 +8,7 @@
     :video-url="videoUrl"
     :video-url-mobile="videoUrlMobile"
     :image="slice.primary.image || {}"
+    :image-mobile="slice.primary.image_mobile || {}"
     :scroll-length="scrollLength"
     :tail-vh="titleHtml ? DWELL_VH : 0"
     align="bottom"

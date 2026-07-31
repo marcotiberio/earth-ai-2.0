@@ -34,18 +34,18 @@
           v-if="videoUrl"
           ref="videoRef"
           :src="videoSrc || undefined"
-          :poster="imgixUrl(image?.url, { w: 1600 }) || undefined"
+          :poster="imgixUrl(activeImage?.url, { w: 1600 }) || undefined"
           muted
           playsinline
           preload="auto"
           class="absolute inset-0 w-full h-full object-cover"
         />
         <img
-          v-else-if="image && image.url"
-          :src="imgixUrl(image.url, { w: 1280 })"
-          :srcset="imgixSrcset(image.url, [768, 1280, 1920])"
+          v-else-if="activeImage && activeImage.url"
+          :src="imgixUrl(activeImage.url, { w: 1280 })"
+          :srcset="imgixSrcset(activeImage.url, [768, 1280, 1920])"
           sizes="100vw"
-          :alt="resolveImageAlt(image)"
+          :alt="resolveImageAlt(activeImage)"
           class="absolute inset-0 w-full h-full object-cover"
         />
         <div class="absolute inset-0" :class="overlayClass" />
@@ -82,6 +82,9 @@ const props = defineProps({
   // to `videoUrl` when empty, so it's safe to leave unset per section.
   videoUrlMobile: { type: String, default: '' },
   image:        { type: Object, default: () => ({}) },
+  // Optional alternate crop for phones (same gate as the mobile video). When set,
+  // mobile shows this instead of `image`; falls back to `image` when empty.
+  imageMobile:  { type: Object, default: () => ({}) },
   // Total pinned scroll distance in vh. With 200, the video stays pinned for
   // ~one full screen of scroll, over which the content travels in and out.
   scrollLength: { type: Number, default: 200 },
@@ -129,6 +132,10 @@ let stopObserve = null
 const isMobile = typeof window !== 'undefined'
   && window.matchMedia('(max-width: 767px)').matches
 const sourceUrl = () => (MOBILE_VIDEO_ENABLED && isMobile && props.videoUrlMobile) ? props.videoUrlMobile : props.videoUrl
+
+// Device-appropriate poster / fallback image: phones can show a different crop
+// via `imageMobile`; SSR + first paint use `image` so hydration stays stable.
+const activeImage = useMobileImage(() => props.image, () => props.imageMobile)
 
 // Attach the device-appropriate src and kick its decode. Setting src alone isn't
 // enough — load() + a muted inline play() makes the clip buffer and (on iOS)

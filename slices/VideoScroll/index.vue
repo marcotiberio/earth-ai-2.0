@@ -5,6 +5,7 @@
     :video-url="videoUrl"
     :video-url-mobile="videoUrlMobile"
     :image="slice.primary.image || {}"
+    :image-mobile="slice.primary.image_mobile || {}"
     :scroll-length="scrollLength"
     :tail-vh="hasDwell ? DWELL_VH : 0"
     :scrub-start="slice.primary.scrub_start || ''"
@@ -45,18 +46,18 @@
         v-if="videoUrl"
         ref="videoRef"
         :src="videoSrc"
-        :poster="imgixUrl(slice.primary.image?.url, { w: 1280 }) || undefined"
+        :poster="imgixUrl(activeImage?.url, { w: 1280 }) || undefined"
         class="w-full h-[40vh] md:h-[55vh] object-cover"
         muted
         playsinline
         preload="metadata"
       />
       <img
-        v-else-if="slice.primary.image?.url"
-        :src="imgixUrl(slice.primary.image.url, { w: 1280 })"
-        :srcset="imgixSrcset(slice.primary.image.url, [768, 1280, 1920])"
+        v-else-if="activeImage?.url"
+        :src="imgixUrl(activeImage.url, { w: 1280 })"
+        :srcset="imgixSrcset(activeImage.url, [768, 1280, 1920])"
         sizes="100vw"
-        :alt="resolveImageAlt(slice.primary.image)"
+        :alt="resolveImageAlt(activeImage)"
         class="w-full h-[40vh] md:h-[55vh] object-cover"
       />
       <!-- Top and bottom fades (each a quarter of the band height) so the media
@@ -120,6 +121,7 @@ const titleHtml      = computed(() => toHtml(props.slice.primary.title))
 const subtitleHtml   = computed(() => toHtml(props.slice.primary.subtitle))
 const videoUrl       = computed(() => mediaUrl(props.slice.primary.video_url))
 const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
+const activeImage    = useMobileImage(() => props.slice.primary.image, () => props.slice.primary.image_mobile)
 
 // Hold the pin for an extra screen after the scrub completes, so the video
 // reaches its last frame (the play-chase catch-up lags behind fast scrolls)

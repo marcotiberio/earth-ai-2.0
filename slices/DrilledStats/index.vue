@@ -59,7 +59,7 @@
               :src="imgixUrl(posterUrl, { w: 1280 })"
               :srcset="imgixSrcset(posterUrl, [768, 1280, 1920])"
               sizes="100vw"
-              :alt="resolveImageAlt(slice.primary.image)"
+              :alt="resolveImageAlt(activeImage)"
               class="absolute inset-0 h-full w-full object-cover"
             />
           </div>
@@ -102,7 +102,8 @@ const feetLabel = computed(() => props.slice.primary.feet_label || '')
 // Scrub video (Link-to-Media) + optional lighter mobile encode + poster/fallback image.
 const videoUrl       = computed(() => mediaUrl(props.slice.primary.video_url))
 const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
-const posterUrl      = computed(() => props.slice.primary.image?.url || '')
+const activeImage    = useMobileImage(() => props.slice.primary.image, () => props.slice.primary.image_mobile)
+const posterUrl      = computed(() => activeImage.value?.url || '')
 // SSR renders this src; the scrub setup below queues the background warm-up.
 const videoSrc = ref(videoUrl.value)
 // Group field lives in primary; cap at 6 rows (the design only has room for six).
