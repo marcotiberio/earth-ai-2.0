@@ -195,9 +195,18 @@ onMounted(() => {
   // where slower networks need a longer head start) so it has time to buffer
   // for a smooth scrub by the time it pins. attachSrc sets the device-appropriate
   // source and kicks the decode; observeNear fires immediately when there's no
-  // IntersectionObserver, so the clip still loads without IO support.
-  const margin = isMobile ? '300%' : '150%'
-  stopObserve = observeNear(rootRef.value, attachSrc, margin)
+  // IntersectionObserver, so the clip still loads without IO support. The margin
+  // widens on slow connections, where the default lead isn't enough runway to
+  // buffer a 14–27 MB clip before its section pins (see scrubLeadMargin).
+  //
+  // Built after the launch settles, not at mount, so scrubLeadMargin can use the
+  // throughput the loader actually measured instead of guessing. That costs no
+  // lead time: the overlay locks scrolling for exactly that window, so no
+  // section can be approached before it lifts.
+  whenLaunchSettled().then(() => {
+    if (!rootRef.value) return // unmounted while the overlay was up
+    stopObserve = observeNear(rootRef.value, attachSrc, scrubLeadMargin(isMobile ? 300 : 150))
+  })
 })
 
 onBeforeUnmount(() => stopObserve?.())

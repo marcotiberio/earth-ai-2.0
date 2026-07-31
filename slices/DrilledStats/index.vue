@@ -199,7 +199,13 @@ async function primeVideo() {
 // hero on mobile connections.
 let stopPrimeObserve = null
 function primeWhenNear() {
-  stopPrimeObserve = observeNear(rootRef.value, primeVideo, '200%')
+  // Deferred to the launch settling for the same reason as ScrubScene: the
+  // margin is then sized by measured throughput, and scroll is locked until
+  // then anyway so no runway is lost.
+  whenLaunchSettled().then(() => {
+    if (!rootRef.value) return
+    stopPrimeObserve = observeNear(rootRef.value, primeVideo, scrubLeadMargin(200))
+  })
 }
 
 // --- Scroll-driven progress (pinned scrub) -----------------------------------

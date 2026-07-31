@@ -175,7 +175,7 @@ if (props.slice.variation !== 'overlay' && props.slice.primary.video_url) {
     // warming at mount downloads the whole clip for visitors who never scroll
     // this far, which is what runs up the CDN bill.
     if (PERF_MODE) {
-      stopWarmObserve = observeNear(rootRef.value, () => prefetchScrubVideo(videoSrc.value), '200%')
+      stopWarmObserve = observeNear(rootRef.value, () => prefetchScrubVideo(videoSrc.value), scrubLeadMargin(200))
     } else {
       prefetchScrubVideo(videoSrc.value)
     }

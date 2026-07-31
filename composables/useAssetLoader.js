@@ -198,6 +198,35 @@ export const MEDIA_FETCH_INIT = {
   headers: { Range: 'bytes=0-' },
 }
 
+// --- Measured throughput -----------------------------------------------------
+// The launch downloads are a free, honest speed test: real bytes from the real
+// CDN over the visitor's real connection. Worth measuring because
+// `navigator.connection.effectiveType` is far too coarse to act on here — it
+// labels everything above ~0.7 Mbps as '4g', so a 4 Mbps link (where a 27 MB
+// clip needs a minute) is indistinguishable from fibre. Its `downlink` is no
+// help either: Chrome seeds it with a cold estimate that hasn't settled until
+// seconds after the sections mount and read it.
+//
+// Consumers (utils/scrubVideo.js) use this to size how far ahead of a section we
+// start pulling its clip.
+let observedMbps = 0
+
+function recordThroughput(bytes, ms) {
+  // Ignore samples too small or too short to mean anything (an image off a warm
+  // connection can "measure" absurd speeds).
+  if (bytes < 512 * 1024 || ms < 200) return
+  const mbps = (bytes * 8) / (ms / 1000) / 1e6
+  // Keep the best sample: gating assets download in parallel and share the pipe,
+  // so any single one understates the connection. The largest is the closest to
+  // its real capacity.
+  observedMbps = Math.max(observedMbps, mbps)
+}
+
+/** Measured download speed in Mbps, or 0 before any usable sample has landed. */
+export function observedThroughputMbps() {
+  return observedMbps
+}
+
 // Stream the response so progress updates as bytes arrive. Warming the HTTP
 // cache here also means the real <video>/<img> elements reuse these bytes.
 async function loadViaFetch(a) {
@@ -208,6 +237,7 @@ async function loadViaFetch(a) {
   const total = Number(res.headers.get('content-length')) || 0
   a.total = total
 
+  const startedAt = performance.now()
   const reader = res.body.getReader()
   let received = 0
   for (;;) {
@@ -216,6 +246,7 @@ async function loadViaFetch(a) {
     received += value.length
     a.loaded = received
   }
+  recordThroughput(received, performance.now() - startedAt)
 
   // No Content-Length (or chunked): count the finished asset as a whole unit.
   if (!total) {
