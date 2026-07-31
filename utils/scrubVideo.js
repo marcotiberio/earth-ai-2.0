@@ -9,7 +9,7 @@
  * sections are usually cached before their lazy src even attaches.
  */
 
-import { isManagedAsset } from '../composables/useAssetLoader'
+import { isManagedAsset, MEDIA_FETCH_INIT } from '../composables/useAssetLoader'
 
 const queue = []
 const seen = new Set()
@@ -52,9 +52,12 @@ async function drain() {
     // enqueue, so the loader has had time to register its assets first.
     if (isManagedAsset(url)) continue
     try {
-      // Match the asset loader's request options so a clip warmed here and one
-      // it fetches share the same HTTP cache entry.
-      const res = await fetch(url, { mode: 'cors', credentials: 'omit', priority: 'low' })
+      // Reuse the loader's exact request options — including the `Range:
+      // bytes=0-` that makes this land in the SAME cache entry the <video>
+      // element later reads. Without it the warm-up is worse than useless: the
+      // clip is downloaded here and then downloaded a second time by the
+      // element (see MEDIA_FETCH_INIT).
+      const res = await fetch(url, { ...MEDIA_FETCH_INIT, priority: 'low' })
       // Drain the body so the response lands in the HTTP cache (the <video>'s
       // later range requests are then served from it) without holding the whole
       // clip in memory the way res.arrayBuffer() would.

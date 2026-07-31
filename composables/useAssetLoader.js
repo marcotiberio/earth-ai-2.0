@@ -21,6 +21,47 @@ const state = reactive({
   done: false,
 })
 
+// --- Launch handshake --------------------------------------------------------
+// Aligning cache keys is not enough on its own to stop a clip downloading twice:
+// two CONCURRENT requests for the same URL both miss, because the cache entry
+// isn't written until the first one finishes. That's what happened with the hero
+// — the loader's fetch and the eager <video>'s own request raced, and 16.2 MB
+// crossed the wire for an 8.1 MB clip even once both were ranged 206s.
+//
+// So the eager consumer waits for the loader instead of racing it. This costs
+// nothing visually: the overlay covers the viewport for exactly that window, and
+// by the time it lifts the bytes are in the cache the element reads.
+//
+// `claimLaunch` must be called SYNCHRONOUSLY by AppLoader before it awaits the
+// Prismic document — the scrub sections mount during that await, and a consumer
+// that asks before anything is claimed has to be told "nobody is loading this,
+// fetch it yourself" rather than wait forever.
+let launchClaimed = false
+let releaseLaunch = null
+const launchSettled = new Promise((resolve) => { releaseLaunch = resolve })
+
+export function claimLaunch() {
+  launchClaimed = true
+}
+
+/**
+ * Resolves once the launch overlay has finished its gating downloads — or
+ * immediately when no overlay claimed the launch (e.g. a route that renders
+ * scrub sections without AppLoader), where the caller IS the downloader.
+ *
+ * The timeout is a safety net, not a schedule: if the overlay were ever wedged
+ * (unmounted mid-load, a hung request the fallback didn't catch) an eager hero
+ * would otherwise sit on its poster forever. Worst case it costs the duplicate
+ * download this handshake exists to prevent, which is the right way to fail.
+ */
+export function whenLaunchSettled() {
+  if (!launchClaimed || state.done) return Promise.resolve()
+  return Promise.race([
+    launchSettled,
+    new Promise((resolve) => setTimeout(resolve, 30000)),
+  ])
+}
+
 // The assets the launch overlay actually waits on. With PERF_MODE we block only
 // on the "critical" set (the hero image(s) + the FIRST scrub clip, tagged by
 // AppLoader) and let the rest keep downloading in the background after the
@@ -123,10 +164,45 @@ export function registerAssets(entries) {
   }
 }
 
+/**
+ * Request options for a media warm-up fetch. Shared with the scrub prefetch
+ * queue (utils/scrubVideo.js) so the two can't drift and miss each other's cache
+ * entry.
+ *
+ * `Range: bytes=0-` is load-bearing, not decoration. A <video> element ALWAYS
+ * range-requests (`Range: bytes=0-` → 206); a plain fetch sends no Range and
+ * gets a 200. Chrome files those as two separate cache entries that can never
+ * serve each other, so warming a clip with a bare fetch downloaded it twice —
+ * once here and again when the element attached. Measured: 16.2 MB over the wire
+ * for the 8.1 MB hero. Asking for the whole file AS A RANGE produces the same
+ * 206 the element wants, and the element then hits cache with zero requests.
+ *
+ * Two other conditions have to hold for that reuse, and all three are required —
+ * fixing any one alone still downloads twice:
+ *   - The element carries `crossorigin="anonymous"`. Prismic sends
+ *     `Vary: Origin`, and an element without it sends no Origin header at all,
+ *     so it can never match this fetch's cached entry.
+ *   - The two requests are SEQUENTIAL, not concurrent (see the launch
+ *     handshake above) — a cache entry isn't written until its request finishes.
+ *
+ * Range is not CORS-safelisted, so this makes the request preflighted. Prismic's
+ * CDN answers with `Access-Control-Allow-Headers: range` and a 2h
+ * `Access-Control-Max-Age`, so it costs one OPTIONS per origin per 2 hours. If a
+ * future host refuses it, the fetch throws and loadOne falls back to
+ * loadViaElement — which is itself a <video>, so the bytes still end up in the
+ * one cache entry the real element reads.
+ */
+export const MEDIA_FETCH_INIT = {
+  mode: 'cors',
+  credentials: 'omit',
+  headers: { Range: 'bytes=0-' },
+}
+
 // Stream the response so progress updates as bytes arrive. Warming the HTTP
 // cache here also means the real <video>/<img> elements reuse these bytes.
 async function loadViaFetch(a) {
-  const res = await fetch(a.url, { mode: 'cors', credentials: 'omit' })
+  // 206 for the ranged video fetches above; images may still answer 200.
+  const res = await fetch(a.url, MEDIA_FETCH_INIT)
   if (!res.ok || !res.body) throw new Error(`bad response ${res.status}`)
 
   const total = Number(res.headers.get('content-length')) || 0
@@ -163,6 +239,7 @@ function loadViaElement(a) {
       const v = document.createElement('video')
       v.muted = true
       v.preload = 'auto'
+      v.crossOrigin = 'anonymous' // same cache-key reason as the real elements
       v.oncanplaythrough = finish
       v.onloadeddata = finish
       v.onerror = finish
@@ -211,6 +288,7 @@ export async function startLoading() {
   // resolves on error too), so the overlay can't be wedged by a dead asset.
   await Promise.all(gatingAssets().map(loadOne))
   state.done = true
+  releaseLaunch() // eager consumers may now attach and read from cache
 }
 
 export function useAssetLoader() {

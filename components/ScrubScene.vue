@@ -30,6 +30,14 @@
         class="relative w-full overflow-hidden"
         :class="frame ? 'flex-1 rounded' : 'h-full'"
       >
+        <!-- crossorigin="anonymous" is required for cache reuse, not for
+             pixel access. Prismic's CDN answers with `Vary: Origin`; a <video>
+             with no crossorigin sends NO Origin header, so it can never match
+             the entry the loader's `fetch` (which does send one) just cached,
+             and the clip downloads a second time. Measured: 16.2 MB over the
+             wire for the 8.1 MB hero until this attribute was added. Safe here
+             because the CDN sends `Access-Control-Allow-Origin: *` — on a host
+             that doesn't, this attribute would break playback outright. -->
         <video
           v-if="videoUrl"
           ref="videoRef"
@@ -38,6 +46,7 @@
           muted
           playsinline
           preload="auto"
+          crossorigin="anonymous"
           class="absolute inset-0 w-full h-full object-cover"
         />
         <img
@@ -169,8 +178,12 @@ const alignXClass = computed(() => ({
 
 onMounted(() => {
   if (!props.videoUrl) return
-  // Eager (the hero): attach immediately — it's visible at load. Otherwise defer.
-  if (props.eager) { attachSrc(); return }
+  // Eager (the hero): it's visible the moment the overlay lifts, so attach as
+  // soon as the launch loader settles rather than at mount. Attaching at mount
+  // races that loader for the same clip and BOTH downloads miss the cache —
+  // measured at 2× the hero's bytes. Resolves immediately when no overlay
+  // claimed the launch, so a standalone route still attaches at once.
+  if (props.eager) { whenLaunchSettled().then(attachSrc); return }
   // Queue a sequential background warm-up of the clip (starts after window
   // load + idle), so by the time the lazy src attaches it's usually cached.
   // Skipped under PERF_MODE: the queue drains the WHOLE page's clips regardless

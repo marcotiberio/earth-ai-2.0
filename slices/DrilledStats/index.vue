@@ -52,6 +52,7 @@
               muted
               playsinline
               preload="auto"
+              crossorigin="anonymous"
               class="absolute inset-0 h-full w-full object-cover"
             />
             <img

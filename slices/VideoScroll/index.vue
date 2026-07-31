@@ -51,6 +51,7 @@
         muted
         playsinline
         preload="metadata"
+        crossorigin="anonymous"
       />
       <img
         v-else-if="activeImage?.url"

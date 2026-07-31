@@ -32,7 +32,7 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { collectMediaUrls, registerAssets, startLoading, useAssetLoader } from '~/composables/useAssetLoader'
+import { claimLaunch, collectMediaUrls, registerAssets, startLoading, useAssetLoader } from '~/composables/useAssetLoader'
 
 // The bars track REAL byte progress: we fully download every homepage video so
 // any scrub position is instantly seekable, even on a fast scroll. There's no
@@ -76,6 +76,12 @@ function tick() {
 }
 
 onMounted(async () => {
+  // Synchronously, before the await below: tell the scrub sections that this
+  // overlay owns the launch downloads, so an eager hero waits for our cached
+  // bytes instead of racing us for the same clip. They mount during that await,
+  // so claiming it any later is too late to be seen.
+  claimLaunch()
+
   // Lock the page while we load: stop Lenis and pin the scroll to the top so the
   // videos below can buffer without the user scrolling into them.
   $lenis?.stop?.()
