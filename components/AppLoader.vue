@@ -32,7 +32,7 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { collectMediaUrls, registerAssets, startLoading, useAssetLoader } from '~/composables/useAssetLoader'
+import { claimLaunch, collectMediaUrls, registerAssets, startLoading, useAssetLoader } from '~/composables/useAssetLoader'
 
 // The bars track REAL byte progress: we fully download every homepage video so
 // any scrub position is instantly seekable, even on a fast scroll. There's no
@@ -76,6 +76,12 @@ function tick() {
 }
 
 onMounted(async () => {
+  // Synchronously, before the await below: tell the scrub sections that this
+  // overlay owns the launch downloads, so an eager hero waits for our cached
+  // bytes instead of racing us for the same clip. They mount during that await,
+  // so claiming it any later is too late to be seen.
+  claimLaunch()
+
   // Lock the page while we load: stop Lenis and pin the scroll to the top so the
   // videos below can buffer without the user scrolling into them.
   $lenis?.stop?.()
@@ -89,7 +95,27 @@ onMounted(async () => {
     // On phones, collect the lighter mobile encodes (and skip their desktop
     // siblings) so we don't pull the heavy clips the page won't play.
     const mobile = window.matchMedia('(max-width: 767px)').matches
-    registerAssets([...collectMediaUrls(doc, new Map(), { mobile })])
+    const media = [...collectMediaUrls(doc, new Map(), { mobile })]
+
+    if (PERF_MODE) {
+      // Hero-only gating: block the overlay on just the first screen — every
+      // image (small, and the hero is the LCP) plus the FIRST scrub clip. Later
+      // clips are registered non-critical: they still download in the background
+      // (warming the cache) but don't hold the overlay, and each buffers as its
+      // section approaches. The scrubber already refuses to seek into an
+      // unbuffered region, so a deep section reached early lags smoothly rather
+      // than stalling. collectMediaUrls preserves document order, so the first
+      // 'video' entry is the hero clip.
+      let firstVideoTagged = false
+      const entries = media.map(([url, type]) => {
+        const critical = type !== 'video' || !firstVideoTagged
+        if (type === 'video') firstVideoTagged = true
+        return [url, type, critical]
+      })
+      registerAssets(entries)
+    } else {
+      registerAssets(media)
+    }
   } catch { /* no document / offline → no assets registered, overlay resolves at once */ }
 
   startLoading()

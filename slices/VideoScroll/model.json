@@ -72,6 +72,14 @@
             "thumbnails": []
           }
         },
+        "image_mobile": {
+          "type": "Image",
+          "config": {
+            "label": "Mobile image (alt crop)",
+            "constraint": {},
+            "thumbnails": []
+          }
+        },
         "scroll_length": {
           "type": "Number",
           "config": {

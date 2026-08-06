@@ -47,17 +47,20 @@
             <video
               v-if="videoUrl"
               ref="videoRef"
-              :src="videoSrc"
-              :poster="posterUrl || undefined"
+              :src="videoSrc || undefined"
+              :poster="imgixUrl(posterUrl, { w: 1600 }) || undefined"
               muted
               playsinline
               preload="auto"
+              crossorigin="anonymous"
               class="absolute inset-0 h-full w-full object-cover"
             />
             <img
               v-else-if="posterUrl"
-              :src="posterUrl"
-              :alt="resolveImageAlt(slice.primary.image)"
+              :src="imgixUrl(posterUrl, { w: 1280 })"
+              :srcset="imgixSrcset(posterUrl, [768, 1280, 1920])"
+              sizes="100vw"
+              :alt="resolveImageAlt(activeImage)"
               class="absolute inset-0 h-full w-full object-cover"
             />
           </div>
@@ -68,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, nextTick, onUnmounted } from 'vue'
 import { asHTML } from '@prismicio/client'
 
 const props = defineProps({
@@ -100,9 +103,15 @@ const feetLabel = computed(() => props.slice.primary.feet_label || '')
 // Scrub video (Link-to-Media) + optional lighter mobile encode + poster/fallback image.
 const videoUrl       = computed(() => mediaUrl(props.slice.primary.video_url))
 const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
-const posterUrl      = computed(() => props.slice.primary.image?.url || '')
-// SSR renders this src; the scrub setup below queues the background warm-up.
-const videoSrc = ref(videoUrl.value)
+const activeImage    = useMobileImage(() => props.slice.primary.image, () => props.slice.primary.image_mobile)
+const posterUrl      = computed(() => activeImage.value?.url || '')
+// Under PERF_MODE the src starts empty and is attached only once the section
+// nears the viewport (see attachSrc): the element is preload="auto", so an
+// SSR-rendered src downloads the whole clip at first paint on every visit —
+// and, before the post-hydration mobile swap can run, the DESKTOP clip even on
+// phones. Poster-first costs nothing and is the same pattern ScrubScene uses.
+// With the flag off we keep the SSR src (main's behaviour).
+const videoSrc = ref(PERF_MODE ? '' : videoUrl.value)
 // Group field lives in primary; cap at 6 rows (the design only has room for six).
 const stats = computed(() => (props.slice.primary.stats || []).slice(0, 6))
 // Pinned scroll distance (vh) — editable per section; defaults to 300. (The
@@ -156,12 +165,29 @@ function syncVideo(p) {
   if (Number.isFinite(t)) seek(t)
 }
 
+// Pick the device-appropriate encode and attach it. Phones get the lighter
+// mobile clip when one was uploaded; otherwise (and always on desktop) the
+// standard one. Called from the proximity observer under PERF_MODE, so the
+// download starts with the section ~2 screens out rather than at page load.
+function attachSrc() {
+  const mobile = window.matchMedia('(max-width: 767px)').matches
+  videoSrc.value = (MOBILE_VIDEO_ENABLED && mobile && videoUrlMobile.value)
+    ? videoUrlMobile.value
+    : videoUrl.value
+}
+
 // Prime the clip for scrubbing (kick the decoder, wait for a real duration — see
 // primeScrubVideo), then bind a gated seeker and land on the current scroll
 // position.
 async function primeVideo() {
   const v = videoRef.value
   if (!v || !videoUrl.value) return
+  // Attach before priming: primeScrubVideo waits on a real duration, which never
+  // arrives if the element still has no source.
+  if (!videoSrc.value) {
+    attachSrc()
+    await nextTick()
+  }
   await primeScrubVideo(v)
   videoDuration = v.duration
   seek = createSeeker(v)
@@ -173,7 +199,13 @@ async function primeVideo() {
 // hero on mobile connections.
 let stopPrimeObserve = null
 function primeWhenNear() {
-  stopPrimeObserve = observeNear(rootRef.value, primeVideo, '200%')
+  // Deferred to the launch settling for the same reason as ScrubScene: the
+  // margin is then sized by measured throughput, and scroll is locked until
+  // then anyway so no runway is lost.
+  whenLaunchSettled().then(() => {
+    if (!rootRef.value) return
+    stopPrimeObserve = observeNear(rootRef.value, primeVideo, scrubLeadMargin(200))
+  })
 }
 
 // --- Scroll-driven progress (pinned scrub) -----------------------------------
@@ -190,12 +222,15 @@ const { progress, tall } = useScrollProgress(rootRef, {
   // Warm + prime the clip regardless of motion preference, before the trigger.
   onReady: () => {
     if (!videoUrl.value) return
-    // Serve the lighter mobile encode on phones when one was uploaded (a
-    // post-hydration swap from the SSR desktop src, so no markup mismatch);
-    // otherwise the desktop clip. The scrub drives whichever loaded.
-    const mobile = window.matchMedia('(max-width: 767px)').matches
-    videoSrc.value = (MOBILE_VIDEO_ENABLED && mobile && videoUrlMobile.value) ? videoUrlMobile.value : videoUrl.value
-    prefetchScrubVideo(videoSrc.value)
+    // Off PERF_MODE: swap to the mobile encode post-hydration (from the SSR
+    // desktop src, so no markup mismatch) and queue the background warm-up —
+    // main's behaviour. On PERF_MODE both the src attach and the download are
+    // deferred to primeWhenNear, so a visitor who never reaches this section
+    // never pays for its clip.
+    if (!PERF_MODE) {
+      attachSrc()
+      prefetchScrubVideo(videoSrc.value)
+    }
     primeWhenNear()
   },
   onUpdate: syncVideo,

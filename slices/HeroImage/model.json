@@ -45,6 +45,14 @@
             "thumbnails": []
           }
         },
+        "image_mobile": {
+          "type": "Image",
+          "config": {
+            "label": "Mobile image (alt crop)",
+            "constraint": {},
+            "thumbnails": []
+          }
+        },
         "title": {
           "type": "StructuredText",
           "config": {

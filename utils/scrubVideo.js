@@ -9,7 +9,7 @@
  * sections are usually cached before their lazy src even attaches.
  */
 
-import { isManagedAsset } from '../composables/useAssetLoader'
+import { isManagedAsset, MEDIA_FETCH_INIT, observedThroughputMbps } from '../composables/useAssetLoader'
 
 const queue = []
 const seen = new Set()
@@ -52,9 +52,12 @@ async function drain() {
     // enqueue, so the loader has had time to register its assets first.
     if (isManagedAsset(url)) continue
     try {
-      // Match the asset loader's request options so a clip warmed here and one
-      // it fetches share the same HTTP cache entry.
-      const res = await fetch(url, { mode: 'cors', credentials: 'omit', priority: 'low' })
+      // Reuse the loader's exact request options — including the `Range:
+      // bytes=0-` that makes this land in the SAME cache entry the <video>
+      // element later reads. Without it the warm-up is worse than useless: the
+      // clip is downloaded here and then downloaded a second time by the
+      // element (see MEDIA_FETCH_INIT).
+      const res = await fetch(url, { ...MEDIA_FETCH_INIT, priority: 'low' })
       // Drain the body so the response lands in the HTTP cache (the <video>'s
       // later range requests are then served from it) without holding the whole
       // clip in memory the way res.arrayBuffer() would.
@@ -167,4 +170,53 @@ export function observeNear(el, cb, margin = '200%') {
   }, { rootMargin: `${margin} 0px ${margin} 0px` })
   io.observe(el)
   return () => io?.disconnect()
+}
+
+// How far ahead of a scrub section we start pulling its clip, widened on slow
+// connections. The clips are 6–27 MB; on a 4 Mbps link the default lead buys
+// only single-digit MB, so a fast scroller outruns the buffer and the scrub
+// lags (gracefully — useScrubVideo clamps to `buffered` — but visibly). Slower
+// links get proportionally more runway, which is exactly where it's needed.
+//
+// Deliberately NOT unbounded: a huge margin on a phone is just the old
+// download-everything behaviour again, and metered data is precisely what a 2G
+// visitor can least afford. Capped so even the slowest tier stays proportional
+// to the page rather than covering all of it.
+const LEAD_CAP = 700
+const LEAD_TIER = { slow: 3, moderate: 2, fast: 1 }
+
+// Prefer the throughput the loader actually MEASURED off the launch downloads.
+// The Network Information API is too weak to drive this on its own:
+//   - `effectiveType` calls anything above ~0.7 Mbps '4g', so a 4 Mbps link —
+//     where a 27 MB clip takes a minute — looks identical to fibre. Verified:
+//     Chrome throttled to 4 Mbps still reported '4g'.
+//   - `downlink` is unusable at mount. Measured on an unthrottled desktop load:
+//     1.45 at document_start AND at DOMContentLoaded, only settling to 10 by
+//     t=2.2s. Tiering on it misread a fast connection as slow, widened every
+//     margin, and pulled a section-2 clip at load that nobody had scrolled to.
+// effectiveType is still a reasonable floor before the first sample lands (and
+// the only signal at all on Safari/iOS, which expose no connection object).
+function connectionTier() {
+  const measured = observedThroughputMbps()
+  if (measured > 0) {
+    if (measured < 2) return 'slow'
+    if (measured < 6) return 'moderate'
+    return 'fast'
+  }
+  const type = typeof navigator !== 'undefined' ? navigator.connection?.effectiveType : null
+  if (type === '2g' || type === 'slow-2g') return 'slow'
+  if (type === '3g') return 'moderate'
+  return 'fast'
+}
+
+/**
+ * `observeNear` rootMargin for a scrub clip, given the section's own baseline
+ * (150% desktop / 300% mobile for ScrubScene, 200% for DrilledStats).
+ *
+ * An explicit data-saver preference keeps the baseline: widening it would spend
+ * more of exactly the data the visitor asked us not to spend.
+ */
+export function scrubLeadMargin(base) {
+  if (typeof navigator !== 'undefined' && navigator.connection?.saveData) return `${base}%`
+  return `${Math.min(base * LEAD_TIER[connectionTier()], LEAD_CAP)}%`
 }

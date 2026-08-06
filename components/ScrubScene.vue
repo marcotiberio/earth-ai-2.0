@@ -30,20 +30,31 @@
         class="relative w-full overflow-hidden"
         :class="frame ? 'flex-1 rounded' : 'h-full'"
       >
+        <!-- crossorigin="anonymous" is required for cache reuse, not for
+             pixel access. Prismic's CDN answers with `Vary: Origin`; a <video>
+             with no crossorigin sends NO Origin header, so it can never match
+             the entry the loader's `fetch` (which does send one) just cached,
+             and the clip downloads a second time. Measured: 16.2 MB over the
+             wire for the 8.1 MB hero until this attribute was added. Safe here
+             because the CDN sends `Access-Control-Allow-Origin: *` — on a host
+             that doesn't, this attribute would break playback outright. -->
         <video
           v-if="videoUrl"
           ref="videoRef"
           :src="videoSrc || undefined"
-          :poster="image && image.url ? image.url : undefined"
+          :poster="imgixUrl(activeImage?.url, { w: 1600 }) || undefined"
           muted
           playsinline
           preload="auto"
+          crossorigin="anonymous"
           class="absolute inset-0 w-full h-full object-cover"
         />
         <img
-          v-else-if="image && image.url"
-          :src="image.url"
-          :alt="resolveImageAlt(image)"
+          v-else-if="activeImage && activeImage.url"
+          :src="imgixUrl(activeImage.url, { w: 1280 })"
+          :srcset="imgixSrcset(activeImage.url, [768, 1280, 1920])"
+          sizes="100vw"
+          :alt="resolveImageAlt(activeImage)"
           class="absolute inset-0 w-full h-full object-cover"
         />
         <div class="absolute inset-0" :class="overlayClass" />
@@ -80,6 +91,9 @@ const props = defineProps({
   // to `videoUrl` when empty, so it's safe to leave unset per section.
   videoUrlMobile: { type: String, default: '' },
   image:        { type: Object, default: () => ({}) },
+  // Optional alternate crop for phones (same gate as the mobile video). When set,
+  // mobile shows this instead of `image`; falls back to `image` when empty.
+  imageMobile:  { type: Object, default: () => ({}) },
   // Total pinned scroll distance in vh. With 200, the video stays pinned for
   // ~one full screen of scroll, over which the content travels in and out.
   scrollLength: { type: Number, default: 200 },
@@ -128,6 +142,10 @@ const isMobile = typeof window !== 'undefined'
   && window.matchMedia('(max-width: 767px)').matches
 const sourceUrl = () => (MOBILE_VIDEO_ENABLED && isMobile && props.videoUrlMobile) ? props.videoUrlMobile : props.videoUrl
 
+// Device-appropriate poster / fallback image: phones can show a different crop
+// via `imageMobile`; SSR + first paint use `image` so hydration stays stable.
+const activeImage = useMobileImage(() => props.image, () => props.imageMobile)
+
 // Attach the device-appropriate src and kick its decode. Setting src alone isn't
 // enough — load() + a muted inline play() makes the clip buffer and (on iOS)
 // unlock frame painting for the scrub; we pause again immediately.
@@ -160,18 +178,35 @@ const alignXClass = computed(() => ({
 
 onMounted(() => {
   if (!props.videoUrl) return
-  // Eager (the hero): attach immediately — it's visible at load. Otherwise defer.
-  if (props.eager) { attachSrc(); return }
+  // Eager (the hero): it's visible the moment the overlay lifts, so attach as
+  // soon as the launch loader settles rather than at mount. Attaching at mount
+  // races that loader for the same clip and BOTH downloads miss the cache —
+  // measured at 2× the hero's bytes. Resolves immediately when no overlay
+  // claimed the launch, so a standalone route still attaches at once.
+  if (props.eager) { whenLaunchSettled().then(attachSrc); return }
   // Queue a sequential background warm-up of the clip (starts after window
   // load + idle), so by the time the lazy src attaches it's usually cached.
-  prefetchScrubVideo(sourceUrl())
+  // Skipped under PERF_MODE: the queue drains the WHOLE page's clips regardless
+  // of how far the visitor scrolls, which is most of the CDN bandwidth bill. The
+  // observeNear attach below is then the only thing that pulls this clip, so a
+  // section nobody reaches costs nothing.
+  if (!PERF_MODE) prefetchScrubVideo(sourceUrl())
   // Attach the lazy src ~1.5 screens before the section enters (3 on mobile,
   // where slower networks need a longer head start) so it has time to buffer
   // for a smooth scrub by the time it pins. attachSrc sets the device-appropriate
   // source and kicks the decode; observeNear fires immediately when there's no
-  // IntersectionObserver, so the clip still loads without IO support.
-  const margin = isMobile ? '300%' : '150%'
-  stopObserve = observeNear(rootRef.value, attachSrc, margin)
+  // IntersectionObserver, so the clip still loads without IO support. The margin
+  // widens on slow connections, where the default lead isn't enough runway to
+  // buffer a 14–27 MB clip before its section pins (see scrubLeadMargin).
+  //
+  // Built after the launch settles, not at mount, so scrubLeadMargin can use the
+  // throughput the loader actually measured instead of guessing. That costs no
+  // lead time: the overlay locks scrolling for exactly that window, so no
+  // section can be approached before it lifts.
+  whenLaunchSettled().then(() => {
+    if (!rootRef.value) return // unmounted while the overlay was up
+    stopObserve = observeNear(rootRef.value, attachSrc, scrubLeadMargin(isMobile ? 300 : 150))
+  })
 })
 
 onBeforeUnmount(() => stopObserve?.())

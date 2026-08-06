@@ -5,6 +5,7 @@
     :video-url="videoUrl"
     :video-url-mobile="videoUrlMobile"
     :image="slice.primary.image || {}"
+    :image-mobile="slice.primary.image_mobile || {}"
     :scroll-length="scrollLength"
     :tail-vh="hasDwell ? DWELL_VH : 0"
     :scrub-start="slice.primary.scrub_start || ''"
@@ -45,16 +46,19 @@
         v-if="videoUrl"
         ref="videoRef"
         :src="videoSrc"
-        :poster="slice.primary.image?.url || undefined"
+        :poster="imgixUrl(activeImage?.url, { w: 1280 }) || undefined"
         class="w-full h-[40vh] md:h-[55vh] object-cover"
         muted
         playsinline
         preload="metadata"
+        crossorigin="anonymous"
       />
       <img
-        v-else-if="slice.primary.image?.url"
-        :src="slice.primary.image.url"
-        :alt="resolveImageAlt(slice.primary.image)"
+        v-else-if="activeImage?.url"
+        :src="imgixUrl(activeImage.url, { w: 1280 })"
+        :srcset="imgixSrcset(activeImage.url, [768, 1280, 1920])"
+        sizes="100vw"
+        :alt="resolveImageAlt(activeImage)"
         class="w-full h-[40vh] md:h-[55vh] object-cover"
       />
       <!-- Top and bottom fades (each a quarter of the band height) so the media
@@ -80,7 +84,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
 import { asHTML } from '@prismicio/client'
 
 const props = defineProps({
@@ -118,6 +122,7 @@ const titleHtml      = computed(() => toHtml(props.slice.primary.title))
 const subtitleHtml   = computed(() => toHtml(props.slice.primary.subtitle))
 const videoUrl       = computed(() => mediaUrl(props.slice.primary.video_url))
 const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
+const activeImage    = useMobileImage(() => props.slice.primary.image, () => props.slice.primary.image_mobile)
 
 // Hold the pin for an extra screen after the scrub completes, so the video
 // reaches its last frame (the play-chase catch-up lags behind fast scrolls)
@@ -153,6 +158,8 @@ const videoRef = ref(null)
 // SSR renders this src; onMounted queues the background warm-up.
 const videoSrc = ref(videoUrl.value)
 
+let stopWarmObserve = null
+
 if (props.slice.variation !== 'overlay' && props.slice.primary.video_url) {
   onMounted(() => {
     // Swap to the lighter mobile encode on phones (a post-hydration reactive
@@ -163,8 +170,17 @@ if (props.slice.variation !== 'overlay' && props.slice.primary.video_url) {
       && videoUrlMobile.value) {
       videoSrc.value = videoUrlMobile.value
     }
-    prefetchScrubVideo(videoSrc.value)
+    // The element is preload="metadata", so the clip body is only fetched by
+    // this warm-up. Under PERF_MODE hold it until the band nears the viewport —
+    // warming at mount downloads the whole clip for visitors who never scroll
+    // this far, which is what runs up the CDN bill.
+    if (PERF_MODE) {
+      stopWarmObserve = observeNear(rootRef.value, () => prefetchScrubVideo(videoSrc.value), scrubLeadMargin(200))
+    } else {
+      prefetchScrubVideo(videoSrc.value)
+    }
   })
+  onBeforeUnmount(() => stopWarmObserve?.())
   // `scrub_start` ('top' | 'middle') is set per section in the Prismic field.
   useScrubVideo(videoRef, rootRef, { startAt: props.slice.primary.scrub_start })
 }
