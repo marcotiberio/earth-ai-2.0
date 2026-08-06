@@ -1,18 +1,29 @@
 // Frontend feature flags.
 //
 // MOBILE_VIDEO_ENABLED — gates whether phones are served the lighter mobile clip
-// (`video_url_mobile`) instead of the desktop `video_url`. This is part of the
-// in-progress mobile-autoplay work being validated on the `autoplayMobileTest`
-// branch. On `main` we keep the Prismic field available (so editors can upload
-// test encodes and the autoplay branch keeps working) but never SELECT it —
-// every device gets the desktop video. Set to `true` (as the autoplay branch
-// does) to serve the mobile encode again once we've decided on autoplay.
+// (`video_url_mobile`) instead of the desktop `video_url`.
+//
+// LIVE IN PRODUCTION since the 2026-08 bandwidth release. This was previously
+// held at `false` pending a decision on mobile autoplay; that decision was taken
+// and phones now get the mobile encode. All seven homepage scrub slices have a
+// `video_url_mobile` uploaded — check that any NEW scrub slice does too, because
+// a missing mobile encode silently falls back to the heavy desktop clip on
+// phones rather than failing visibly.
+//
+// Roughly halves what a phone visitor downloads (measured: 4.5 MB vs 8.1 MB for
+// the first screen). Set to `false` to serve every device the desktop clip, as
+// main did before this release.
 export const MOBILE_VIDEO_ENABLED = true
 
-// PERF_MODE — master switch for the load-time AND CDN-bandwidth work
-// (staging/perf branch). While `false`, everything it guards is INERT: the site
-// behaves exactly as it does on main (the overlay waits for every homepage clip
-// and every clip is downloaded up front). When `true` it does two things:
+// PERF_MODE — master switch for the load-time AND CDN-bandwidth work.
+//
+// LIVE IN PRODUCTION since the 2026-08 bandwidth release; it is no longer a
+// staging-only experiment. Kept as a flag so the old behaviour is one line away
+// if something surfaces in the wild that local and headless testing missed.
+//
+// While `false`, everything it guards is INERT: the site behaves as it did
+// before the release (the overlay waits for every homepage clip and every clip
+// is downloaded up front). When `true` it does two things:
 //
 //   1. The launch overlay blocks only on the hero clip + images, so the site is
 //      interactive without waiting on the full media set.
@@ -24,6 +35,10 @@ export const MOBILE_VIDEO_ENABLED = true
 //      about 3,900 desktop visits. A visitor who never scrolls now costs the
 //      hero clip alone (~8 MB desktop / ~4 MB mobile).
 //
-// Flip to `true` only on the staging Netlify branch deploy — never merge it
-// enabled to the production branch.
+// Note the trade-off this makes, in case it ever needs reversing: deep sections
+// now buffer as they approach rather than being downloaded up front, so on a
+// slow connection a very fast scroller can see a clip lag briefly behind the
+// scroll before catching up. That is bounded — useScrubVideo clamps the scrub
+// target to what is buffered, so it lags smoothly instead of freezing — and it
+// is the direct cost of not making every visitor pay for footage they never see.
 export const PERF_MODE = true
