@@ -1,0 +1,92 @@
+{
+  "id": "slider_images",
+  "type": "SharedSlice",
+  "name": "SliderImages",
+  "description": "Pinned image slider: a label (+ optional headline) over one image at a time, a numbered bar navigation and the active slide's title and description. Scrolling steps through the slides, then the section scrolls away once the last one is shown; the navigation jumps straight to a slide.",
+  "variations": [
+    {
+      "id": "default",
+      "name": "Default",
+      "docURL": "...",
+      "version": "initial",
+      "description": "Default",
+      "imageUrl": "",
+      "primary": {
+        "is_hidden": {
+          "type": "Boolean",
+          "config": {
+            "label": "Hide slice",
+            "placeholder_false": "Visible",
+            "placeholder_true": "Hidden",
+            "default_value": false
+          }
+        },
+        "section_label": {
+          "type": "Text",
+          "config": {
+            "label": "Section label",
+            "placeholder": "Small label above the slider (e.g. Our Process)"
+          }
+        },
+        "title": {
+          "type": "StructuredText",
+          "config": {
+            "label": "Title",
+            "placeholder": "Optional headline under the section label",
+            "allowTargetBlank": true,
+            "single": "paragraph,strong,em"
+          }
+        },
+        "slides": {
+          "type": "Group",
+          "config": {
+            "label": "Slides",
+            "fields": {
+              "video_url": {
+                "type": "Link",
+                "config": {
+                  "label": "Video",
+                  "placeholder": "Optional looping clip. The image shows while it loads, and in its place when empty",
+                  "select": "media"
+                }
+              },
+              "video_url_mobile": {
+                "type": "Link",
+                "config": {
+                  "label": "Video (mobile)",
+                  "placeholder": "Optional lighter encode served to phones (falls back to the desktop video)",
+                  "select": "media"
+                }
+              },
+              "image": {
+                "type": "Image",
+                "config": {
+                  "label": "Image (video fallback)",
+                  "constraint": {},
+                  "thumbnails": []
+                }
+              },
+              "title": {
+                "type": "Text",
+                "config": {
+                  "label": "Title",
+                  "placeholder": "e.g. AI Prediction & Selection"
+                }
+              },
+              "description": {
+                "type": "StructuredText",
+                "config": {
+                  "label": "Description",
+                  "placeholder": "e.g. MTP predicts multiple high-potential sites.",
+                  "allowTargetBlank": true,
+                  "multi": "paragraph,strong,em,hyperlink,list-item"
+                }
+              }
+            }
+          }
+        }
+      },
+      "items": {}
+    }
+  ]
+}

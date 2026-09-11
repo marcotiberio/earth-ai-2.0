@@ -22,13 +22,19 @@ export default {
     },
     extend: {
       aspectRatio: {
+        '16/11': '16 / 11',
         '4/3': '4 / 3',
         '3/4': '3 / 4',
       },
       fontFamily: {
         sans:  ['"Beausite Classic"', 'system-ui', 'sans-serif'],
+        sansLight:  ['"Beausite Classic Light"', 'system-ui', 'sans-serif'],
         serif: ['"TWK Ghost"', 'Georgia', 'Times New Roman', 'serif'],
         serifItalic: ['"TWK Ghost Italic"', 'Georgia', 'Times New Roman', 'serif'],
+        // Section labels / eyebrows. The design specifies ABC Diatype Mono; no
+        // webfont for it is served yet (nothing in /public/fonts), so it falls
+        // back to the system monospace until one is added.
+        mono:  ['"ABC Diatype Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       borderRadius: {
         none: '0',

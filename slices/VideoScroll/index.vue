@@ -9,6 +9,7 @@
     :scroll-length="scrollLength"
     :tail-vh="hasDwell ? DWELL_VH : 0"
     :scrub-start="slice.primary.scrub_start || ''"
+    :section-label="slice.primary.section_label || ''"
     :align="slice.primary.title_align_vertical || 'bottom'"
     :align-x="slice.primary.title_align_horizontal || 'left'"
     :frame="slice.primary.frame || false"
@@ -16,16 +17,19 @@
   >
     <!-- Top and bottom fades (each a quarter of the section height) so the
          pinned video feathers into the sections above and below. -->
-    <template #pinned>
+    <template #pinned="{ copyOpacity }">
       <div v-if="slice.primary.gradient_top !== false" class="bg-gradient-to-b from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 top-0 h-1/4 pointer-events-none" />
-      <div v-if="slice.primary.gradient_bottom !== false" class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
+      <div v-if="slice.primary.gradient_bottom !== false" class="hidden bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
 
       <!-- Subtitle: an independently-aligned caption layer over the video. Its
-           own vertical/horizontal alignment lets it sit apart from the title. -->
+           own vertical/horizontal alignment lets it sit apart from the title.
+           It takes the scene's copy fade so it leaves with the headline in the
+           last section (a constant 1 everywhere else). -->
       <div
         v-if="subtitleHtml"
         class="absolute inset-x-0 inset-y-sm z-10 flex px-xs md:px-sm pointer-events-none"
         :class="[subtitleAlignClass, subtitleAlignXClass]"
+        :style="{ opacity: copyOpacity }"
       >
         <p
           class="text-beige font-h3 w-full lg:w-1/2"

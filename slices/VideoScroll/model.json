@@ -98,6 +98,13 @@
             ]
           }
         },
+        "section_label": {
+          "type": "Text",
+          "config": {
+            "label": "Section label",
+            "placeholder": "Small label above the title (e.g. The Challenge)"
+          }
+        },
         "title": {
           "type": "StructuredText",
           "config": {

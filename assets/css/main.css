@@ -32,6 +32,14 @@ html.lenis body {
 }
 
 @font-face {
+  font-family: 'Beausite Classic Light';
+  src: url('/fonts/BeausiteClassic-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: 'TWK Ghost';
   src: url('/fonts/TWKGhost-Light.woff2') format('woff2');
   font-weight: 300;
@@ -150,14 +158,26 @@ html.lenis body {
 
   /* Reusable button. Base + variants (.btn-primary / .btn-outline). */
   .btn {
+    --btn-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12.8386 12.8386' fill='none'%3E%3Cpath d='M0.75 12.0886L12.0886 0.75M12.0886 9.68038V0.75H2.15478' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+
     @apply inline-flex items-start justify-start gap-2 w-fit
-           rounded px-6 py-3
-           font-sans text-sm tracking-tight leading-none
+           rounded px-3 py-3
+           font-mono uppercase text-sm tracking-tight leading-none
            transition-colors duration-200
            cursor-pointer
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-beige/50
            disabled:opacity-50 disabled:pointer-events-none
            no-underline hover:no-underline !important;
+  }
+
+  /* Trailing top-right arrow. The glyph is a mask rather than a fill, so it
+     picks up the button's current text colour through every variant and hover
+     state instead of needing a copy per variant. */
+  .btn::after {
+    content: '';
+    @apply block shrink-0 self-center w-[11px] h-[11px] bg-current ml-4;
+    mask: var(--btn-arrow) center / contain no-repeat;
+    -webkit-mask: var(--btn-arrow) center / contain no-repeat;
   }
   .btn-primary {
     @apply text-darkblue hover:text-darkblue group-hover:text-darkblue

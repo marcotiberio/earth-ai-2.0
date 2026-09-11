@@ -30,12 +30,10 @@
           }
         },
         "title": {
-          "type": "StructuredText",
+          "type": "Text",
           "config": {
             "label": "Title",
-            "placeholder": "Quote or headline",
-            "allowTargetBlank": true,
-            "single": "paragraph,strong,em"
+            "placeholder": "Quote or headline"
           }
         },
         "link": {

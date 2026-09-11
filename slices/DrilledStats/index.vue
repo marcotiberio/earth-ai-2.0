@@ -19,18 +19,25 @@
       <div class="flex h-full w-full flex-col gap-xs lg:flex-row lg:items-stretch md:gap-sm lg:gap-lg">
         <!-- Text column -->
         <div class="w-full h-full flex flex-col justify-start lg:justify-between gap-xs md:gap-sm lg:gap-lg lg:w-5/12">
-          <h2
-            class="ea-display font-serif font-h2"
-            v-html="titleHtml"
-          />
+          <!-- Label + title are one flex item so `lg:justify-between` still
+               spreads the headline block against the stats, rather than
+               treating the label as a third thing to space out. -->
+          <div class="flex flex-col gap-xs">
+            <SectionLabel v-if="sectionLabel" :text="sectionLabel" />
+            <h2
+              class="ea-display font-serif font-h2"
+              v-html="titleHtml"
+            />
+          </div>
 
-          <ul class="mt-0 grid lg:max-w-[550px] grid-cols-2 gap-x-8 gap-y-6 lg:mt-20 xl:gap-x-20">
-            <li v-for="(stat, i) in stats" :key="i" class="relative flex flex-col">
-              <DottedLine class="w-full" />
-              <h2 class="mt-2 mb-2 font-serif font-h2">
+          <ul class="mt-0 grid grid-cols-2 gap-4">
+            <li v-for="(stat, i) in stats" :key="i" class="relative flex h-full flex-col justify-between bg-beige/5 p-xs rounded">
+              <p class="font-mono font-caption font-medium tracking-wide leading-snug uppercase text-beige">
+                <span class="mr-3 inline-block h-3 w-3 rounded-[2px] bg-current align-baseline" />{{ stat.label }}
+              </p>
+              <h2 class="mt-8 font-serif font-h2">
                 {{ counter(stat.value) }}
               </h2>
-              <span class="font-caption font-medium tracking-wide">{{ stat.label }}</span>
             </li>
           </ul>
         </div>
@@ -98,6 +105,8 @@ const mediaUrl = (field) =>
   typeof field === 'string' ? field : field?.url || ''
 
 const titleHtml = computed(() => toHtml(props.slice.primary.title))
+// Small mono eyebrow above the headline (rendered uppercase by SectionLabel).
+const sectionLabel = computed(() => props.slice.primary.section_label || '')
 const feetValue = computed(() => props.slice.primary.feet_value || '')
 const feetLabel = computed(() => props.slice.primary.feet_label || '')
 // Scrub video (Link-to-Media) + optional lighter mobile encode + poster/fallback image.

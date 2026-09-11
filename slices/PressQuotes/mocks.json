@@ -19,17 +19,9 @@
 				"value": "2025-08-07"
 			},
 			"title": {
-				"__TYPE__": "StructuredTextContent",
-				"value": [
-					{
-						"type": "paragraph",
-						"content": {
-							"text": "Earth AI is vertically integrating the search for critical minerals.",
-							"spans": []
-						},
-						"direction": "ltr"
-					}
-				]
+				"__TYPE__": "FieldContent",
+				"type": "Text",
+				"value": "Earth AI is vertically integrating the search for critical minerals."
 			},
 			"link": {
 				"__TYPE__": "LinkContent",

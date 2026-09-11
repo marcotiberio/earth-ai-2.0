@@ -19,4 +19,6 @@ export const components = defineSliceZoneComponents({
   cta:             defineAsyncComponent(() => import("./Cta/index.vue")),
   press_quotes:    defineAsyncComponent(() => import("./PressQuotes/index.vue")),
   splasher:        defineAsyncComponent(() => import("./Splasher/index.vue")),
+  horizontal_scroll: defineAsyncComponent(() => import("./HorizontalScroll/index.vue")),
+  slider_images:   defineAsyncComponent(() => import("./SliderImages/index.vue")),
 });

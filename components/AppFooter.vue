@@ -10,7 +10,16 @@
     <!-- Content taller than the panel (the stacked press quotes on phones)
          scrolls inside it; min-h-full + justify-end keeps shorter content at
          the page bottom. -->
-    <div class="h-full overflow-y-auto" data-lenis-prevent>
+    <!-- Incoming half of the reveal crossfade (see useFooterReveal). The fade
+         is on the content, not on the <footer>: the panel's background has to
+         stay opaque or the uncovered band would go translucent and show the
+         html background through it, which would defeat the point of the seam
+         being invisible. -->
+    <div
+      class="h-full overflow-y-auto"
+      data-lenis-prevent
+      :style="{ opacity: footerOpacity }"
+    >
     <div class="min-h-full flex flex-col justify-start boxed !pb-sm !pt-[62px]">
     <!-- Top Bar -->
     <div class="flex flex-col items-start justify-between gap-sm mb-sm w-full">
@@ -61,10 +70,10 @@
           v-for="(item, i) in footer.data.legal_links"
           :key="i"
           :field="item.link"
-          class="hover:text-orange hover:cursor-pointer transition-colors"
+          class="font-mono uppercase hover:text-orange hover:cursor-pointer transition-colors"
         />
       </nav>
-      <span class="whitespace-nowrap flex justify-center">© EARTH AI – {{ new Date().getFullYear() }}</span>
+      <span class="font-mono uppercase whitespace-nowrap flex justify-center">© EARTH AI – {{ new Date().getFullYear() }}</span>
     </div>
     </div>
     </div>
@@ -77,6 +86,10 @@ import { components } from '~/slices'
 // The footer is driven by a single `footer` page document in Prismic: each
 // press quote is a `press_quotes` slice in its slice zone.
 const route = useRoute()
+
+// Read before the `await` below: useNuxtApp (which useFooterReveal needs for
+// Lenis) is only resolvable while the Nuxt instance is still on the stack.
+const { footerOpacity } = useFooterReveal()
 
 // On the homepage, smooth-scroll to top instead of triggering a no-op navigation.
 function scrollToTop(e) {

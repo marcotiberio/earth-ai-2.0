@@ -22,8 +22,8 @@
          mode the video no longer bleeds to the edges — it sits inset on the
          darkblue background with the content held in a caption band beneath it. -->
     <div
-      class="sticky top-0 h-dvh w-full flex flex-col"
-      :class="frame ? 'px-xs md:px-sm pt-6 md:pt-8 pb-md' : ''"
+      class="sticky top-0 h-dvh w-full flex flex-col-reverse gap-8 md:gap-12"
+      :class="frame ? 'px-xs md:px-sm pb-6 md:pb-16 pt-md' : ''"
     >
       <!-- Media stage. Full-bleed by default; a bordered, inset box when framed. -->
       <div
@@ -59,23 +59,45 @@
         />
         <div class="absolute inset-0" :class="overlayClass" />
 
-        <!-- Decorative layers that should stay pinned with the video -->
-        <slot name="pinned" />
+        <!-- Decorative layers that should stay pinned with the video.
+             `copyOpacity` is handed down so a caller's own held text (VideoScroll's
+             subtitle) can leave with the headline below; the gradients in the same
+             slot belong to the imagery and should NOT take it. -->
+        <slot name="pinned" :copy-opacity="copyOpacity" />
 
         <!-- Full-bleed content: overlaid on the video, scrolls in with the
-             section then holds at the chosen alignment while the video scrubs. -->
+             section then holds at the chosen alignment while the video scrubs.
+             The inner column stacks the optional section label above the slot;
+             it's `w-full` so slotted content (which is itself `w-full` in every
+             caller) resolves its width against the same box as before.
+             In the last section before the footer, `copyOpacity` fades the
+             held copy out ahead of the reveal crossfade — otherwise it's a
+             constant 1 and this is inert (see useFooterRevealCopy). -->
         <div
           v-if="!frame"
           class="absolute inset-0 z-10 flex px-xs md:px-sm"
           :class="[alignClass, alignXClass]"
+          :style="{ opacity: copyOpacity }"
         >
-          <slot />
+          <div class="w-full flex flex-col gap-xs">
+            <SectionLabel v-if="sectionLabel" :text="sectionLabel" />
+            <slot />
+          </div>
         </div>
       </div>
 
-      <!-- Framed content: sits in a caption band below the inset media. -->
-      <div v-if="frame" class="flex pt-sm" :class="alignXClass">
-        <slot />
+      <!-- Framed content: sits in a caption band below the inset media. Same
+           copy, same lead-out. -->
+      <div
+        v-if="frame"
+        class="flex pt-sm lg:max-w-screen-full"
+        :class="alignXClass"
+        :style="{ opacity: copyOpacity }"
+      >
+        <div class="w-full flex flex-col gap-xs">
+          <SectionLabel v-if="sectionLabel" :text="sectionLabel" />
+          <slot />
+        </div>
       </div>
     </div>
   </section>
@@ -97,6 +119,10 @@ const props = defineProps({
   // Total pinned scroll distance in vh. With 200, the video stays pinned for
   // ~one full screen of scroll, over which the content travels in and out.
   scrollLength: { type: Number, default: 200 },
+  // Small mono eyebrow shown directly above the slotted content ("THE CHALLENGE"
+  // in the design). Rendered uppercase, so the editor's casing doesn't matter.
+  // Empty renders nothing and leaves the content exactly where it was.
+  sectionLabel: { type: String, default: '' },
   align:        { type: String, default: 'bottom' }, // 'top' | 'center' | 'bottom'
   alignX:       { type: String, default: 'left' },   // 'left' | 'center' | 'right'
   // Named scrub start preset ('top' | 'middle'). Empty keeps the pinned
@@ -128,6 +154,12 @@ const inSimulator = inject('inSliceSimulator', false)
 
 const rootRef  = ref(null)
 const videoRef = ref(null)
+
+// Lead-out for the held copy, but only in the last section before the footer:
+// there the reveal crossfade is about to wipe this stage away, and the headline
+// reads better lifting off first than being dimmed under the veil. A flat 1
+// (and no scroll subscription) in every other section.
+const copyOpacity = useFooterRevealCopy(rootRef)
 
 // Poster-first: the src is attached on the client (immediately if eager, else as
 // the section nears) so SSR/first paint is just the poster and the device picks

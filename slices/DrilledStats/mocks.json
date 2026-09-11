@@ -3,6 +3,11 @@
 		"__TYPE__": "SharedSliceContent",
 		"variation": "default",
 		"primary": {
+			"section_label": {
+				"__TYPE__": "FieldContent",
+				"type": "Text",
+				"value": "The Challenge"
+			},
 			"title": {
 				"__TYPE__": "StructuredTextContent",
 				"value": [
