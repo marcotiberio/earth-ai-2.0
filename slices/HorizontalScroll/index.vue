@@ -10,7 +10,8 @@
     card has been seen. By default the runway is measured from the track itself,
     so a pixel of scroll moves the cards a pixel whatever the card count or
     viewport width. Each card's clip is scrubbed by the same scroll, starting
-    once the card is fully in view (see clipWindow). Where one card fills the
+    once the card is fully in view and never overlapping another card's clip
+    (see clipWindows). Where one card fills the
     row (below desktop) the track also stops at each card with a clip, holding
     it pinned while the scroll plays the clip through before the next slides
     in (see holdsVh). Under reduced motion (and in the Slice Simulator) the pin
@@ -161,8 +162,9 @@ const LEAD_VH = 50
 // is framed by equal holds at both ends.
 const DWELL_VH = 50
 
-// Where one card fills the row, the pinned scroll each card with a clip holds
-// for while the clip plays through (cf. SliderImages' STEP_VH).
+// The pinned scroll a clip gets when it plays through a hold (cf. SliderImages'
+// STEP_VH): every stop where one card fills the row, and the lead-in / dwell on
+// desktop.
 const CLIP_HOLD_VH = 70
 
 const rootRef     = ref(null)
@@ -180,7 +182,7 @@ const travel = ref(null)
 const singleRow = ref(false)
 
 // Each card's left edge and width within the track, and the clip box's width —
-// the geometry timeline() and clipWindow() read.
+// the geometry timeline() and clipWindows() read.
 let cardBoxes = []
 let boxWidth  = 0
 
@@ -193,19 +195,20 @@ const runway = computed(() => {
 })
 
 // Pinned holds (vh), one per stop of the track. On desktop it stops only at its
-// two ends: the lead-in and the dwell. Where one card fills the row it stops at
-// every card, and a card with a clip holds for CLIP_HOLD_VH so the scroll can
-// play the clip through before the next card slides in; the first and last
-// stops keep at least the lead-in and dwell.
+// two ends: the lead-in, where the first card's clip plays, and the dwell,
+// where the last card's does. Where one card fills the row it stops at every
+// card, holding a card with a clip so the scroll can play it through before
+// the next card slides in. A hold with a clip lasts CLIP_HOLD_VH; the first
+// and last stops keep at least the lead-in and dwell.
+const hasClip = (card) => Boolean(card && mediaUrl(card.video_url))
 const holdsVh = computed(() => {
-  if (!singleRow.value) return [LEAD_VH, DWELL_VH]
-  const last = cards.value.length - 1
-  return cards.value.map((card, i) => {
-    let vh = mediaUrl(card.video_url) ? CLIP_HOLD_VH : 0
-    if (i === 0) vh = Math.max(vh, LEAD_VH)
-    if (i === last) vh = Math.max(vh, DWELL_VH)
-    return vh
-  })
+  const list = cards.value
+  const last = list.length - 1
+  const hold = (card, floor) => Math.max(hasClip(card) ? CLIP_HOLD_VH : 0, floor)
+  if (!singleRow.value) return [hold(list[0], LEAD_VH), hold(list[last], DWELL_VH)]
+  return list.map((card, i) =>
+    hold(card, i === 0 ? LEAD_VH : i === last ? DWELL_VH : 0),
+  )
 })
 const holdTotalVh = computed(() => holdsVh.value.reduce((sum, vh) => sum + vh, 0))
 
@@ -377,17 +380,36 @@ async function prime(i) {
   syncVideos()
 }
 
-// The scroll span (px into the pin) over which card i's clip scrubs: from the
-// moment the card is fully in view to the moment it starts to slide out, so
-// each clip plays through while its whole card is on screen. On desktop the
-// first pair is in full view from the start and runs through the lead-in, and
-// the last ones run on through the dwell. Where one card fills the row, a card
-// is only fully in view while the track holds at its stop, so the window is
-// exactly that hold.
-function clipWindow(i, tl) {
-  const box    = cardBoxes[i]
-  const fullAt = Math.max(0, box.left + box.width - boxWidth) // right edge in
-  return [scrollAt(tl, fullAt, false), scrollAt(tl, box.left, true)]
+// The scroll span (px into the pin) over which each card's clip scrubs, by card
+// index. A clip can only play while its whole card is on screen — from the
+// moment the card is fully in view to the moment it starts to slide out — and
+// the clips take turns: each starts once the one before has finished, and
+// hands over as soon as the next card is fully in view. So on desktop, where
+// the first pair are both in full view from the start, the first clip plays
+// through the lead-in and the second only then, while its card is still in
+// full view as the first slides out; at the far end the last clip gets the
+// dwell to itself. Where one card fills the row, a card is only fully in view
+// while the track holds at its stop, so each window is exactly that hold.
+function clipWindows(tl) {
+  const spans = cardBoxes.map((box) => {
+    const fullAt = Math.max(0, box.left + box.width - boxWidth) // right edge in
+    return [scrollAt(tl, fullAt, false), scrollAt(tl, box.left, true)]
+  })
+  const order   = cards.value.map((card, i) => (hasClip(card) ? i : -1)).filter((i) => i !== -1)
+  const windows = []
+  let prevEnd = 0
+  order.forEach((i, k) => {
+    if (!spans[i]) return
+    const [fullStart, fullEnd] = spans[i]
+    const start = Math.max(fullStart, prevEnd)
+    // The next clip's card comes into full view later: hand over then. One that
+    // shares this card's start (the first desktop pair) waits its turn instead.
+    const next = spans[order[k + 1]]?.[0] ?? Infinity
+    const end  = next > start ? Math.min(fullEnd, next) : fullEnd
+    windows[i] = [start, end]
+    prevEnd = end
+  })
+  return windows
 }
 
 // Seek every primed clip to its share of the current scroll. Runs on each
@@ -396,11 +418,12 @@ function clipWindow(i, tl) {
 // rather than re-seeked every frame.
 function syncVideos(p = progress.value) {
   if (!pinned.value || !cardBoxes.length) return
-  const tl = timeline()
-  const s  = p * tl.total
+  const tl      = timeline()
+  const s       = p * tl.total
+  const windows = clipWindows(tl)
   clips.forEach((clip, i) => {
-    if (!clip) return
-    const [start, end] = clipWindow(i, tl)
+    if (!clip || !windows[i]) return
+    const [start, end] = windows[i]
     if (end <= start) return
     const target = clamp01((s - start) / (end - start)) * clip.duration
     if (!Number.isFinite(target)) return
