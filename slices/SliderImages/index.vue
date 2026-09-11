@@ -1,15 +1,15 @@
 <template>
   <!--
     Pinned image slider: a section label (+ optional headline) over one slide's
-    media at a time (a looping video, or the image when there's no clip), a row
-    of numbered bars as navigation, and the active slide's title and
-    description. The section is tall so its inner panel sticks while the
-    vertical scroll steps through the slides: the first slide holds for a short
-    lead-in after the pin engages, each further slide takes one step of scroll,
-    and after a matching hold on the last slide the sticky releases — so the
-    section only scrolls away once the final slide has been seen. Clicking a bar
-    scrolls the page to that slide's point in the runway, so scroll and
-    navigation never disagree. Under reduced motion (and in the Slice Simulator)
+    media at a time (a video, or the image when there's no clip), a row of
+    numbered bars as navigation, and the active slide's title and description.
+    The section is tall so its inner panel sticks while the vertical scroll
+    steps through the slides: the first slide holds for a short lead-in after
+    the pin engages, each further slide takes one step of scroll, and after a
+    matching hold on the last slide the sticky releases — so the section only
+    scrolls away once the final slide has been seen. Clicking a bar, or a clip
+    playing to its end, scrolls the page to that (or the next) slide's point in
+    the runway, so scroll and navigation never disagree. Under reduced motion (and in the Slice Simulator)
     the pin collapses and the bars are the only control.
   -->
   <section
@@ -62,13 +62,15 @@
           <!-- Client-only: the element exists once its src is attached (see
                attach()), so SSR and first paint are just the images.
                crossorigin="anonymous" keeps the request on the same cache key as
-               the launch loader's fetch (see ScrubScene). -->
+               the launch loader's fetch (see ScrubScene). Every clip but the
+               last plays once and hands on to the next slide (onClipEnded);
+               the last has nowhere to go, so it loops. -->
           <video
             v-if="videoSrcs[i]"
             :ref="(el) => { videoEls[i] = el }"
             :src="videoSrcs[i]"
             muted
-            loop
+            :loop="i === slides.length - 1"
             playsinline
             preload="auto"
             crossorigin="anonymous"
@@ -77,6 +79,7 @@
             :class="videoReady[i] ? 'opacity-100' : 'opacity-0'"
             @loadeddata="videoReady[i] = true"
             @error="videoFailed[i] = true"
+            @ended="onClipEnded(i)"
           />
         </div>
       </div>
@@ -377,10 +380,31 @@ watch(activeIndex, () => {
 })
 watch(inView, () => syncPlayback(false))
 
+// A clip that plays to its end moves the slider on. It goes through goTo, so
+// pinned, the page scrolls to the next slide's point and scroll and slide keep
+// agreeing (a wheel or touch still takes over, as with a click). Only while the
+// reader is inside the pinned stage, though: with the section merely passing
+// through the viewport, advancing would drag the page into it, so the clip goes
+// round again instead.
+function onClipEnded(i) {
+  if (i !== activeIndex.value) return
+  const rect = rootRef.value?.getBoundingClientRect()
+  const engaged = !pinned.value
+    || (rect && rect.top <= 1 && rect.bottom >= window.innerHeight - 1)
+  if (engaged) {
+    goTo(i + 1)
+    return
+  }
+  const v = videoEls[i]
+  if (!v) return
+  v.currentTime = 0
+  v.play()?.catch(() => {})
+}
+
 // --- Bar fill ------------------------------------------------------------------
 
-// The active bar fills with its clip's playhead (and empties again as the loop
-// wraps). Read every frame rather than on `timeupdate`, which only fires a few
+// The active bar fills with its clip's playhead, reaching full as the clip
+// ends and hands on (or wraps, on the looping last slide). Read every frame rather than on `timeupdate`, which only fires a few
 // times a second and would make the fill visibly step. The clock only runs
 // while the active clip is meant to be playing.
 const clipProgress = ref(0)
