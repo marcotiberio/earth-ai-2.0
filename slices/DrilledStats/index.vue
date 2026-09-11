@@ -47,7 +47,10 @@
              footage and the metrics scrub together. -->
         <div class="flex w-full items-center justify-center lg:w-7/12 lg:justify-end">
           <div
-            class="relative aspect-[8/7] md:aspect-4/3 lg:aspect-[4/5] w-full max-h-[650px] overflow-hidden rounded lg:max-h-[850px]"
+            class="relative
+                  aspect-[8/7] md:aspect-4/3 lg:aspect-[4/5] 
+                  w-full max-h-[650px] lg:max-h-[850px] xl:max-h-full
+                  overflow-hidden rounded"
             role="img"
             :aria-label="`${counter(feetValue)} ${feetLabel}`"
           >

@@ -68,9 +68,14 @@
               :class="pinned ? 'min-h-0 flex-1' : 'aspect-[799/556]'"
             >
               <!-- Desktop only: the media rests zoomed to 2× anchored top-centre,
-                   and eases back to the full frame on hover. The zoom sits on a
-                   wrapper so the image and its clip scale together. -->
-              <div class="absolute inset-0 lg:origin-top lg:scale-[2] lg:transition-transform lg:duration-700 lg:ease-out lg:group-hover:scale-100 motion-reduce:transition-none">
+                   and eases back to the full frame on hover — or for good once
+                   the card's clip has finished, settling on its last frame in
+                   full. The zoom sits on a wrapper so the image and its clip
+                   scale together. -->
+              <div
+                class="absolute inset-0 lg:origin-top lg:transition-transform lg:duration-700 lg:ease-out motion-reduce:transition-none"
+                :class="videoEnded[i] ? 'lg:scale-100' : 'lg:scale-[2] lg:group-hover:scale-100'"
+              >
                 <!-- The image doubles as the clip's poster: it shows until the
                      clip has a frame to paint, and stays as the fallback when
                      there's no clip, it fails to load, or under reduced motion
@@ -103,6 +108,7 @@
                   class="absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-out motion-reduce:transition-none"
                   :class="videoReady[i] ? 'opacity-100' : 'opacity-0'"
                   @loadeddata="videoReady[i] = true"
+                  @ended="videoEnded[i] = true"
                 />
               </div>
             </div>
@@ -284,6 +290,7 @@ const hasVideo = cards.value.some((card) => mediaUrl(card.video_url))
 // card is in view.
 const videoSrcs  = ref([])
 const videoReady = ref([])
+const videoEnded = ref([]) // drops the card's desktop 2× zoom (see template)
 const videoEls   = []
 const cardEls    = []
 const cardNear   = []
