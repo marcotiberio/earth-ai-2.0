@@ -25,7 +25,7 @@
           "type": "Number",
           "config": {
             "label": "Scroll length (vh)",
-            "placeholder": "Optional pinned scroll distance in vh. Leave empty for 70vh per card step."
+            "placeholder": "Optional pinned scroll distance in vh. Leave empty to match the cards' horizontal travel 1:1."
           }
         },
         "section_label": {
@@ -53,7 +53,7 @@
                 "type": "Link",
                 "config": {
                   "label": "Video",
-                  "placeholder": "Optional clip, played once when the card comes on screen. The image shows while it loads, and in its place when empty",
+                  "placeholder": "Optional clip, scrubbed by the scroll while its card is fully in view (encode like the other scrub clips). The image shows while it loads, and in its place when empty",
                   "select": "media"
                 }
               },

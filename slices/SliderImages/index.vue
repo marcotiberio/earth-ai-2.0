@@ -76,6 +76,7 @@
             class="absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ease-out motion-reduce:transition-none"
             :class="videoReady[i] ? 'opacity-100' : 'opacity-0'"
             @loadeddata="videoReady[i] = true"
+            @error="videoFailed[i] = true"
           />
         </div>
       </div>
@@ -92,10 +93,18 @@
               :aria-current="i === activeIndex ? 'step' : undefined"
               @click="goTo(i)"
             >
+              <!-- Track + fill. The fill slides in from the left (a transform,
+                   so it stays on the compositor) and the track's clip rounds
+                   its trailing end; see barFill() for how full it is. -->
               <span
-                class="block h-[4px] rounded-full bg-beige transition-opacity duration-300 motion-reduce:transition-none"
-                :class="i === activeIndex ? 'opacity-100' : 'opacity-20 group-hover:opacity-50'"
-              />
+                class="relative block h-[4px] overflow-hidden rounded-full transition-colors duration-300 motion-reduce:transition-none"
+                :class="i === activeIndex ? 'bg-beige/20' : 'bg-beige/20 group-hover:bg-beige/50'"
+              >
+                <span
+                  class="absolute inset-0 rounded-full bg-beige"
+                  :style="{ transform: `translateX(${(barFill(i) - 1) * 100}%)` }"
+                />
+              </span>
               <span
                 class="mt-[0.35rem] block font-mono font-body leading-[1.2] transition-opacity duration-300 motion-reduce:transition-none"
                 :class="i === activeIndex ? 'opacity-100' : 'opacity-25 group-hover:opacity-60'"
@@ -138,7 +147,7 @@
                faux bold of the Light; <em> is the site's serif italic accent. -->
           <div
             v-if="descriptionsHtml[i]"
-            class="mt-xs max-w-[35rem] font-sansLight font-body leading-[1.2] lg:mt-[1.625rem] [&>*+*]:mt-[0.6em] [&_ul]:list-disc [&_ul]:pl-[1.1em] [&_li+li]:mt-[0.3em] [&_strong]:font-sans [&_strong]:font-normal [&_em]:font-serifItalic [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:text-orange"
+            class="mt-xs max-w-screen-tablet font-sansLight font-body leading-[1.2] lg:mt-[1.625rem] [&>*+*]:mt-[0.6em] [&_ul]:list-disc [&_ul]:pl-[1.1em] [&_li+li]:mt-[0.3em] [&_strong]:font-sans [&_strong]:font-normal [&_em]:font-serifItalic [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:text-orange"
             v-html="descriptionsHtml[i]"
           />
         </div>
@@ -316,19 +325,20 @@ const hasVideo = slides.value.some((slide) => mediaUrl(slide.video_url))
 // then on only the active slide and the one after it are attached — the next
 // clip buffers while the current one plays — and the rest wait until the reader
 // gets that far. An attached src is kept, so stepping back never re-downloads.
-const videoSrcs  = ref([])
-const videoReady = ref([])
-const videoEls   = []
-const near   = ref(false)
-const inView = ref(false)
-let reduceMotion = false
+const videoSrcs   = ref([])
+const videoReady  = ref([])
+const videoFailed = ref([])
+const videoEls    = []
+const near         = ref(false)
+const inView       = ref(false)
+const reduceMotion = ref(false)
 
 function attach(i) {
   const slide = slides.value[i]
   if (!slide || videoSrcs.value[i]) return
   // Clips aren't played under reduced motion, so a slide with an image keeps
   // it and skips the download; one without still gets its clip's first frame.
-  if (reduceMotion && imageUrl(slide)) return
+  if (reduceMotion.value && imageUrl(slide)) return
   const src = videoSource(slide)
   if (src) videoSrcs.value[i] = src
 }
@@ -336,16 +346,20 @@ function attach(i) {
 // Only the active slide's clip plays, and only while the section is on screen.
 // A slide that becomes active restarts its clip from the top.
 function syncPlayback(restart) {
+  let playing = false
   videoEls.forEach((v, k) => {
     if (!v) return
-    if (k === activeIndex.value && inView.value && !reduceMotion) {
+    if (k === activeIndex.value && inView.value && !reduceMotion.value) {
       if (restart) v.currentTime = 0
       v.muted = true // autoplay policies require it set before play()
       v.play()?.catch(() => {})
+      playing = true
     } else if (!v.paused) {
       v.pause()
     }
   })
+  if (playing) startClipClock()
+  else stopClipClock()
 }
 
 // Attaching mounts the <video>, so playback syncs after the render.
@@ -355,8 +369,44 @@ function attachAround(restart) {
   nextTick(() => syncPlayback(restart))
 }
 
-watch(activeIndex, () => { if (near.value) attachAround(true) })
+watch(activeIndex, () => {
+  // The new slide's bar starts empty rather than inheriting the last clip's
+  // position for the frame before its own restart lands.
+  clipProgress.value = 0
+  if (near.value) attachAround(true)
+})
 watch(inView, () => syncPlayback(false))
+
+// --- Bar fill ------------------------------------------------------------------
+
+// The active bar fills with its clip's playhead (and empties again as the loop
+// wraps). Read every frame rather than on `timeupdate`, which only fires a few
+// times a second and would make the fill visibly step. The clock only runs
+// while the active clip is meant to be playing.
+const clipProgress = ref(0)
+let clipFrame = 0
+
+function readClip() {
+  const v = videoEls[activeIndex.value]
+  if (v?.duration) clipProgress.value = v.currentTime / v.duration
+  clipFrame = requestAnimationFrame(readClip)
+}
+function startClipClock() {
+  if (!clipFrame) clipFrame = requestAnimationFrame(readClip)
+}
+function stopClipClock() {
+  cancelAnimationFrame(clipFrame)
+  clipFrame = 0
+}
+
+// 0–1 fill for bar i. Only the active bar fills, and it tracks the clip only
+// when there's one that will actually play; an image slide, a clip that failed
+// to load, or reduced motion (clips held still) shows it full, as before.
+const barFill = (i) => {
+  if (i !== activeIndex.value) return 0
+  const timed = videoSrcs.value[i] && !videoFailed.value[i] && !reduceMotion.value
+  return timed ? clipProgress.value : 1
+}
 
 let stopNear     = null
 let viewObserver = null
@@ -375,7 +425,7 @@ onMounted(() => {
   }
 
   if (!hasVideo) return
-  reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  reduceMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   // Built after the launch overlay settles, as in ScrubScene: it locks
   // scrolling until then, and a clip pulled during it would only compete with
@@ -401,5 +451,6 @@ onUnmounted(() => {
   stopNear?.()
   viewObserver?.disconnect()
   captionObserver?.disconnect()
+  stopClipClock()
 })
 </script>
