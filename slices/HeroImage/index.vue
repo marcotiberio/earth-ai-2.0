@@ -1,5 +1,6 @@
 <template>
   <ScrubScene
+    ref="sceneRef"
     :video-url="videoUrl"
     :video-url-mobile="videoUrlMobile"
     :image="slice.primary.image || {}"
@@ -7,7 +8,8 @@
     :scroll-length="slice.primary.scroll_length || 300"
     :scrub-start="slice.primary.scrub_start || ''"
     align="bottom"
-    overlay-class="bg-darkblue/40"
+    overlay-class=""
+    scrub-until-exit
     eager
   >
 
@@ -89,4 +91,12 @@ const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mob
 
 // Number of dashed telemetry-style guide lines drawn over the hero.
 const LINE_COUNT = 4
+
+// Mouse wheels notch the scrub from frame to frame; ease them through the hero
+// (and move 50% further per notch) while trackpads keep native scrolling.
+// Skipped in the simulator (no pin there).
+const sceneRef = ref(null)
+if (!inject('inSliceSimulator', false)) {
+  useSmoothMouseWheel(() => sceneRef.value?.root, { speed: 1.5 })
+}
 </script>

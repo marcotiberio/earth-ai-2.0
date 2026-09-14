@@ -136,6 +136,12 @@ const props = defineProps({
   // compressed scrub); the height min() above keeps it intact under the
   // mobile cap.
   tailVh:       { type: Number, default: 0 },
+  // Keep scrubbing while the section scrolls out after the pin releases, so the
+  // video only reaches its last frame as the section leaves the viewport
+  // (instead of holding that frame across the exit). Stretches the same clip
+  // over one extra screen of travel. Only applies to the default scrub; ignored
+  // with a `tailVh` dwell, which is the opposite intent.
+  scrubUntilExit: { type: Boolean, default: false },
   overlayClass: { type: String, default: 'bg-darkblue/40' },
   // Frame mode: render the video inset on the darkblue background (rather than
   // full-bleed) with the content shown in a caption band beneath it.
@@ -253,7 +259,7 @@ if (props.videoUrl && !inSimulator) {
   // offset would push the end past the scrollable max and never complete.
   const defaultEnd = props.tailVh > 0
     ? () => `+=${rootRef.value.offsetHeight - window.innerHeight * (1 + props.tailVh / 100)}`
-    : 'bottom bottom'
+    : props.scrubUntilExit ? 'bottom top' : 'bottom bottom'
   useScrubVideo(
     videoRef,
     rootRef,
