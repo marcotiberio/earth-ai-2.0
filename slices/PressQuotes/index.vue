@@ -51,20 +51,14 @@ const props = defineProps({
   slices:  { type: Array },
 })
 
-// Title is a plain Text field. Documents saved while it was still rich text
-// keep the array shape until re-edited, so flatten those to plain text.
 const toText = (field) => {
   if (!field) return ''
   return typeof field === 'string' ? field : asText(field) || ''
 }
 
-// Image fields come back as an object ({ url, alt, ... }); static content may
-// pass a plain string url.
 const mediaUrl = (field) =>
   typeof field === 'string' ? field : field?.url || ''
 
-// Link fields come back as an object ({ url, target, ... }); static content may
-// pass a plain string url.
 const linkUrl = (field) =>
   typeof field === 'string' ? field : field?.url || ''
 

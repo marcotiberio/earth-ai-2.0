@@ -45,6 +45,9 @@
             "slider_images": {
               "type": "SharedSlice"
             },
+            "stats_solution": {
+              "type": "SharedSlice"
+            },
             "text_content": {
               "type": "SharedSlice"
             },

@@ -2,65 +2,31 @@ import Lenis from 'lenis'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
-/**
- * Site-wide smooth scrolling (Lenis), driven by GSAP's ticker so it shares a
- * single RAF loop with ScrollTrigger. This keeps the pinned scrub scenes
- * (ScrubScene / useScrubVideo) perfectly in sync — Lenis owns the scroll
- * position, and ScrollTrigger updates from it on every Lenis emit.
- *
- * Lenis smooths the *native* scroll (no transformed wrapper), so `position:
- * sticky`, 100vh sections, anchor links and the real scrollbar all keep
- * working. We disable smoothing under prefers-reduced-motion.
- *
- * The instance is provided as `$lenis` for programmatic scrolling, e.g.
- *   const { $lenis } = useNuxtApp()
- *   $lenis.scrollTo('#section', { offset: -80 })
- */
-// TEMP testing toggle: set true to disable Lenis entirely and use native
-// scrolling. ScrollTrigger still drives the pinned scrub scenes off the native
-// scroll, and $lenis is left undefined (consumers are null-safe / fall back to
-// native scroll events). Flip back to false to restore smooth scrolling.
 const DISABLE_LENIS = true
 
 export default defineNuxtPlugin((nuxtApp) => {
   gsap.registerPlugin(ScrollTrigger)
 
   if (DISABLE_LENIS) {
-    // Native scroll only. Keep ignoreMobileResize so the scrub measurements
-    // still survive the mobile URL-bar resize; ScrollTrigger listens to native
-    // scroll by default, so pins/scrub keep working without Lenis.
     ScrollTrigger.config({ ignoreMobileResize: true })
     return
   }
 
-  // Android Chrome (and iOS Safari) show/hide the URL bar as you scroll, which
-  // fires a `resize` and changes `innerHeight`/`vh` mid-scroll. By default
-  // ScrollTrigger would recompute every pinned start/end on each of those
-  // resizes, so the scrub videos visibly jump as the toolbar slides away.
-  // ignoreMobileResize keeps the measurements taken on load, so the scrub stays
-  // smooth through the toolbar transition. (Lenis owns scroll, so we do NOT add
-  // normalizeScroll here — that would fight Lenis for the scroll position.)
   ScrollTrigger.config({ ignoreMobileResize: true })
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   const lenis = new Lenis({
-    // 0 = no smoothing (honour the accessibility preference); otherwise a calm,
-    // weighted feel that suits the long scrub sections.
     lerp: reduceMotion ? 1 : 0.1,
     smoothWheel: !reduceMotion,
   })
 
-  // Keep ScrollTrigger's measurements in step with Lenis.
   lenis.on('scroll', ScrollTrigger.update)
 
-  // Single RAF loop: drive Lenis from GSAP's ticker. GSAP gives time in
-  // seconds; Lenis wants milliseconds.
   const raf = (time) => lenis.raf(time * 1000)
   gsap.ticker.add(raf)
   gsap.ticker.lagSmoothing(0)
 
-  // Recalculate on layout shifts (lazy videos, font swaps, route changes).
   ScrollTrigger.addEventListener('refresh', () => lenis.resize())
 
   nuxtApp.provide('lenis', lenis)

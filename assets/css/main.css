@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Lenis smooth scroll (plugins/lenis.client.js). Recommended base styles:
-   keep native scroll-behaviour off while Lenis drives, let [data-lenis-prevent]
-   regions scroll independently (e.g. modals), and freeze the page when stopped. */
 html.lenis,
 html.lenis body {
   height: auto;
@@ -22,7 +19,6 @@ html.lenis body {
   pointer-events: none;
 }
 
-/* Earth AI licensed typefaces (served from /public/fonts). */
 @font-face {
   font-family: 'Beausite Classic';
   src: url('/fonts/BeausiteClassic-Regular.woff2') format('woff2');
@@ -62,17 +58,14 @@ html.lenis body {
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Scrollbar */
   ::-webkit-scrollbar { width: 0; }
 }
 
 @layer components {
-  /* Shared slice padding: vertical rhythm + responsive gutters. */
   .boxed {
     @apply pt-md lg:pt-lg pb-[4rem] px-xs md:px-sm;
   }
 
-  /* Typography */
   .font-h1 {
     font-size: 2.5rem;
     line-height: 1.15;
@@ -129,6 +122,10 @@ html.lenis body {
     }
   }
 
+  .font-small {
+    font-size: 1rem;
+  }
+
   .font-label,
   .font-caption {
     font-size: 0.875rem;
@@ -144,7 +141,6 @@ html.lenis body {
     }
   }
 
-  /* Display headlines render in the serif; <em> is the italic accent. */
   .wysiwyg h1, .wysiwyg h2, .wysiwyg h3 {
     @apply font-serif font-normal leading-[1.05] tracking-tight;
   }
@@ -156,7 +152,6 @@ html.lenis body {
     @apply font-serifItalic;
   }
 
-  /* Reusable button. Base + variants (.btn-primary / .btn-outline). */
   .btn {
     --btn-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12.8386 12.8386' fill='none'%3E%3Cpath d='M0.75 12.0886L12.0886 0.75M12.0886 9.68038V0.75H2.15478' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 
@@ -170,9 +165,6 @@ html.lenis body {
            no-underline hover:no-underline !important;
   }
 
-  /* Trailing top-right arrow. The glyph is a mask rather than a fill, so it
-     picks up the button's current text colour through every variant and hover
-     state instead of needing a copy per variant. */
   .btn::after {
     content: '';
     @apply block shrink-0 self-center w-[11px] h-[11px] bg-current ml-4;

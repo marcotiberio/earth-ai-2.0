@@ -1,0 +1,268 @@
+[
+	{
+		"__TYPE__": "SharedSliceContent",
+		"variation": "default",
+		"primary": {
+			"is_hidden": {
+				"__TYPE__": "BooleanContent",
+				"value": false
+			},
+			"section_label": {
+				"__TYPE__": "FieldContent",
+				"type": "Text",
+				"value": "The Solution"
+			},
+			"title": {
+				"__TYPE__": "StructuredTextContent",
+				"value": [
+					{
+						"type": "paragraph",
+						"content": {
+							"text": "Our vertically integrated operations dramatically accelerate mine development",
+							"spans": []
+						},
+						"direction": "ltr"
+					}
+				]
+			},
+			"top": {
+				"__TYPE__": "GroupContentType",
+				"value": [
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"label",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "AI"
+								}
+							],
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "160x"
+								}
+							],
+							[
+								"caption",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "MORE ACCURATE"
+								}
+							],
+							[
+								"description",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "Accurately predicts Tier 1 deposits other conventional methods cannot detect."
+								}
+							]
+						]
+					}
+				]
+			},
+			"cards": {
+				"__TYPE__": "GroupContentType",
+				"value": [
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"label",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "GEOLOGY"
+								}
+							],
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "2x"
+								}
+							],
+							[
+								"caption",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "FASTER"
+								}
+							],
+							[
+								"description",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "Validates AI targets and creates drill targets"
+								}
+							]
+						]
+					},
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"label",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "DRILLING"
+								}
+							],
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "2-3x"
+								}
+							],
+							[
+								"caption",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "FASTER"
+								}
+							],
+							[
+								"description",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "Validates the AI and geology with raw data from the ground"
+								}
+							]
+						]
+					},
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"label",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "LAB"
+								}
+							],
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "18x"
+								}
+							],
+							[
+								"caption",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "FASTER"
+								}
+							],
+							[
+								"description",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "Feeds assay results back to geology for new drill hypotheses"
+								}
+							]
+						]
+					},
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"label",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "OPS/PERMITTING"
+								}
+							],
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "2x"
+								}
+							],
+							[
+								"caption",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "FASTER"
+								}
+							],
+							[
+								"description",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "Parallel permitting fast tracks mine development"
+								}
+							]
+						]
+					}
+				]
+			},
+			"bottom": {
+				"__TYPE__": "GroupContentType",
+				"value": [
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"label",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "DEVELOPMENT"
+								}
+							],
+							[
+								"value",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "6.5x"
+								}
+							],
+							[
+								"caption",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "FASTER"
+								}
+							],
+							[
+								"description",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "3 year development timeline instead of the industry standard of 20 years"
+								}
+							]
+						]
+					}
+				]
+			}
+		},
+		"items": []
+	}
+]

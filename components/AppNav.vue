@@ -1,9 +1,7 @@
 <template>
   <header ref="headerRef" class="fixed top-0 left-0 w-full z-50 px-xs md:px-sm will-change-transform">
-    <!-- Thin rule under the bar, as in the NAV-STICK frame -->
     <div class="flex flex-col items-start justify-start mt-6 gap-6 lg:mt-8 lg:gap-8">
       <DottedLine class="w-full" />
-      <!-- Logo -->
       <NuxtLink to="/" aria-label="Earth AI home" class="text-beige lg:pt-8rem" @click="scrollToTop">
         <svg class="h-7 w-auto" width="152" height="26" viewBox="0 0 152 26" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M76.5492 25.9803L72.9058 25.9783C72.7132 25.9783 72.5705 25.8179 72.5507 25.6343L72.0642 21.1771C72.0461 21.01 72.1753 20.8573 72.3451 20.8573H77.1488C77.3129 20.8577 77.4505 21.015 77.4327 21.1774L76.9471 25.6327C76.923 25.8538 76.7663 25.98 76.5495 25.98L76.5492 25.9803Z" fill="#FAF3E4"/>
@@ -18,20 +16,6 @@
           <path d="M39.6889 25.3054L34.2077 0.413654C34.1577 0.186145 33.949 0.00259399 33.7144 0.00259399L25.6478 0.00360076C25.3941 0.00360076 25.2219 0.250236 25.1713 0.476739L19.6357 25.2708C19.5632 25.595 19.7665 25.9695 20.1226 25.9698L24.7334 25.9738C24.883 25.9738 25.0256 25.8326 25.0552 25.6896L25.9823 21.2049C26.0145 21.0485 26.183 20.9401 26.339 20.9401L32.949 20.9408C33.1447 20.9408 33.2698 21.0817 33.3007 21.2317L34.203 25.6111C34.2372 25.7775 34.3396 25.9722 34.5352 25.9722L39.0625 25.9752C39.2591 25.9752 39.4255 25.9279 39.5487 25.7957C39.6537 25.6833 39.7319 25.501 39.6889 25.3054ZM31.8733 16.3453L27.4158 16.3467C27.2158 16.3467 26.9933 16.1584 27.04 15.9329L29.2808 5.0947C29.321 4.90041 29.4308 4.78599 29.5955 4.76015C29.7539 4.73565 29.9643 4.8286 30.0056 5.03094L32.2172 15.8926C32.2608 16.1067 32.1209 16.345 31.8729 16.345L31.8733 16.3453Z" fill="#FAF3E4"/>
         </svg>
       </NuxtLink>
-
-      <!-- Nav links -->
-      <!-- <nav>
-        <ul class="flex gap-8">
-          <li v-for="item in navItems" :key="item.label">
-            <NuxtLink
-              :to="item.href"
-              class="font-label text-beige/70 hover:text-beige transition-colors"
-            >
-              {{ item.label }}
-            </NuxtLink>
-          </li>
-        </ul>
-      </nav> -->
     </div>
   </header>
 </template>
@@ -42,7 +26,6 @@ const { $lenis } = useNuxtApp()
 
 const headerRef = ref(null)
 
-// On the homepage, smooth-scroll to top instead of triggering a no-op navigation.
 function scrollToTop(e) {
   if (route.path === '/') {
     e.preventDefault()
@@ -50,14 +33,6 @@ function scrollToTop(e) {
   }
 }
 
-// The footer shares the nav's beige palette, so once you scroll into it the
-// fixed nav logo overlays the footer's title/logo. Instead of leaving the nav
-// pinned, let the footer reveal "push" it off-screen. The footer itself is a
-// sticky viewport-high panel whose top sits at ~0 the whole time (it's just
-// covered by the page content above it), so the reveal's visible seam is the
-// page-content wrapper's bottom edge: translate the nav up by exactly how far
-// that seam has crossed into the nav's band, so the nav's bottom edge stays
-// flush with the seam — no overlap, no gap.
 let contentEl = null
 
 function updateNavPush() {
@@ -69,14 +44,12 @@ function updateNavPush() {
 
   const navHeight = header.offsetHeight
   const seam = contentEl.getBoundingClientRect().bottom
-  // 0 until the seam reaches the nav's lower edge, then grows to navHeight.
   const overlap = Math.min(Math.max(navHeight - seam, 0), navHeight)
   header.style.transform = `translate3d(0, ${-overlap}px, 0)`
 }
 
 onMounted(() => {
   updateNavPush()
-  // Lenis owns the scroll position; fall back to native scroll if absent.
   if ($lenis) $lenis.on('scroll', updateNavPush)
   else window.addEventListener('scroll', updateNavPush, { passive: true })
   window.addEventListener('resize', updateNavPush)
@@ -88,7 +61,6 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', updateNavPush)
 })
 
-// TODO: pull from Prismic global settings once repo is connected
 const navItems = [
   { label: 'About',    href: '#about' },
   { label: 'Approach', href: '#approach' },

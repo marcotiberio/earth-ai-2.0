@@ -1,0 +1,154 @@
+{
+  "id": "stats_solution",
+  "type": "SharedSlice",
+  "name": "StatsSolution",
+  "description": "Stat cards revealed on scroll: a label + headline, a beige top bar that fades in, a row of blue cards that fade in left to right, then a bar that fills yellow left to right while its figure counts up with the fill.",
+  "variations": [
+    {
+      "id": "default",
+      "name": "Default",
+      "docURL": "...",
+      "version": "initial",
+      "description": "Default",
+      "imageUrl": "",
+      "primary": {
+        "is_hidden": {
+          "type": "Boolean",
+          "config": {
+            "label": "Hide slice",
+            "placeholder_false": "Visible",
+            "placeholder_true": "Hidden",
+            "default_value": false
+          }
+        },
+        "section_label": {
+          "type": "Text",
+          "config": {
+            "label": "Section label",
+            "placeholder": "Small label above the title (e.g. The Solution)"
+          }
+        },
+        "title": {
+          "type": "StructuredText",
+          "config": {
+            "label": "Title",
+            "placeholder": "Headline (e.g. Our vertically integrated operations dramatically accelerate mine development)",
+            "allowTargetBlank": true,
+            "single": "paragraph,strong,em"
+          }
+        },
+        "top": {
+          "type": "Group",
+          "config": {
+            "label": "Top bar",
+            "repeat": false,
+            "fields": {
+              "label": {
+                "type": "Text",
+                "config": {
+                  "label": "Label",
+                  "placeholder": "Small label at the top of the bar (e.g. AI)"
+                }
+              },
+              "value": {
+                "type": "Text",
+                "config": {
+                  "label": "Value",
+                  "placeholder": "Big figure (e.g. 160x)"
+                }
+              },
+              "caption": {
+                "type": "Text",
+                "config": {
+                  "label": "Caption",
+                  "placeholder": "Small caption under the figure (e.g. MORE ACCURATE)"
+                }
+              },
+              "description": {
+                "type": "Text",
+                "config": {
+                  "label": "Description",
+                  "placeholder": "Short sentence next to the figure"
+                }
+              }
+            }
+          }
+        },
+        "cards": {
+          "type": "Group",
+          "config": {
+            "label": "Cards",
+            "fields": {
+              "label": {
+                "type": "Text",
+                "config": {
+                  "label": "Label",
+                  "placeholder": "e.g. GEOLOGY"
+                }
+              },
+              "value": {
+                "type": "Text",
+                "config": {
+                  "label": "Value",
+                  "placeholder": "e.g. 2x"
+                }
+              },
+              "caption": {
+                "type": "Text",
+                "config": {
+                  "label": "Caption",
+                  "placeholder": "e.g. FASTER"
+                }
+              },
+              "description": {
+                "type": "Text",
+                "config": {
+                  "label": "Description",
+                  "placeholder": "Short sentence at the bottom of the card"
+                }
+              }
+            }
+          }
+        },
+        "bottom": {
+          "type": "Group",
+          "config": {
+            "label": "Bottom bar",
+            "repeat": false,
+            "fields": {
+              "label": {
+                "type": "Text",
+                "config": {
+                  "label": "Label",
+                  "placeholder": "Small label at the top of the bar (e.g. DEVELOPMENT)"
+                }
+              },
+              "value": {
+                "type": "Text",
+                "config": {
+                  "label": "Value",
+                  "placeholder": "Big figure (e.g. 6.5x). Its number counts up as the bar fills"
+                }
+              },
+              "caption": {
+                "type": "Text",
+                "config": {
+                  "label": "Caption",
+                  "placeholder": "Small caption under the figure (e.g. FASTER)"
+                }
+              },
+              "description": {
+                "type": "Text",
+                "config": {
+                  "label": "Description",
+                  "placeholder": "Short sentence next to the figure"
+                }
+              }
+            }
+          }
+        }
+      },
+      "items": {}
+    }
+  ]
+}

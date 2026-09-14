@@ -14,7 +14,7 @@ The homepage. One document, not repeatable.
 
 | Tab | Field | Type |
 |-----|-------|------|
-| Main | `slices` | Slice zone — choices: `hero_image, video_scroll, video_scroll_titles, drilled_stats, race_bars, supply_gap, map_targets, horizontal_scroll, slider_images, splasher` |
+| Main | `slices` | Slice zone — choices: `hero_image, video_scroll, video_scroll_titles, drilled_stats, race_bars, supply_gap, map_targets, horizontal_scroll, slider_images, stats_solution, splasher` |
 | SEO & Metadata | `meta_title`, `meta_description`, `meta_image` | Text / Text / Image |
 
 ### `page` (repeatable)
@@ -23,7 +23,7 @@ Any URL-addressable page (`/:uid`) — legal pages and richer marketing pages.
 | Tab | Field | Type |
 |-----|-------|------|
 | Main | `uid` | UID (the URL slug) |
-| Main | `slices` | Slice zone — choices: `hero_image, video_scroll, video_scroll_titles, race_bars, supply_gap, drilled_stats, map_targets, horizontal_scroll, slider_images, text_content, press_quotes, splasher` |
+| Main | `slices` | Slice zone — choices: `hero_image, video_scroll, video_scroll_titles, race_bars, supply_gap, drilled_stats, map_targets, horizontal_scroll, slider_images, stats_solution, text_content, press_quotes, splasher` |
 | SEO & Metadata | `meta_title`, `meta_description`, `meta_image` | Text / Text / Image |
 
 ### `footer` (single)

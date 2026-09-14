@@ -1,32 +1,15 @@
 <template>
-  <!-- Sticky reveal: the footer is a viewport-high panel pinned behind the
-       page (z-0, under app.vue's z-10 content) and uncovered in place as the
-       last pinned section scrolls away. `bottom-0` rather than `top-0`: with a
-       panel exactly viewport-high the two pin to the same place, but only the
-       bottom pin engages while the panel is still covered — a top pin never
-       sticks for the document's last element, so the footer would scroll in
-       normally and snap in after the pinned section, the original problem. -->
   <footer class="sticky bottom-0 z-0 h-dvh w-full bg-darkblue text-darkblue">
-    <!-- Content taller than the panel (the stacked press quotes on phones)
-         scrolls inside it; min-h-full + justify-end keeps shorter content at
-         the page bottom. -->
-    <!-- Incoming half of the reveal crossfade (see useFooterReveal). The fade
-         is on the content, not on the <footer>: the panel's background has to
-         stay opaque or the uncovered band would go translucent and show the
-         html background through it, which would defeat the point of the seam
-         being invisible. -->
     <div
       class="h-full overflow-y-auto"
       data-lenis-prevent
       :style="{ opacity: footerOpacity }"
     >
     <div class="min-h-full flex flex-col justify-start boxed !pb-sm !pt-[62px]">
-    <!-- Top Bar -->
     <div class="flex flex-col items-start justify-between gap-sm mb-sm w-full">
       <div class="flex flex-row items-start justify-between gap-sm w-full">
         <div class="flex flex-col items-start justify-between gap-sm w-full md:w-1/2">
           <span class="font-h2 font-serif text-beige">{{ mainTitle }}</span>
-          <!-- ToDo: Add contact link -->
           <a
             href="mailto:contact@earth-ai.com"
             class="btn btn-primary mt-auto font-label text-darkblue hover:underline"
@@ -58,12 +41,10 @@
       </ul>
     </div>
 
-    <!-- Press quotes -->
     <div class="grid gap-8 border-t border-beige pt-10 md:grid-cols-3">
       <SliceZone :slices="visibleSlices(press)" :components="components" />
     </div>
 
-    <!-- Bottom bar -->
     <div class="mt-sm flex flex-col justify-start sm:flex-row sm:items-center sm:justify-end gap-sm border-t border-beige pt-sm font-label text-beige">
       <nav v-if="footer?.data?.legal_links?.length" class="w-full flex justify-center sm:justify-end gap-sm">
         <PrismicLink
@@ -83,15 +64,10 @@
 <script setup>
 import { components } from '~/slices'
 
-// The footer is driven by a single `footer` page document in Prismic: each
-// press quote is a `press_quotes` slice in its slice zone.
 const route = useRoute()
 
-// Read before the `await` below: useNuxtApp (which useFooterReveal needs for
-// Lenis) is only resolvable while the Nuxt instance is still on the stack.
 const { footerOpacity } = useFooterReveal()
 
-// On the homepage, smooth-scroll to top instead of triggering a no-op navigation.
 function scrollToTop(e) {
   if (route.path === '/') {
     e.preventDefault()

@@ -1,5 +1,4 @@
 <template>
-  <!-- Pinned closing video; the CTA scrolls over it -->
   <ScrubScene
     :video-url="slice.primary.video_url || ''"
     :video-url-mobile="slice.primary.video_url_mobile || ''"

@@ -1,14 +1,3 @@
-/**
- * Delivery helpers for the scroll-scrub videos.
- *
- * prefetchScrubVideo — a sequential warm-up queue. Each scrub section registers
- * its chosen clip URL on mount; after the window has loaded and the main thread
- * is idle, the queue fetches the clips ONE AT A TIME in registration (≈ page)
- * order to warm the HTTP cache. Compared to letting every <video> buffer in
- * parallel, this keeps page-load bandwidth free for the hero and means deeper
- * sections are usually cached before their lazy src even attaches.
- */
-
 import { isManagedAsset, MEDIA_FETCH_INIT, observedThroughputMbps } from '../composables/useAssetLoader'
 
 const queue = []
@@ -19,8 +8,6 @@ let pageLoaded = false
 
 export function prefetchScrubVideo(url) {
   if (!url || typeof window === 'undefined' || seen.has(url)) return
-  // Respect an explicit data-saver preference (not exposed on iOS, where it
-  // simply stays undefined and we prefetch as usual).
   if (navigator.connection?.saveData) return
   seen.add(url)
   queue.push(url)
@@ -34,7 +21,7 @@ export function prefetchScrubVideo(url) {
     if (document.readyState === 'complete') begin()
     else window.addEventListener('load', begin, { once: true })
   } else if (pageLoaded) {
-    drain() // late registration (lazy-mounted section) after the first drain
+    drain()
   }
 }
 
@@ -43,63 +30,30 @@ async function drain() {
   draining = true
   while (queue.length) {
     const url = queue.shift()
-    // The launch overlay's asset loader already downloads every homepage clip in
-    // full (composables/useAssetLoader.js). Re-fetching one here is pure
-    // duplicate work — and with different request options it can miss that
-    // download's cache entry and compete with it for mobile bandwidth. Skip the
-    // ones the loader owns; only warm clips it isn't already pulling (e.g. on
-    // routes other than the homepage). Checked here at drain time, not on
-    // enqueue, so the loader has had time to register its assets first.
     if (isManagedAsset(url)) continue
     try {
-      // Reuse the loader's exact request options — including the `Range:
-      // bytes=0-` that makes this land in the SAME cache entry the <video>
-      // element later reads. Without it the warm-up is worse than useless: the
-      // clip is downloaded here and then downloaded a second time by the
-      // element (see MEDIA_FETCH_INIT).
       const res = await fetch(url, { ...MEDIA_FETCH_INIT, priority: 'low' })
-      // Drain the body so the response lands in the HTTP cache (the <video>'s
-      // later range requests are then served from it) without holding the whole
-      // clip in memory the way res.arrayBuffer() would.
       if (res.body) {
         const reader = res.body.getReader()
         for (;;) { const { done } = await reader.read(); if (done) break }
       } else {
         await res.arrayBuffer()
       }
-    } catch { /* network hiccup — the video element will fetch it itself */ }
+    } catch {}
   }
   draining = false
 }
 
-// --- Playback primitives shared by the scrub consumers -----------------------
-// useScrubVideo (the play-chase engine), ScrubScene (lazy-src attach) and
-// DrilledStats (in-frame scrub) all need the same low-level pieces; they live
-// here so the iOS/decoder workarounds are written and tuned once.
-
-/**
- * Kick the decode pipeline. iOS Safari ignores preload="auto" — it won't fetch
- * the clip (and won't paint seeked frames) until a muted inline play() has run.
- * A muted play() needs no user gesture, so it both starts buffering and unlocks
- * painting; we pause immediately and drive currentTime from scroll instead. Only
- * force load() when the element is idle with nothing buffered (the iOS case) so
- * we don't interrupt / re-fetch an already-loading desktop clip.
- */
 export function kickScrubVideo(video) {
   if (!video) return
-  video.muted = true // required for an unattended play()
-  if (video.readyState === 0 && video.networkState !== 2 /* LOADING */) {
-    try { video.load() } catch { /* ignore */ }
+  video.muted = true
+  if (video.readyState === 0 && video.networkState !== 2) {
+    try { video.load() } catch {}
   }
   const p = video.play()
   if (p && p.then) p.then(() => video.pause()).catch(() => {})
 }
 
-/**
- * Resolve once the clip reports a real, finite duration. No timeout: a lazy clip
- * only gets its src when its section nears the viewport (which can be seconds
- * after mount), so a timeout would fire first and hand back duration 0.
- */
 export function whenDurationKnown(video) {
   const hasDuration = () => Number.isFinite(video.duration) && video.duration > 0
   return new Promise((resolve) => {
@@ -114,27 +68,16 @@ export function whenDurationKnown(video) {
   })
 }
 
-/**
- * Full prime before scroll-driving a clip's currentTime: kick the pipeline, wait
- * for a real duration, then reset to the first frame.
- */
 export async function primeScrubVideo(video) {
   if (!video) return
   kickScrubVideo(video)
   await whenDurationKnown(video)
-  try { video.pause(); video.currentTime = 0 } catch { /* ignore */ }
+  try { video.pause(); video.currentTime = 0 } catch {}
 }
 
-// Seek-gating: re-issuing currentTime every frame cancels the in-flight seek
-// before it can paint, so on mobile almost no frame completes and the scrub
-// stutters (worse now the encodes are GOP=5, each seek decoding up to 5 frames
-// from a keyframe). Issue a new seek only after the previous one has painted.
-// For large gaps (fast flicks) fastSeek trades frame-accuracy for nearest-
-// keyframe speed; at GOP=5 that's ≤ 5/fps s off, invisible mid-flick.
-const SEEK_STALL_MS = 250 // re-issue if a seek silently never completes
-const FAST_SEEK_GAP = 0.5 // s — beyond this, keyframe accuracy is enough
+const SEEK_STALL_MS = 250
+const FAST_SEEK_GAP = 0.5
 
-/** Build a gated seek(target) closure bound to one <video> element. */
 export function createSeeker(video) {
   let lastSeekAt = 0
   return (target) => {
@@ -150,12 +93,6 @@ export function createSeeker(video) {
   }
 }
 
-/**
- * Fire `cb` once `el` scrolls within `margin` of the viewport (or immediately
- * when IntersectionObserver is unavailable). Used to defer the network-touching
- * prime/kick until a section is near, instead of pulling every clip at mount.
- * Returns a disconnect fn for cleanup if the element unmounts before it fires.
- */
 export function observeNear(el, cb, margin = '200%') {
   if (!el || typeof IntersectionObserver === 'undefined') {
     cb()
@@ -172,30 +109,9 @@ export function observeNear(el, cb, margin = '200%') {
   return () => io?.disconnect()
 }
 
-// How far ahead of a scrub section we start pulling its clip, widened on slow
-// connections. The clips are 6–27 MB; on a 4 Mbps link the default lead buys
-// only single-digit MB, so a fast scroller outruns the buffer and the scrub
-// lags (gracefully — useScrubVideo clamps to `buffered` — but visibly). Slower
-// links get proportionally more runway, which is exactly where it's needed.
-//
-// Deliberately NOT unbounded: a huge margin on a phone is just the old
-// download-everything behaviour again, and metered data is precisely what a 2G
-// visitor can least afford. Capped so even the slowest tier stays proportional
-// to the page rather than covering all of it.
 const LEAD_CAP = 700
 const LEAD_TIER = { slow: 3, moderate: 2, fast: 1 }
 
-// Prefer the throughput the loader actually MEASURED off the launch downloads.
-// The Network Information API is too weak to drive this on its own:
-//   - `effectiveType` calls anything above ~0.7 Mbps '4g', so a 4 Mbps link —
-//     where a 27 MB clip takes a minute — looks identical to fibre. Verified:
-//     Chrome throttled to 4 Mbps still reported '4g'.
-//   - `downlink` is unusable at mount. Measured on an unthrottled desktop load:
-//     1.45 at document_start AND at DOMContentLoaded, only settling to 10 by
-//     t=2.2s. Tiering on it misread a fast connection as slow, widened every
-//     margin, and pulled a section-2 clip at load that nobody had scrolled to.
-// effectiveType is still a reasonable floor before the first sample lands (and
-// the only signal at all on Safari/iOS, which expose no connection object).
 function connectionTier() {
   const measured = observedThroughputMbps()
   if (measured > 0) {
@@ -209,13 +125,6 @@ function connectionTier() {
   return 'fast'
 }
 
-/**
- * `observeNear` rootMargin for a scrub clip, given the section's own baseline
- * (150% desktop / 300% mobile for ScrubScene, 200% for DrilledStats).
- *
- * An explicit data-saver preference keeps the baseline: widening it would spend
- * more of exactly the data the visitor asked us not to spend.
- */
 export function scrubLeadMargin(base) {
   if (typeof navigator !== 'undefined' && navigator.connection?.saveData) return `${base}%`
   return `${Math.min(base * LEAD_TIER[connectionTier()], LEAD_CAP)}%`
