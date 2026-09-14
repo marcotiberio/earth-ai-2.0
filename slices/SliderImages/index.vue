@@ -7,12 +7,10 @@
     steps through the slides: the first slide holds for a short lead-in after
     the pin engages, each further slide takes one step of scroll, and after a
     matching hold on the last slide the sticky releases — so the section only
-    scrolls away once the final slide has been seen. Each slide's clip is
-    scrubbed by the same scroll across the span its slide is on screen, ending
-    as the next slide takes over, and the active bar fills with it. Clicking a
-    bar scrolls the page to the start of that slide's span, so scroll and
-    navigation never disagree. Under reduced motion (and in the Slice
-    Simulator) the pin collapses and the bars are the only control.
+    scrolls away once the final slide has been seen. Clicking a bar, or a clip
+    playing to its end, scrolls the page to that (or the next) slide's point in
+    the runway, so scroll and navigation never disagree. Under reduced motion (and in the Slice Simulator)
+    the pin collapses and the bars are the only control.
   -->
   <section
     ref="rootRef"
@@ -64,13 +62,15 @@
           <!-- Client-only: the element exists once its src is attached (see
                attach()), so SSR and first paint are just the images.
                crossorigin="anonymous" keeps the request on the same cache key as
-               the launch loader's fetch (see ScrubScene). Never played: its
-               currentTime is scrubbed by the scroll (see syncVideos). -->
+               the launch loader's fetch (see ScrubScene). Every clip but the
+               last plays once and hands on to the next slide (onClipEnded);
+               the last has nowhere to go, so it loops. -->
           <video
             v-if="videoSrcs[i]"
             :ref="(el) => { videoEls[i] = el }"
             :src="videoSrcs[i]"
             muted
+            :loop="i === slides.length - 1"
             playsinline
             preload="auto"
             crossorigin="anonymous"
@@ -79,6 +79,7 @@
             :class="videoReady[i] ? 'opacity-100' : 'opacity-0'"
             @loadeddata="videoReady[i] = true"
             @error="videoFailed[i] = true"
+            @ended="onClipEnded(i)"
           />
         </div>
       </div>
@@ -214,13 +215,9 @@ const LEAD_VH  = 50
 const DWELL_VH = 50
 
 // Pinned scroll between two slides. Each slide owns the step centred on its
-// point in the runway, so the middle slides each show — and scrub their clip —
-// for STEP_VH while the first and last get half a step plus the lead / dwell
-// hold.
+// point in the runway, so the middle slides each show for STEP_VH while the
+// first and last show for half a step plus the lead / dwell hold.
 const STEP_VH = 70
-
-// How far into a slide's window (vh) a bar click lands (see goTo).
-const CLICK_INSET_VH = 4
 
 const runwayVh = computed(() => Math.max(slides.value.length - 1, 0) * STEP_VH)
 
@@ -230,51 +227,26 @@ const rootRef = ref(null)
 const scrubbed = !inSimulator && slides.value.length > 1
 
 // --- Scroll-driven progress (pinned scrub) -----------------------------------
-// One progress across the whole pin — lead-in, steps and dwell alike — since
-// the first and last clips scrub through the holds as well (as in
-// HorizontalScroll). `tall` starts true so SSR and client render identically;
-// reduced-motion clients drop to a normal-height section driven by the bars
-// alone.
+// `tall` starts true so SSR and client render identically; reduced-motion
+// clients drop to a normal-height section driven by the bars alone.
 const { progress, tall } = useScrollProgress(scrubbed ? rootRef : ref(null), {
-  start: 'top top',
-  // Expressed as a `+=` px offset from the start (the whole pinned distance)
-  // rather than `bottom bottom`, matching the other pinned slices.
-  end: (trigger) => `+=${trigger.offsetHeight - window.innerHeight}`,
+  // Start LEAD_VH after the pin engages (the section top that far above the
+  // viewport top; a negative % is a fraction of the viewport height).
+  start: `top -${LEAD_VH}%`,
+  // Finish the runway DWELL_VH before the pin releases. Expressed as a `+=` px
+  // offset from the (lead-shifted) start, as in HorizontalScroll: a
+  // `bottom bottom-=` offset would push the end past the scrollable max.
+  end: (trigger) =>
+    `+=${trigger.offsetHeight - window.innerHeight * (1 + (LEAD_VH + DWELL_VH) / 100)}`,
   scrub: 1,
-  onUpdate: () => syncVideos(),
 })
 
 const pinned = computed(() => tall.value && scrubbed)
 
-const clamp01 = (x) => Math.min(1, Math.max(0, x))
-
-// The pin's length and the current position through it, in vh.
-const pinVh  = computed(() => LEAD_VH + runwayVh.value + DWELL_VH)
-const pinPos = computed(() => progress.value * pinVh.value)
-
-// Slide i's share of the pin (vh): from the handover into it to the handover
-// out of it, halfway between its point in the runway and its neighbours'. The
-// first slide also owns the lead-in and the last the dwell. It's the span the
-// slide is on screen, and the span its clip scrubs across.
-function slideWindow(i) {
-  const last = slides.value.length - 1
-  return [
-    i === 0 ? 0 : LEAD_VH + (i - 0.5) * STEP_VH,
-    i === last ? pinVh.value : LEAD_VH + (i + 0.5) * STEP_VH,
-  ]
-}
-const windowProgress = (i) => {
-  const [start, end] = slideWindow(i)
-  return clamp01((pinPos.value - start) / (end - start))
-}
-
 // --- Active slide ------------------------------------------------------------
 
-// The slide whose window the scroll is in.
-const scrollIndex = computed(() => {
-  const i = Math.round((pinPos.value - LEAD_VH) / STEP_VH)
-  return Math.min(Math.max(i, 0), slides.value.length - 1)
-})
+// Slide i sits at progress i / (n - 1); rounding hands over halfway between.
+const scrollIndex = computed(() => Math.round(progress.value * (slides.value.length - 1)))
 
 // Unpinned, the bars are the only control, so they own the index outright.
 const selected = ref(0)
@@ -299,13 +271,11 @@ function goTo(i) {
   }
   const root = rootRef.value
   if (!root) return
-  // Land just inside the slide's window, so its clip starts from (nearly) the
-  // top and the reader scrolls it forward; the inset keeps the landing clear of
-  // the handover, where the scrub's settling could tip back a slide. Mapped
-  // onto the trigger's own start / end (above), in document px.
-  const pos   = i === 0 ? 0 : slideWindow(i)[0] + CLICK_INSET_VH
-  const pinPx = root.offsetHeight - window.innerHeight
-  const top   = root.getBoundingClientRect().top + window.scrollY + (pos / pinVh.value) * pinPx
+  // Mirrors the trigger's start / end above, in document px.
+  const vh     = window.innerHeight
+  const start  = root.getBoundingClientRect().top + window.scrollY + vh * LEAD_VH / 100
+  const runway = root.offsetHeight - vh * (1 + (LEAD_VH + DWELL_VH) / 100)
+  const top    = start + (i / (slides.value.length - 1)) * runway
 
   // Already showing it: just settle onto its exact point, nothing to hold.
   held.value = i === scrollIndex.value ? null : i
@@ -356,78 +326,114 @@ const hasVideo = slides.value.some((slide) => mediaUrl(slide.video_url))
 // Clips are only fetched once the section nears the viewport, so a visitor who
 // never reaches the slider downloads none of its footage (see PERF_MODE). From
 // then on only the active slide and the one after it are attached — the next
-// clip buffers while the current one scrubs — and the rest wait until the
-// reader gets that far. An attached src is kept, so scrolling back never
-// re-downloads.
+// clip buffers while the current one plays — and the rest wait until the reader
+// gets that far. An attached src is kept, so stepping back never re-downloads.
 const videoSrcs   = ref([])
 const videoReady  = ref([])
 const videoFailed = ref([])
 const videoEls    = []
-// Per slide, once primed: { video, seek, duration } (see prime()).
-const clips = []
 const near         = ref(false)
+const inView       = ref(false)
 const reduceMotion = ref(false)
 
 function attach(i) {
   const slide = slides.value[i]
   if (!slide || videoSrcs.value[i]) return
-  // Clips aren't scrubbed under reduced motion, so a slide with an image keeps
+  // Clips aren't played under reduced motion, so a slide with an image keeps
   // it and skips the download; one without still gets its clip's first frame.
   if (reduceMotion.value && imageUrl(slide)) return
   const src = videoSource(slide)
-  if (!src) return
-  videoSrcs.value[i] = src
-  // Attaching mounts the <video>, so it primes after the render.
-  nextTick(() => prime(i))
+  if (src) videoSrcs.value[i] = src
 }
 
-const attachAround = () => {
+// Only the active slide's clip plays, and only while the section is on screen.
+// A slide that becomes active restarts its clip from the top.
+function syncPlayback(restart) {
+  let playing = false
+  videoEls.forEach((v, k) => {
+    if (!v) return
+    if (k === activeIndex.value && inView.value && !reduceMotion.value) {
+      if (restart) v.currentTime = 0
+      v.muted = true // autoplay policies require it set before play()
+      v.play()?.catch(() => {})
+      playing = true
+    } else if (!v.paused) {
+      v.pause()
+    }
+  })
+  if (playing) startClipClock()
+  else stopClipClock()
+}
+
+// Attaching mounts the <video>, so playback syncs after the render.
+function attachAround(restart) {
   attach(activeIndex.value)
   attach(activeIndex.value + 1)
-}
-watch(activeIndex, () => { if (near.value) attachAround() })
-
-// Kick the decoder and wait for a real duration (see primeScrubVideo), then
-// bind a gated seeker and land on the current scroll position.
-async function prime(i) {
-  const video = videoEls[i]
-  if (!video) return
-  await primeScrubVideo(video)
-  clips[i] = { video, seek: createSeeker(video), duration: video.duration }
-  syncVideos()
+  nextTick(() => syncPlayback(restart))
 }
 
-// Seek every primed clip to its slide's share of the current scroll, so a clip
-// runs from its first frame at the handover into its slide to its last at the
-// handover out — the next slide takes over just as the footage ends. Runs on
-// each scrub tick (the same smoothed progress that picks the slide); clips
-// parked at either end of their window — the slides not on screen — are
-// skipped rather than re-seeked every frame.
-function syncVideos() {
-  if (!pinned.value) return
-  clips.forEach((clip, i) => {
-    if (!clip) return
-    const target = windowProgress(i) * clip.duration
-    if (!Number.isFinite(target)) return
-    if (!clip.video.seeking && Math.abs(clip.video.currentTime - target) < 0.01) return
-    clip.seek(target)
-  })
+watch(activeIndex, () => {
+  // The new slide's bar starts empty rather than inheriting the last clip's
+  // position for the frame before its own restart lands.
+  clipProgress.value = 0
+  if (near.value) attachAround(true)
+})
+watch(inView, () => syncPlayback(false))
+
+// A clip that plays to its end moves the slider on. It goes through goTo, so
+// pinned, the page scrolls to the next slide's point and scroll and slide keep
+// agreeing (a wheel or touch still takes over, as with a click). Only while the
+// reader is inside the pinned stage, though: with the section merely passing
+// through the viewport, advancing would drag the page into it, so the clip goes
+// round again instead.
+function onClipEnded(i) {
+  if (i !== activeIndex.value) return
+  const rect = rootRef.value?.getBoundingClientRect()
+  const engaged = !pinned.value
+    || (rect && rect.top <= 1 && rect.bottom >= window.innerHeight - 1)
+  if (engaged) {
+    goTo(i + 1)
+    return
+  }
+  const v = videoEls[i]
+  if (!v) return
+  v.currentTime = 0
+  v.play()?.catch(() => {})
 }
 
 // --- Bar fill ------------------------------------------------------------------
 
-// 0–1 fill for bar i. Only the active bar fills, and it tracks the clip — its
-// slide's share of the scroll, the very position the clip is scrubbed to — only
-// where one is scrubbed. An image slide, a clip that failed to load, or no pin
-// (reduced motion, the simulator: clips held on their first frame) shows it
-// full.
-const barFill = (i) => {
-  if (i !== activeIndex.value) return 0
-  const timed = pinned.value && videoSrcs.value[i] && !videoFailed.value[i]
-  return timed ? windowProgress(i) : 1
+// The active bar fills with its clip's playhead, reaching full as the clip
+// ends and hands on (or wraps, on the looping last slide). Read every frame rather than on `timeupdate`, which only fires a few
+// times a second and would make the fill visibly step. The clock only runs
+// while the active clip is meant to be playing.
+const clipProgress = ref(0)
+let clipFrame = 0
+
+function readClip() {
+  const v = videoEls[activeIndex.value]
+  if (v?.duration) clipProgress.value = v.currentTime / v.duration
+  clipFrame = requestAnimationFrame(readClip)
+}
+function startClipClock() {
+  if (!clipFrame) clipFrame = requestAnimationFrame(readClip)
+}
+function stopClipClock() {
+  cancelAnimationFrame(clipFrame)
+  clipFrame = 0
 }
 
-let stopNear = null
+// 0–1 fill for bar i. Only the active bar fills, and it tracks the clip only
+// when there's one that will actually play; an image slide, a clip that failed
+// to load, or reduced motion (clips held still) shows it full, as before.
+const barFill = (i) => {
+  if (i !== activeIndex.value) return 0
+  const timed = videoSrcs.value[i] && !videoFailed.value[i] && !reduceMotion.value
+  return timed ? clipProgress.value : 1
+}
+
+let stopNear     = null
+let viewObserver = null
 onMounted(() => {
   window.addEventListener('wheel', release, { passive: true })
   window.addEventListener('touchstart', release, { passive: true })
@@ -452,14 +458,23 @@ onMounted(() => {
     if (!rootRef.value) return // unmounted while the overlay was up
     stopNear = observeNear(rootRef.value, () => {
       near.value = true
-      attachAround()
+      attachAround(false)
     }, '100%')
   })
+
+  if (typeof IntersectionObserver === 'undefined') {
+    inView.value = true
+    return
+  }
+  viewObserver = new IntersectionObserver(([entry]) => { inView.value = entry.isIntersecting })
+  viewObserver.observe(rootRef.value)
 })
 onUnmounted(() => {
   window.removeEventListener('wheel', release)
   window.removeEventListener('touchstart', release)
   stopNear?.()
+  viewObserver?.disconnect()
   captionObserver?.disconnect()
+  stopClipClock()
 })
 </script>
