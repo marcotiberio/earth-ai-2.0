@@ -154,18 +154,18 @@ const inSimulator = inject('inSliceSimulator', false)
 
 // Pinned scroll before the cards start moving, so the headline and the first
 // cards settle on screen before the horizontal travel kicks in.
-const LEAD_VH = 50
+const LEAD_VH = 30
 
 // Pinned scroll held on the last card before the sticky releases, so the end of
 // the travel registers (and the scrub's smoothing lag settles) before the
 // section scrolls away (cf. RaceBars' dwellVh). Matches LEAD_VH so the travel
 // is framed by equal holds at both ends.
-const DWELL_VH = 50
+const DWELL_VH = 100
 
 // The pinned scroll a clip gets when it plays through a hold (cf. SliderImages'
 // STEP_VH): every stop where one card fills the row, and the lead-in / dwell on
 // desktop.
-const CLIP_HOLD_VH = 70
+const CLIP_HOLD_VH = 40
 
 const rootRef     = ref(null)
 const viewportRef = ref(null)
