@@ -1,9 +1,9 @@
 <template>
-  <footer class="sticky bottom-0 z-0 h-dvh w-full bg-darkblue text-darkblue">
+  <footer class="sticky bottom-0 z-0 h-dvh w-full overflow-hidden bg-darkblue text-darkblue">
     <div
       class="h-full overflow-y-auto"
       data-lenis-prevent
-      :style="{ opacity: footerOpacity }"
+      :style="{ opacity: footerOpacity, transform: footerLift ? `translate3d(0, ${footerLift}dvh, 0)` : undefined }"
     >
     <div class="min-h-full flex flex-col justify-between boxed !pb-sm !pt-[62px]">
     <div class="flex flex-col items-start justify-between gap-sm mb-sm w-full">
@@ -69,7 +69,7 @@ import { components } from '~/slices'
 
 const route = useRoute()
 
-const { footerOpacity } = useFooterReveal()
+const { footerOpacity, footerLift } = useFooterReveal()
 
 function scrollToTop(e) {
   if (route.path === '/') {

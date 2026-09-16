@@ -31,7 +31,7 @@
       </div>
     </template>
     <h2
-      class="ea-display font-serif text-beige font-h2 w-full md:w-2/3 mx-auto"
+      class="ea-display font-serif text-beige font-h2 w-full"
       v-html="titleHtml"
     />
   </ScrubScene>

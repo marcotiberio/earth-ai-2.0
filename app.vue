@@ -5,15 +5,23 @@
       <AppNav />
       <NuxtPage />
       <div
-        class="pointer-events-none absolute bottom-0 left-0 z-30 h-dvh w-full bg-darkblue"
-        :style="{ opacity: outgoingVeil }"
+        class="pointer-events-none absolute bottom-0 left-0 z-30 h-dvh w-full overflow-hidden"
         aria-hidden="true"
-      />
+      >
+        <div
+          class="absolute inset-x-0 top-0 h-[200dvh] bg-gradient-to-b from-darkblue from-35% to-transparent to-65% will-change-transform"
+          :style="{ transform: `translate3d(0, ${-130 + 160 * nightfall}dvh, 0)` }"
+        />
+        <div
+          class="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-darkblue to-transparent"
+          :style="{ opacity: seamShade }"
+        />
+      </div>
     </div>
     <AppFooter />
   </div>
 </template>
 
 <script setup>
-const { outgoingVeil } = useFooterReveal()
+const { nightfall, seamShade } = useFooterReveal()
 </script>
