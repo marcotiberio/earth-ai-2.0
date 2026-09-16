@@ -45,7 +45,7 @@
             :ref="(el) => { videoEls[i] = el }"
             :src="videoSrcs[i]"
             muted
-            :loop="i === slides.length - 1"
+            loop
             playsinline
             preload="auto"
             crossorigin="anonymous"
@@ -54,7 +54,6 @@
             :class="videoReady[i] ? 'opacity-100' : 'opacity-0'"
             @loadeddata="videoReady[i] = true"
             @error="videoFailed[i] = true"
-            @ended="onClipEnded(i)"
           />
         </div>
       </div>
@@ -84,6 +83,7 @@
               >
                 <span
                   class="absolute inset-0 rounded-full bg-beige"
+                  :class="scrubbing ? '' : 'transition-transform duration-300 ease-out motion-reduce:transition-none'"
                   :style="{ transform: `translateX(${(barFill(i) - 1) * 100}%)` }"
                 />
               </span>
@@ -254,20 +254,16 @@ function attach(i) {
 }
 
 function syncPlayback(restart) {
-  let playing = false
   videoEls.forEach((v, k) => {
     if (!v) return
     if (k === activeIndex.value && inView.value && !reduceMotion.value && !scrubbing.value) {
       if (restart) v.currentTime = 0
       v.muted = true
       v.play()?.catch(() => {})
-      playing = true
     } else if (!v.paused) {
       v.pause()
     }
   })
-  if (playing) startClipClock()
-  else stopClipClock()
 }
 
 function attachAround(restart) {
@@ -277,59 +273,26 @@ function attachAround(restart) {
 }
 
 watch(activeIndex, () => {
-  clipProgress.value = 0
   scrubbing.value = false
   press = null
   if (near.value) attachAround(true)
 })
 watch(inView, () => syncPlayback(false))
 
-function onClipEnded(i) {
-  if (i !== activeIndex.value) return
-  const rect = rootRef.value?.getBoundingClientRect()
-  const engaged = !pinned.value
-    || (rect && rect.top <= 1 && rect.bottom >= window.innerHeight - 1)
-  if (engaged) {
-    goTo(i + 1)
-    return
-  }
-  const v = videoEls[i]
-  if (!v) return
-  v.currentTime = 0
-  v.play()?.catch(() => {})
-}
-
-const clipProgress = ref(0)
-let clipFrame = 0
-
-function readClip() {
-  const v = videoEls[activeIndex.value]
-  if (v?.duration && !scrubbing.value) clipProgress.value = v.currentTime / v.duration
-  clipFrame = requestAnimationFrame(readClip)
-}
-function startClipClock() {
-  if (!clipFrame) clipFrame = requestAnimationFrame(readClip)
-}
-function stopClipClock() {
-  cancelAnimationFrame(clipFrame)
-  clipFrame = 0
-}
-
-const clipTimed = (i) =>
-  Boolean(videoSrcs.value[i]) && !videoFailed.value[i] && !reduceMotion.value
-const barFill = (i) => {
-  if (i !== activeIndex.value) return 0
-  return clipTimed(i) ? clipProgress.value : 1
-}
-
-const scrubbing = ref(false)
-const seekers   = []
+const scrubbing     = ref(false)
+const scrubFraction = ref(0)
+const seekers       = []
 let press = null
 
-const END_GUARD_S = 0.15
-const KEY_STEP    = 0.1
+const KEY_STEP = 0.1
 
-const scrubbable = (i) => i === activeIndex.value && clipTimed(i)
+const scrubbable = (i) =>
+  i === activeIndex.value && Boolean(videoSrcs.value[i]) && !videoFailed.value[i] && !reduceMotion.value
+
+const barFill = (i) => {
+  if (i !== activeIndex.value) return 0
+  return scrubbing.value ? scrubFraction.value : 1
+}
 
 const clamp01 = (x) => Math.min(1, Math.max(0, x))
 
@@ -341,17 +304,15 @@ const fractionAt = (e) => {
 function seekClip(i, fraction) {
   const v = videoEls[i]
   if (!v?.duration) return
-  const f = clamp01(fraction)
-  clipProgress.value = f
-  v.currentTime = Math.min(f * v.duration, v.duration - END_GUARD_S)
+  v.currentTime = clamp01(fraction) * v.duration
 }
 
 function scrubClip(i, fraction) {
   const v = videoEls[i]
   if (!v?.duration) return
-  clipProgress.value = fraction
+  scrubFraction.value = fraction
   if (!seekers[i]) seekers[i] = createSeeker(v)
-  seekers[i](Math.min(fraction * v.duration, v.duration - END_GUARD_S))
+  seekers[i](fraction * v.duration)
 }
 
 function beginScrub(e) {
@@ -362,7 +323,7 @@ function beginScrub(e) {
 }
 
 function finishScrub(i) {
-  seekClip(i, clipProgress.value)
+  seekClip(i, scrubFraction.value)
   scrubbing.value = false
   syncPlayback(false)
 }
@@ -401,9 +362,10 @@ function onBarClick(i) {
 
 function onBarKey(e, i) {
   const step = { ArrowLeft: -KEY_STEP, ArrowRight: KEY_STEP }[e.key]
-  if (!step || !scrubbable(i)) return
+  const v = videoEls[i]
+  if (!step || !scrubbable(i) || !v?.duration) return
   e.preventDefault()
-  seekClip(i, clipProgress.value + step)
+  seekClip(i, v.currentTime / v.duration + step)
 }
 
 let stopNear     = null
@@ -446,6 +408,5 @@ onUnmounted(() => {
   stopNear?.()
   viewObserver?.disconnect()
   captionObserver?.disconnect()
-  stopClipClock()
 })
 </script>
