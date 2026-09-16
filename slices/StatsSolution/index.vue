@@ -143,7 +143,7 @@ const { progress, tall } = inSimulator
 const pinned = computed(() => tall.value)
 
 const HOLD_VH     = 60
-const DWELL_VH    = 10
+const DWELL_VH    = 50
 const CARD_DELAY  = 0.25
 const CARD_SPAN   = 0.4
 const CARD_SLIDE  = 3
