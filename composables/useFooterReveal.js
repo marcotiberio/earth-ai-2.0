@@ -2,6 +2,7 @@ import { computed, onBeforeUnmount, onMounted, ref, unref } from 'vue'
 
 const NIGHT_RANGE = [0.02, 0.55]
 const SEAM_RANGE  = [0, 0.12]
+const TAIL_RANGE  = [0, 0.25]
 const IN_RANGE    = [0.18, 0.70]
 const LIFT_RANGE  = [0.05, 0.95]
 const LIFT_VH     = 12
@@ -75,6 +76,7 @@ export function useFooterReveal() {
     footerLift:    computed(() => (animate.value ? (1 - ramp(progressRef.value, LIFT_RANGE)) * LIFT_VH : 0)),
     nightfall:     computed(() => (animate.value ? ramp(progressRef.value, NIGHT_RANGE) : 0)),
     seamShade:     computed(() => (animate.value ? ramp(progressRef.value, SEAM_RANGE) : 0)),
+    seamTail:      computed(() => (animate.value ? ramp(1 - progressRef.value, TAIL_RANGE) : 0)),
   }
 }
 

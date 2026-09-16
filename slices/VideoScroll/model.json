@@ -111,7 +111,7 @@
             "label": "Title",
             "placeholder": "Headline",
             "allowTargetBlank": true,
-            "single": "heading1,heading2,heading3,strong,em"
+            "multi": "heading1,heading2,heading3,strong,em"
           }
         },
         "title_align_vertical": {

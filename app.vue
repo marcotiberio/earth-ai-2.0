@@ -17,11 +17,16 @@
           :style="{ opacity: seamShade }"
         />
       </div>
+      <div
+        class="pointer-events-none absolute left-0 top-full z-30 h-[20dvh] w-full origin-top bg-gradient-to-b from-darkblue to-transparent will-change-transform"
+        :style="{ transform: `scaleY(${seamTail})` }"
+        aria-hidden="true"
+      />
     </div>
     <AppFooter />
   </div>
 </template>
 
 <script setup>
-const { nightfall, seamShade } = useFooterReveal()
+const { nightfall, seamShade, seamTail } = useFooterReveal()
 </script>

@@ -203,6 +203,7 @@ type HomePageDocumentDataSlicesSlice =
   | MapTargetsSlice
   | HorizontalScrollSlice
   | SliderImagesSlice
+  | StatsSolutionSlice
   | SplasherSlice;
 
 /**
@@ -278,6 +279,7 @@ type PageDocumentDataSlicesSlice =
   | MapTargetsSlice
   | HorizontalScrollSlice
   | SliderImagesSlice
+  | StatsSolutionSlice
   | TextContentSlice
   | PressQuotesSlice
   | SplasherSlice;
@@ -638,7 +640,7 @@ export interface HorizontalScrollSliceDefaultPrimaryCardsItem {
    * Video field in *HorizontalScroll → Default → Primary → Cards*
    *
    * - **Field Type**: Link to Media
-   * - **Placeholder**: Optional looping clip. The image shows while it loads, and in its place when empty
+   * - **Placeholder**: Optional clip, scrubbed by the scroll while its card is fully in view (encode like the other scrub clips). The image shows while it loads, and in its place when empty
    * - **API ID Path**: horizontal_scroll.default.primary.cards[].video_url
    * - **Documentation**: https://prismic.io/docs/fields/link-to-media
    */
@@ -1337,6 +1339,241 @@ type SplasherSliceVariation = SplasherSliceDefault;
 export type SplasherSlice = prismic.SharedSlice<
   "splasher",
   SplasherSliceVariation
+>;
+
+/**
+ * Item in *StatsSolution → Default → Primary → Top bar*
+ */
+export interface StatsSolutionSliceDefaultPrimaryTopItem {
+  /**
+   * Label field in *StatsSolution → Default → Primary → Top bar*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Small label at the top of the bar (e.g. AI)
+   * - **API ID Path**: stats_solution.default.primary.top[].label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  label: prismic.KeyTextField;
+
+  /**
+   * Value field in *StatsSolution → Default → Primary → Top bar*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Big figure (e.g. 160x)
+   * - **API ID Path**: stats_solution.default.primary.top[].value
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  value: prismic.KeyTextField;
+
+  /**
+   * Caption field in *StatsSolution → Default → Primary → Top bar*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Small caption under the figure (e.g. MORE ACCURATE)
+   * - **API ID Path**: stats_solution.default.primary.top[].caption
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  caption: prismic.KeyTextField;
+
+  /**
+   * Description field in *StatsSolution → Default → Primary → Top bar*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Short sentence next to the figure
+   * - **API ID Path**: stats_solution.default.primary.top[].description
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  description: prismic.KeyTextField;
+}
+
+/**
+ * Item in *StatsSolution → Default → Primary → Cards*
+ */
+export interface StatsSolutionSliceDefaultPrimaryCardsItem {
+  /**
+   * Label field in *StatsSolution → Default → Primary → Cards*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. GEOLOGY
+   * - **API ID Path**: stats_solution.default.primary.cards[].label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  label: prismic.KeyTextField;
+
+  /**
+   * Value field in *StatsSolution → Default → Primary → Cards*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. 2x
+   * - **API ID Path**: stats_solution.default.primary.cards[].value
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  value: prismic.KeyTextField;
+
+  /**
+   * Caption field in *StatsSolution → Default → Primary → Cards*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. FASTER
+   * - **API ID Path**: stats_solution.default.primary.cards[].caption
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  caption: prismic.KeyTextField;
+
+  /**
+   * Description field in *StatsSolution → Default → Primary → Cards*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Short sentence at the bottom of the card
+   * - **API ID Path**: stats_solution.default.primary.cards[].description
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  description: prismic.KeyTextField;
+}
+
+/**
+ * Item in *StatsSolution → Default → Primary → Bottom bar*
+ */
+export interface StatsSolutionSliceDefaultPrimaryBottomItem {
+  /**
+   * Label field in *StatsSolution → Default → Primary → Bottom bar*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Small label at the top of the bar (e.g. DEVELOPMENT)
+   * - **API ID Path**: stats_solution.default.primary.bottom[].label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  label: prismic.KeyTextField;
+
+  /**
+   * Value field in *StatsSolution → Default → Primary → Bottom bar*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Big figure (e.g. 6.5x). Its number counts up as the bar fills
+   * - **API ID Path**: stats_solution.default.primary.bottom[].value
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  value: prismic.KeyTextField;
+
+  /**
+   * Caption field in *StatsSolution → Default → Primary → Bottom bar*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Small caption under the figure (e.g. FASTER)
+   * - **API ID Path**: stats_solution.default.primary.bottom[].caption
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  caption: prismic.KeyTextField;
+
+  /**
+   * Description field in *StatsSolution → Default → Primary → Bottom bar*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Short sentence next to the figure
+   * - **API ID Path**: stats_solution.default.primary.bottom[].description
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  description: prismic.KeyTextField;
+}
+
+/**
+ * Primary content in *StatsSolution → Default → Primary*
+ */
+export interface StatsSolutionSliceDefaultPrimary {
+  /**
+   * Hide slice field in *StatsSolution → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: stats_solution.default.primary.is_hidden
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  is_hidden: prismic.BooleanField;
+
+  /**
+   * Section label field in *StatsSolution → Default → Primary*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Small label above the title (e.g. The Solution)
+   * - **API ID Path**: stats_solution.default.primary.section_label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  section_label: prismic.KeyTextField;
+
+  /**
+   * Title field in *StatsSolution → Default → Primary*
+   *
+   * - **Field Type**: Rich Text
+   * - **Placeholder**: Headline (e.g. Our vertically integrated operations dramatically accelerate mine development)
+   * - **API ID Path**: stats_solution.default.primary.title
+   * - **Documentation**: https://prismic.io/docs/fields/rich-text
+   */
+  title: prismic.RichTextField;
+
+  /**
+   * Top bar field in *StatsSolution → Default → Primary*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: stats_solution.default.primary.top[]
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  top: prismic.GroupField<Simplify<StatsSolutionSliceDefaultPrimaryTopItem>>;
+
+  /**
+   * Cards field in *StatsSolution → Default → Primary*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: stats_solution.default.primary.cards[]
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  cards: prismic.GroupField<
+    Simplify<StatsSolutionSliceDefaultPrimaryCardsItem>
+  >;
+
+  /**
+   * Bottom bar field in *StatsSolution → Default → Primary*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: stats_solution.default.primary.bottom[]
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  bottom: prismic.GroupField<
+    Simplify<StatsSolutionSliceDefaultPrimaryBottomItem>
+  >;
+}
+
+/**
+ * Default variation for StatsSolution Slice
+ *
+ * - **API ID**: `default`
+ * - **Description**: Default
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type StatsSolutionSliceDefault = prismic.SharedSliceVariation<
+  "default",
+  Simplify<StatsSolutionSliceDefaultPrimary>,
+  never
+>;
+
+/**
+ * Slice variation for *StatsSolution*
+ */
+type StatsSolutionSliceVariation = StatsSolutionSliceDefault;
+
+/**
+ * StatsSolution Shared Slice
+ *
+ * - **API ID**: `stats_solution`
+ * - **Description**: Stat cards revealed on scroll: a label + headline, a beige top bar that fades in, a row of blue cards that fade in left to right, then a bar that fills yellow left to right while its figure counts up with the fill.
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type StatsSolutionSlice = prismic.SharedSlice<
+  "stats_solution",
+  StatsSolutionSliceVariation
 >;
 
 /**
@@ -2104,6 +2341,13 @@ declare module "@prismicio/client" {
       SplasherSliceDefaultPrimary,
       SplasherSliceVariation,
       SplasherSliceDefault,
+      StatsSolutionSlice,
+      StatsSolutionSliceDefaultPrimaryTopItem,
+      StatsSolutionSliceDefaultPrimaryCardsItem,
+      StatsSolutionSliceDefaultPrimaryBottomItem,
+      StatsSolutionSliceDefaultPrimary,
+      StatsSolutionSliceVariation,
+      StatsSolutionSliceDefault,
       SupplyGapSlice,
       SupplyGapSliceDefaultPrimaryYTicksItem,
       SupplyGapSliceDefaultPrimaryXLabelsItem,
