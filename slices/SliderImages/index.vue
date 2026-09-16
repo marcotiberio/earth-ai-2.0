@@ -20,8 +20,8 @@
       </div>
 
       <div
-        class="relative overflow-hidden rounded-t-[5px] bg-beige/5"
-        :class="pinned ? 'min-h-0 flex-1' : 'aspect-[4/3] md:aspect-[1639/714]'"
+        class="relative w-full overflow-hidden rounded-t-[5px] bg-beige/5"
+        :class="pinned ? 'min-h-0 flex-1' : 'aspect-[4/3] md:aspect-[16/7]'"
       >
         <div
           v-for="(slide, i) in slides"
@@ -96,15 +96,10 @@
         </ol>
       </nav>
 
-      <div
-        class="mt-xs grid"
-        :class="captionStyle ? 'overflow-hidden transition-[height] duration-500 ease-out motion-reduce:transition-none' : ''"
-        :style="captionStyle"
-      >
+      <div class="mt-xs grid">
         <div
           v-for="(slide, i) in slides"
           :key="i"
-          :ref="(el) => { captionEls[i] = el }"
           class="[grid-area:1/1] self-start transition-opacity duration-500 ease-out motion-reduce:transition-none"
           :class="i === activeIndex ? 'opacity-100' : 'pointer-events-none opacity-0'"
           :inert="i !== activeIndex"
@@ -215,15 +210,6 @@ function goTo(i) {
 }
 
 const release = () => { held.value = null }
-
-const captionEls     = []
-const captionHeights = ref([])
-let captionObserver  = null
-
-const captionStyle = computed(() => {
-  const h = captionHeights.value[activeIndex.value]
-  return pinned.value && h != null ? { height: `${h}px` } : null
-})
 
 const mediaUrl = (field) =>
   typeof field === 'string' ? field : field?.url || ''
@@ -374,16 +360,6 @@ onMounted(() => {
   window.addEventListener('wheel', release, { passive: true })
   window.addEventListener('touchstart', release, { passive: true })
 
-  if (typeof ResizeObserver !== 'undefined') {
-    captionObserver = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const i = captionEls.indexOf(entry.target)
-        if (i !== -1) captionHeights.value[i] = entry.target.offsetHeight
-      }
-    })
-    captionEls.forEach((el) => el && captionObserver.observe(el))
-  }
-
   if (!hasVideo) return
   reduceMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -407,6 +383,5 @@ onUnmounted(() => {
   window.removeEventListener('touchstart', release)
   stopNear?.()
   viewObserver?.disconnect()
-  captionObserver?.disconnect()
 })
 </script>
