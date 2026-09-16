@@ -108,7 +108,7 @@ const cards        = computed(() => props.slice.primary.cards || [])
 
 const inSimulator = inject('inSliceSimulator', false)
 
-const LEAD_VH = 30
+const LEAD_VH = 100
 
 const DWELL_VH = 100
 
