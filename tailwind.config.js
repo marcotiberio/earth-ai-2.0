@@ -40,6 +40,7 @@ export default {
         'beige': '#FAF3E4',
         'grey':  '#8A93A6',
         'orange':  '#E97B39',
+        'yellow':  '#F6CF58',
         'black': '#050F23',
         'white': '#FAF3E4',
       },

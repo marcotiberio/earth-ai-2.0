@@ -5,7 +5,7 @@
       data-lenis-prevent
       :style="{ opacity: footerOpacity }"
     >
-    <div class="min-h-full flex flex-col justify-start boxed !pb-sm !pt-[62px]">
+    <div class="min-h-full flex flex-col justify-between boxed !pb-sm !pt-[62px]">
     <div class="flex flex-col items-start justify-between gap-sm mb-sm w-full">
       <div class="flex flex-row items-start justify-between gap-sm w-full">
         <div class="flex flex-col items-start justify-between gap-sm w-full md:w-1/2">

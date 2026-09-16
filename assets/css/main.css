@@ -173,7 +173,7 @@ html.lenis body {
   }
   .btn-primary {
     @apply text-darkblue hover:text-darkblue group-hover:text-darkblue
-           bg-beige hover:bg-orange group-hover:bg-orange
+           bg-beige hover:bg-yellow group-hover:bg-yellow
            border-beige hover:no-underline !important;
   }
   .btn-outline {

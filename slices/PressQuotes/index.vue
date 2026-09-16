@@ -24,7 +24,7 @@
         </figure>
         <p
           class="text-beige font-h3 font-sansLight"
-          :class="linkHref ? 'transition-colors group-hover:text-orange' : ''"
+          :class="linkHref ? 'transition-colors group-hover:text-yellow' : ''"
         >
           &ldquo;{{ titleText }}&rdquo;
         </p>

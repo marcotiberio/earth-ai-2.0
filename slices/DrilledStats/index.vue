@@ -23,7 +23,7 @@
               <p class="font-mono font-caption font-medium tracking-wide leading-snug uppercase text-beige">
                 <span class="mr-3 inline-block h-3 w-3 rounded-[2px] bg-current align-baseline" />{{ stat.label }}
               </p>
-              <h2 class="mt-8 font-serif font-h2">
+              <h2 class="mt-2 lg:mt-8 font-serif font-h2">
                 {{ counter(stat.value) }}
               </h2>
             </li>

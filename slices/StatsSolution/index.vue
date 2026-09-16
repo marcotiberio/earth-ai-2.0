@@ -1,6 +1,11 @@
 <template>
-  <section class="relative w-full bg-darkblue text-beige">
-    <div class="boxed">
+  <section ref="rootRef" class="relative w-full overflow-x-clip bg-darkblue text-beige">
+    <div
+      ref="innerRef"
+      class="boxed"
+      :class="pinned ? 'sticky' : ''"
+      :style="pinned ? { top: `${stickyTop}px` } : null"
+    >
       <div v-if="sectionLabel || titleHtml" class="flex flex-col gap-xs">
         <SectionLabel v-if="sectionLabel" :text="sectionLabel" />
         <h2
@@ -37,8 +42,8 @@
           <li
             v-for="(card, i) in cards"
             :key="i"
-            class="flex flex-col rounded-[6px] bg-[#152238]/50 p-xs will-change-[opacity] md:min-h-[15rem] lg:min-h-[17.4rem]"
-            :style="{ opacity: cardProgress(i) }"
+            class="flex flex-col rounded-[6px] bg-[#152238]/50 p-xs will-change-[opacity,transform] md:min-h-[15rem] lg:min-h-[17.4rem]"
+            :style="cardStyle(i)"
           >
             <p v-if="card.label" class="font-mono font-caption uppercase">
               <span :class="squareClass" />{{ card.label }}
@@ -79,11 +84,12 @@
         </div>
       </div>
     </div>
+    <div v-if="pinned" aria-hidden="true" :style="{ height: `${HOLD_VH}vh` }" />
   </section>
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue'
+import { ref, computed, inject, onMounted, onUnmounted } from 'vue'
 import { asHTML } from '@prismicio/client'
 
 const props = defineProps({
@@ -124,43 +130,102 @@ const cards  = computed(() => (primary.value.cards || []).filter((card) => card.
 
 const inSimulator = inject('inSliceSimulator', false)
 
+const rootRef   = ref(null)
+const innerRef  = ref(null)
 const topRef    = ref(null)
 const cardsRef  = ref(null)
 const bottomRef = ref(null)
 
-const scrollProgress = (trigger, options) => {
-  if (inSimulator) return { progress: ref(1) }
-  return useScrollProgress(trigger, { scrub: 1, ...options })
+const { progress, tall } = inSimulator
+  ? { progress: ref(1), tall: ref(false) }
+  : useScrollProgress(rootRef, { start: 'top bottom', end: 'bottom top', scrub: 1 })
+
+const pinned = computed(() => tall.value)
+
+const HOLD_VH     = 60
+const DWELL_VH    = 10
+const CARD_DELAY  = 0.25
+const CARD_SPAN   = 0.4
+const CARD_SLIDE  = 3
+const BAR_LEAD    = 0.5
+const REVEAL_SPAN = 0.25
+
+const box = ref({ vh: 0, sectionH: 0, innerH: 0, top: 0, cards: 0, cardsH: 0, cardH: 0, bottom: 0, bottomH: 0 })
+
+function measure() {
+  const root  = rootRef.value
+  const inner = innerRef.value
+  if (!root || !inner) return
+  box.value = {
+    vh:       window.innerHeight,
+    sectionH: root.offsetHeight,
+    innerH:   inner.offsetHeight,
+    top:      topRef.value?.offsetTop ?? 0,
+    cards:    cardsRef.value?.offsetTop ?? 0,
+    cardsH:   cardsRef.value?.offsetHeight ?? 0,
+    cardH:    cardsRef.value?.firstElementChild?.offsetHeight ?? 0,
+    bottom:   bottomRef.value?.offsetTop ?? 0,
+    bottomH:  bottomRef.value?.offsetHeight ?? 0,
+  }
 }
 
-const { progress: topProgress } = scrollProgress(topRef, {
-  start: 'top 90%',
-  end: 'top 55%',
+const stickyTop = computed(() => Math.min(0, box.value.vh - box.value.innerH))
+
+const timeline = computed(() => {
+  const { vh, innerH, top, cards, cardsH, cardH, bottom, bottomH } = box.value
+  const pinEnd    = Math.max(vh, innerH) + (vh * HOLD_VH) / 100
+  const cardShift = CARD_DELAY * (0.2 * vh + cardH)
+  const barLength = 0.25 * vh + bottomH
+  const barStart  = Math.max(bottom, 0.1 * vh + bottom - BAR_LEAD * barLength)
+  const fillStart = barStart + REVEAL_SPAN * barLength
+  return {
+    top:    [0.1 * vh + top, 0.45 * vh + top],
+    cards:  [0.1 * vh + cards + cardShift, 0.3 * vh + cards + cardsH + cardShift],
+    reveal: [barStart, fillStart],
+    fill:   [fillStart, pinEnd - (vh * DWELL_VH) / 100],
+  }
 })
 
-const { progress: cardsProgress } = scrollProgress(cardsRef, {
-  start: 'top 90%',
-  end: 'bottom 70%',
-})
-
-const { progress: bottomProgress } = scrollProgress(bottomRef, {
-  start: 'top 90%',
-  end: 'bottom 65%',
-})
+const scrolled = computed(() => progress.value * (box.value.sectionH + box.value.vh))
 
 const clamp01 = (x) => Math.min(1, Math.max(0, x))
 const easeInOut = (t) => t * t * (3 - 2 * t)
 
-const CARD_SPAN = 0.4
+function phase(key) {
+  if (!pinned.value) return 1
+  const [from, to] = timeline.value[key]
+  if (to <= from) return scrolled.value > from ? 1 : 0
+  return clamp01((scrolled.value - from) / (to - from))
+}
+
+const topProgress = computed(() => easeInOut(phase('top')))
+
 function cardProgress(i) {
   const n = cards.value.length
   const stagger = n > 1 ? (1 - CARD_SPAN) / (n - 1) : 0
-  return easeInOut(clamp01((cardsProgress.value - i * stagger) / CARD_SPAN))
+  return easeInOut(clamp01((phase('cards') - i * stagger) / CARD_SPAN))
 }
 
-const REVEAL_SPAN = 0.25
-const bottomReveal = computed(() => easeInOut(clamp01(bottomProgress.value / REVEAL_SPAN)))
-const bottomFill   = computed(() => clamp01((bottomProgress.value - REVEAL_SPAN) / (1 - REVEAL_SPAN)))
+function cardStyle(i) {
+  const t = cardProgress(i)
+  return { opacity: t, transform: `translateX(${(t - 1) * CARD_SLIDE}rem)` }
+}
+
+const bottomReveal = computed(() => easeInOut(phase('reveal')))
+const bottomFill   = computed(() => phase('fill'))
+
+let resizeObserver = null
+onMounted(() => {
+  measure()
+  window.addEventListener('resize', measure)
+  if (typeof ResizeObserver === 'undefined') return
+  resizeObserver = new ResizeObserver(measure)
+  resizeObserver.observe(innerRef.value)
+})
+onUnmounted(() => {
+  window.removeEventListener('resize', measure)
+  resizeObserver?.disconnect()
+})
 
 function parseValue(str) {
   const s = String(str ?? '')
@@ -189,7 +254,7 @@ const bottomLayers = computed(() => [
   { key: 'track', class: 'bg-[#152238]/50 text-beige' },
   {
     key: 'fill',
-    class: 'bg-[#F6CF58] text-black',
+    class: 'bg-yellow text-black',
     hidden: true,
     style: { clipPath: `inset(0 ${(1 - bottomFill.value) * 100}% 0 0)` },
   },
