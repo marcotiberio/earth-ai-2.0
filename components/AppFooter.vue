@@ -30,11 +30,14 @@
       </div>
       <ul v-if="footer?.data?.social_media_links?.length" class="flex gap-xs">
         <li v-for="(item, i) in footer.data.social_media_links" :key="i">
-          <PrismicLink :field="item.link" class="block text-beige hover:text-orange hover:cursor-pointer transition-colors">
-            <img
-              :src="`/icons/${item.social.toLowerCase()}.svg`"
-              :alt="item.social"
-              class="h-6 w-6"
+          <PrismicLink :field="item.link" :aria-label="item.social" class="block text-beige hover:text-yellow hover:cursor-pointer transition-colors">
+            <span
+              aria-hidden="true"
+              class="block h-6 w-6 bg-current"
+              :style="{
+                mask: `url(/icons/${item.social.toLowerCase()}.svg) center / contain no-repeat`,
+                WebkitMask: `url(/icons/${item.social.toLowerCase()}.svg) center / contain no-repeat`,
+              }"
             />
           </PrismicLink>
         </li>
@@ -51,7 +54,7 @@
           v-for="(item, i) in footer.data.legal_links"
           :key="i"
           :field="item.link"
-          class="font-mono uppercase hover:text-orange hover:cursor-pointer transition-colors"
+          class="font-mono uppercase hover:text-yellow hover:cursor-pointer transition-colors"
         />
       </nav>
       <span class="font-mono uppercase whitespace-nowrap flex justify-center">© EARTH AI – {{ new Date().getFullYear() }}</span>
