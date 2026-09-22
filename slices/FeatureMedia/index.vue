@@ -6,7 +6,7 @@
     :image-mobile="slice.primary.image_mobile || {}"
     :scroll-length="slice.primary.scroll_length || 300"
     align="bottom"
-    overlay-class="bg-gradient-to-t from-darkblue via-darkblue/50 to-transparent"
+    :overlay-class="slice.primary.gradient_bottom !== false ? 'bg-gradient-to-t from-darkblue via-darkblue/50 to-transparent' : ''"
   >
     <div class="w-full flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
       <h2

@@ -1,10 +1,5 @@
 <template>
-  <footer class="relative z-0 min-h-dvh w-full bg-darkblue text-darkblue lg:sticky lg:bottom-0 lg:h-dvh lg:min-h-0 lg:overflow-hidden">
-    <div
-      class="lg:h-full lg:overflow-y-auto"
-      data-lenis-prevent
-      :style="{ opacity: footerOpacity, transform: footerLift ? `translate3d(0, ${footerLift}dvh, 0)` : undefined }"
-    >
+  <footer class="relative z-0 min-h-dvh w-full bg-darkblue text-darkblue">
     <div class="min-h-full flex flex-col justify-between boxed !pb-sm !pt-[62px]">
     <div class="flex flex-col items-start justify-between gap-sm mb-sm w-full">
       <div class="flex flex-row items-start justify-between gap-sm w-full">
@@ -60,7 +55,6 @@
       <span class="font-mono uppercase whitespace-nowrap flex justify-center">© EARTH AI – {{ new Date().getFullYear() }}</span>
     </div>
     </div>
-    </div>
   </footer>
 </template>
 
@@ -68,8 +62,6 @@
 import { components } from '~/slices'
 
 const route = useRoute()
-
-const { footerOpacity, footerLift } = useFooterReveal()
 
 function scrollToTop(e) {
   if (route.path === '/') {

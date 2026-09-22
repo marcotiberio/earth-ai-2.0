@@ -13,7 +13,7 @@
   >
 
     <template #pinned>
-      <div class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
+      <div v-if="slice.primary.gradient_bottom !== false" class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
 
       <div
         class="hidden pointer-events-none absolute inset-x-xs md:inset-x-sm top-[22%] bottom-[14%] flex-col justify-between"

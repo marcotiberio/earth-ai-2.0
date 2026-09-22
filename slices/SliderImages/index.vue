@@ -83,13 +83,13 @@
               >
                 <span
                   class="absolute inset-0 rounded-full bg-beige"
-                  :class="scrubbing ? '' : 'transition-transform duration-300 ease-out motion-reduce:transition-none'"
+                  :class="scrubbing || pinned ? '' : 'transition-transform duration-300 ease-out motion-reduce:transition-none'"
                   :style="{ transform: `translateX(${(barFill(i) - 1) * 100}%)` }"
                 />
               </span>
               <span
                 class="mt-[0.35rem] block font-mono font-body leading-[1.2] transition-opacity duration-300 motion-reduce:transition-none"
-                :class="i === activeIndex ? 'opacity-100' : 'opacity-25 group-hover:opacity-60'"
+                :class="barFill(i) > 0 ? 'opacity-100' : 'opacity-25 group-hover:opacity-60'"
               >{{ i + 1 }}</span>
             </button>
           </li>
@@ -179,7 +179,9 @@ const { progress, tall } = useScrollProgress(scrubbed ? rootRef : ref(null), {
 
 const pinned = computed(() => tall.value && scrubbed)
 
-const scrollIndex = computed(() => Math.round(progress.value * (slides.value.length - 1)))
+const scrollIndex = computed(() =>
+  Math.min(slides.value.length - 1, Math.floor(progress.value * slides.value.length)),
+)
 
 const selected = ref(0)
 
@@ -202,7 +204,7 @@ function goTo(i) {
   const vh     = window.innerHeight
   const start  = root.getBoundingClientRect().top + window.scrollY + vh * LEAD_VH / 100
   const runway = root.offsetHeight - vh * (1 + (LEAD_VH + DWELL_VH) / 100)
-  const top    = start + (i / (slides.value.length - 1)) * runway
+  const top    = start + (i / slides.value.length) * runway
 
   held.value = i === scrollIndex.value ? null : i
   if ($lenis) $lenis.scrollTo(top)
@@ -275,12 +277,13 @@ const KEY_STEP = 0.1
 const scrubbable = (i) =>
   i === activeIndex.value && Boolean(videoSrcs.value[i]) && !videoFailed.value[i] && !reduceMotion.value
 
-const barFill = (i) => {
-  if (i !== activeIndex.value) return 0
-  return scrubbing.value ? scrubFraction.value : 1
-}
-
 const clamp01 = (x) => Math.min(1, Math.max(0, x))
+
+const barFill = (i) => {
+  if (scrubbing.value) return i === activeIndex.value ? scrubFraction.value : 0
+  if (!pinned.value) return i <= activeIndex.value ? 1 : 0
+  return clamp01(progress.value * slides.value.length - i)
+}
 
 const fractionAt = (e) => {
   const rect = e.currentTarget.getBoundingClientRect()

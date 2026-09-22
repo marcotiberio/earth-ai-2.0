@@ -47,11 +47,11 @@ holds only `press_quotes`.
   deleting it. [`visibleSlices`](../utils/slices.js) filters these out before
   render. Absent/false ⇒ shown.
 - **Scrub controls** — the scrolly slices expose `scroll_length` (Number, vh of
-  scroll the video is scrubbed over) and `scrub_start` (Select: `top`/`middle`,
-  unpinned `video_scroll` only) so editors tune the interaction per section
-  without code changes. A pinned scene reserves a viewport for the pin itself
-  plus its dwell on top of `scroll_length`, so the clip always finishes while
-  still pinned.
+  scroll the video is scrubbed over) and, on `video_scroll`, `scrub_lead_in`
+  (Number, 0-100 vh before the section pins that the clip starts on, default 50)
+  so editors tune the interaction per section without code changes. A pinned
+  scene sizes itself from those two plus its dwell, so the clip always finishes
+  while still pinned whatever the lead-in.
 
 ### Video field pairing
 Video slices carry `video_url` (desktop, a Prismic Link-to-media) and

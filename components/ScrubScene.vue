@@ -33,13 +33,12 @@
         />
         <div class="absolute inset-0" :class="overlayClass" />
 
-        <slot name="pinned" :copy-opacity="copyOpacity" />
+        <slot name="pinned" />
 
         <div
           v-if="!frame"
           class="absolute inset-0 z-10 flex px-xs md:px-sm"
           :class="[alignClass, alignXClass]"
-          :style="{ opacity: copyOpacity }"
         >
           <div class="w-full flex flex-col gap-xs">
             <SectionLabel v-if="sectionLabel" :text="sectionLabel" />
@@ -52,7 +51,6 @@
         v-if="frame"
         class="flex pt-sm lg:max-w-screen-full"
         :class="alignXClass"
-        :style="{ opacity: copyOpacity }"
       >
         <div class="w-full flex flex-col gap-xs">
           <SectionLabel v-if="sectionLabel" :text="sectionLabel" />
@@ -76,6 +74,7 @@ const props = defineProps({
   align:        { type: String, default: 'bottom' },
   alignX:       { type: String, default: 'left' },
   tailVh:       { type: Number, default: 0 },
+  leadVh:       { type: Number, default: 0 },
   scrubUntilExit: { type: Boolean, default: false },
   overlayClass: { type: String, default: 'bg-darkblue/40' },
   frame:        { type: Boolean, default: false },
@@ -86,8 +85,6 @@ const inSimulator = inject('inSliceSimulator', false)
 
 const rootRef  = ref(null)
 const videoRef = ref(null)
-
-const copyOpacity = useFooterRevealCopy(rootRef)
 
 const videoSrc = ref('')
 let stopObserve = null
@@ -137,13 +134,16 @@ onMounted(() => {
 
 onBeforeUnmount(() => stopObserve?.())
 
+const leadPx = () =>
+  window.innerHeight * Math.min(Math.max(props.leadVh, 0), 100) / 100
+
 if (props.videoUrl && !inSimulator) {
   useScrubVideo(videoRef, rootRef, {
     ready: videoReady,
-    start: 'top top',
+    start: () => `top top+=${leadPx()}`,
     end: props.scrubUntilExit
       ? 'bottom top'
-      : () => `+=${rootRef.value.offsetHeight - window.innerHeight * (1 + props.tailVh / 100)}`,
+      : () => `+=${rootRef.value.offsetHeight - window.innerHeight * (1 + props.tailVh / 100) + leadPx()}`,
   })
 }
 

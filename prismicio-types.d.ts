@@ -522,6 +522,17 @@ export interface HeroImageSliceDefaultPrimary {
   is_hidden: prismic.BooleanField;
 
   /**
+   * Bottom gradient field in *HeroImage → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: true
+   * - **API ID Path**: hero_image.default.primary.gradient_bottom
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  gradient_bottom: prismic.BooleanField;
+
+  /**
    * Background video field in *HeroImage → Default → Primary*
    *
    * - **Field Type**: Link to Media

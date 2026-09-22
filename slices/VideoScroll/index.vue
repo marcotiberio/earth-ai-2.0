@@ -7,21 +7,21 @@
     :image-mobile="slice.primary.image_mobile || {}"
     :scroll-length="scrollLength"
     :tail-vh="hasDwell ? DWELL_VH : 0"
+    :lead-vh="leadVh"
     :section-label="slice.primary.section_label || ''"
     :align="slice.primary.title_align_vertical || 'bottom'"
     :align-x="slice.primary.title_align_horizontal || 'left'"
     :frame="slice.primary.frame || false"
     overlay-class=""
   >
-    <template #pinned="{ copyOpacity }">
-      <div v-if="slice.primary.gradient_top !== false" class="hidden bg-gradient-to-b from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 top-0 h-1/4 pointer-events-none" />
-      <div v-if="slice.primary.gradient_bottom !== false" class="hidden bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
+    <template #pinned>
+      <div v-if="slice.primary.gradient_top !== false" class="bg-gradient-to-b from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 top-0 h-1/4 pointer-events-none" />
+      <div v-if="slice.primary.gradient_bottom !== false" class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
 
       <div
         v-if="subtitleHtml"
         class="absolute inset-x-0 inset-y-sm z-10 flex px-xs md:px-sm pointer-events-none"
         :class="[subtitleAlignClass, subtitleAlignXClass]"
-        :style="{ opacity: copyOpacity }"
       >
         <p
           class="text-beige font-h3 w-full lg:w-1/2"
@@ -111,11 +111,19 @@ const activeImage    = useMobileImage(() => props.slice.primary.image, () => pro
 
 const PIN_VH   = 100
 const DWELL_VH = 100
+const LEAD_VH  = 50
 const hasDwell = computed(() =>
   Boolean(videoUrl.value) && props.slice.variation === 'overlay',
 )
+const leadVh = computed(() => {
+  const value = props.slice.primary.scrub_lead_in
+  return Math.min(Math.max(Number.isFinite(value) ? value : LEAD_VH, 0), 100)
+})
 const scrollLength = computed(
-  () => (props.slice.primary.scroll_length || 300) + PIN_VH + (hasDwell.value ? DWELL_VH : 0),
+  () => (props.slice.primary.scroll_length || 300)
+    + PIN_VH
+    + (hasDwell.value ? DWELL_VH : 0)
+    - leadVh.value,
 )
 
 const subtitleAlignClass = computed(() => ({

@@ -84,18 +84,14 @@
           "type": "Number",
           "config": {
             "label": "Scroll length (vh)",
-            "placeholder": "Pinned scroll distance in vh (default: 300)"
+            "placeholder": "Scroll distance the video plays over, in vh (default: 300)"
           }
         },
-        "scrub_start": {
-          "type": "Select",
+        "scrub_lead_in": {
+          "type": "Number",
           "config": {
-            "label": "Scrub start",
-            "placeholder": "When the scroll-scrub begins (default: full travel)",
-            "options": [
-              "top",
-              "middle"
-            ]
+            "label": "Video lead-in (vh)",
+            "placeholder": "How far before the section pins the video starts, 0-100 vh (default: 50)"
           }
         },
         "section_label": {

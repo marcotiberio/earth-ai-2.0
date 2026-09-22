@@ -21,6 +21,15 @@
             "default_value": false
           }
         },
+        "gradient_bottom": {
+          "type": "Boolean",
+          "config": {
+            "label": "Bottom gradient",
+            "placeholder_false": "Hidden",
+            "placeholder_true": "Visible",
+            "default_value": true
+          }
+        },
         "video_url": {
           "type": "Link",
           "config": {

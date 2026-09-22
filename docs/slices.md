@@ -7,17 +7,17 @@ Every slice lives in `slices/<Name>/` with `index.vue` (render) and usually
 screenshot. Registered for rendering in [slices/index.js](../slices/index.js).
 
 All content slices share `primary.is_hidden`. Scrolly slices also share
-`scroll_length` (Number, vh — the scroll distance the video is scrubbed over,
-inside the pin). `scrub_start` (Select `top`/`middle`) only applies to the
-unpinned `video_scroll` default variation; pinned scenes always scrub from the
-moment they pin.
+`scroll_length` (Number, vh — the scroll distance the video is scrubbed over).
+`video_scroll` adds `scrub_lead_in` (Number, 0-100 vh) — how far before the
+section pins the scrub starts, so the clip is already running as the module
+scrolls in (default 50). The clip always finishes inside the pin either way.
 
 ## Modeled slices (offered in Prismic)
 
 | slice_type | Component | Purpose | Notable fields |
 |------------|-----------|---------|----------------|
 | `hero_image` | [HeroImage](../slices/HeroImage/index.vue) | Opening hero; scroll-scrub video or static image | `video_url`(+mobile), `image`, `title`, `subtitle`, `scroll_length`, `scrub_start` |
-| `video_scroll` | [VideoScroll](../slices/VideoScroll/index.vue) | Pinned scrub-video section with overlaid title/subtitle | `frame`, `gradient_top/bottom`, `video_url`(+mobile), `image`, per-axis title/subtitle aligns |
+| `video_scroll` | [VideoScroll](../slices/VideoScroll/index.vue) | Pinned scrub-video section with overlaid title/subtitle. The clip starts `scrub_lead_in` vh before the section pins, plays over `scroll_length` vh, then holds its last frame for 100vh while still pinned before the section releases | `frame`, `gradient_top/bottom`, `video_url`(+mobile), `image`, `scroll_length`, `scrub_lead_in`, per-axis title/subtitle aligns |
 | `video_scroll_titles` | [VideoScrollTitles](../slices/VideoScrollTitles/index.vue) | Scrub video with a sequence of titles revealed across the pin | `items` (group of titles), `gradient_top/bottom`, aligns |
 | `race_bars` | [RaceBars](../slices/RaceBars/index.vue) | Animated "race" bar chart scrubbed on scroll | `heading`, `items` (group) |
 | `supply_gap` | [SupplyGap](../slices/SupplyGap/index.vue) | Supply-vs-demand line/area chart | `heading`, `body`, `y_ticks`, `x_labels`, `demand`, `supply` (groups) |
