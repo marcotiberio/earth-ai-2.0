@@ -14,8 +14,11 @@ const ramp = (p, [a, b]) => {
   return t * t * (3 - 2 * t)
 }
 
+const REVEAL_QUERY = '(min-width: 1180px)'
+
 const subscribers = new Set()
 let contentEl = null
+let revealMql = null
 let teardown = null
 let progress = 0
 let engaged = false
@@ -23,8 +26,9 @@ let engaged = false
 function measure() {
   if (!contentEl || !contentEl.isConnected) contentEl = document.getElementById('page-content')
   if (!contentEl) return
+  if (!revealMql) revealMql = window.matchMedia(REVEAL_QUERY)
   const vh = window.innerHeight || 1
-  engaged = contentEl.offsetHeight >= vh
+  engaged = revealMql.matches && contentEl.offsetHeight >= vh
   const seam = contentEl.getBoundingClientRect().bottom
   progress = engaged ? Math.min(Math.max(1 - seam / vh, 0), 1) : 0
   subscribers.forEach((notify) => notify())

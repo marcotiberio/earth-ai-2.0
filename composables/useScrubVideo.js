@@ -1,5 +1,5 @@
 import { onMounted, onUnmounted, unref } from 'vue'
-import { primeScrubVideo, createSeeker, observeNear } from '../utils/scrubVideo'
+import { createSeeker } from '../utils/scrubVideo'
 
 const isSeekScrubEngine = () => {
   const ua = navigator.userAgent
@@ -17,7 +17,7 @@ export const SCRUB_PRESETS = {
 export function useScrubVideo(videoRef, triggerRef, options = {}) {
   let ctx = null
   let rafId = 0
-  let stopObserve = null
+  let disposed = false
 
   const preset = SCRUB_PRESETS[options.startAt] || {}
   const start  = options.start || preset.start || 'top bottom'
@@ -32,9 +32,8 @@ export function useScrubVideo(videoRef, triggerRef, options = {}) {
     const { ScrollTrigger: ST } = await import('gsap/ScrollTrigger')
     gsap.registerPlugin(ST)
 
-    await new Promise((resolve) => { stopObserve = observeNear(trigger, resolve, '200%') })
-
-    await primeScrubVideo(video)
+    await options.ready
+    if (disposed) return
 
     let targetProgress = 0
     ctx = gsap.context(() => {
@@ -85,8 +84,8 @@ export function useScrubVideo(videoRef, triggerRef, options = {}) {
   })
 
   onUnmounted(() => {
+    disposed = true
     if (rafId) cancelAnimationFrame(rafId)
-    stopObserve?.()
     ctx?.revert()
   })
 }

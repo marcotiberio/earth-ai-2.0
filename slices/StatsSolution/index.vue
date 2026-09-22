@@ -58,7 +58,6 @@
 
         <div
           v-if="bottom.value"
-          ref="bottomRef"
           class="grid overflow-hidden rounded will-change-[opacity]"
           :style="{ opacity: bottomReveal }"
         >
@@ -129,12 +128,10 @@ const bottom = computed(() => statFrom(primary.value.bottom))
 const cards  = computed(() => (primary.value.cards || []).filter((card) => card.value))
 
 const inSimulator = inject('inSliceSimulator', false)
-
 const rootRef   = ref(null)
 const innerRef  = ref(null)
 const topRef    = ref(null)
 const cardsRef  = ref(null)
-const bottomRef = ref(null)
 
 const { progress, tall } = inSimulator
   ? { progress: ref(1), tall: ref(false) }
@@ -142,15 +139,19 @@ const { progress, tall } = inSimulator
 
 const pinned = computed(() => tall.value)
 
-const HOLD_VH     = 60
-const DWELL_VH    = 50
+const HOLD_VH     = 220
+const DWELL_VH    = 40
+const LEAD_VH     = 0.1
+const GAP_VH      = 0.12
+const TOP_VH      = 0.5
+const REVEAL_VH   = 0.3
+const FILL_VH     = 0.65
 const CARD_DELAY  = 0.25
-const CARD_SPAN   = 0.4
+const CARD_STAGGER_VH = 0.24
+const CARD_FADE_VH    = 0.48
 const CARD_SLIDE  = 3
-const BAR_LEAD    = 0.5
-const REVEAL_SPAN = 0.25
 
-const box = ref({ vh: 0, sectionH: 0, innerH: 0, top: 0, cards: 0, cardsH: 0, cardH: 0, bottom: 0, bottomH: 0 })
+const box = ref({ vh: 0, sectionH: 0, innerH: 0, top: 0, cardTops: [], cardH: 0 })
 
 function measure() {
   const root  = rootRef.value
@@ -161,28 +162,35 @@ function measure() {
     sectionH: root.offsetHeight,
     innerH:   inner.offsetHeight,
     top:      topRef.value?.offsetTop ?? 0,
-    cards:    cardsRef.value?.offsetTop ?? 0,
-    cardsH:   cardsRef.value?.offsetHeight ?? 0,
+    cardTops: cardsRef.value ? [...cardsRef.value.children].map((el) => el.offsetTop) : [],
     cardH:    cardsRef.value?.firstElementChild?.offsetHeight ?? 0,
-    bottom:   bottomRef.value?.offsetTop ?? 0,
-    bottomH:  bottomRef.value?.offsetHeight ?? 0,
   }
 }
 
 const stickyTop = computed(() => Math.min(0, box.value.vh - box.value.innerH))
 
 const timeline = computed(() => {
-  const { vh, innerH, top, cards, cardsH, cardH, bottom, bottomH } = box.value
-  const pinEnd    = Math.max(vh, innerH) + (vh * HOLD_VH) / 100
+  const { vh, innerH, top, cardTops, cardH } = box.value
+  const lead   = LEAD_VH * vh
+  const gap    = GAP_VH * vh
+  const pinEnd = Math.max(vh, innerH) + (vh * HOLD_VH) / 100
+
+  const fillEnd   = pinEnd - (vh * DWELL_VH) / 100
+  const fillStart = fillEnd - FILL_VH * vh
+  const barStart  = fillStart - REVEAL_VH * vh
+  const headEnd   = barStart - gap
+
+  const topStart  = lead + top
+  const topEnd    = Math.min(topStart + TOP_VH * vh, headEnd)
   const cardShift = CARD_DELAY * (0.2 * vh + cardH)
-  const barLength = 0.25 * vh + bottomH
-  const barStart  = Math.max(bottom, 0.1 * vh + bottom - BAR_LEAD * barLength)
-  const fillStart = barStart + REVEAL_SPAN * barLength
+  const cardBase  = Math.max(lead + (cardTops[0] ?? 0) + cardShift, topEnd + gap)
+
   return {
-    top:    [0.1 * vh + top, 0.45 * vh + top],
-    cards:  [0.1 * vh + cards + cardShift, 0.3 * vh + cards + cardsH + cardShift],
+    top:    [topStart, topEnd],
     reveal: [barStart, fillStart],
-    fill:   [fillStart, pinEnd - (vh * DWELL_VH) / 100],
+    fill:   [fillStart, fillEnd],
+    cardBase,
+    headEnd,
   }
 })
 
@@ -201,9 +209,15 @@ function phase(key) {
 const topProgress = computed(() => easeInOut(phase('top')))
 
 function cardProgress(i) {
-  const n = cards.value.length
-  const stagger = n > 1 ? (1 - CARD_SPAN) / (n - 1) : 0
-  return easeInOut(clamp01((phase('cards') - i * stagger) / CARD_SPAN))
+  if (!pinned.value) return 1
+  const { vh, cardTops } = box.value
+  const { cardBase, headEnd } = timeline.value
+  const row   = cardTops[i] ?? 0
+  const col   = i - cardTops.findIndex((t) => Math.abs(t - row) < 2)
+  const from  = cardBase + (row - (cardTops[0] ?? 0)) + CARD_STAGGER_VH * vh * col
+  const to    = Math.min(from + CARD_FADE_VH * vh, headEnd)
+  if (to <= from) return scrolled.value > from ? 1 : 0
+  return easeInOut(clamp01((scrolled.value - from) / (to - from)))
 }
 
 function cardStyle(i) {

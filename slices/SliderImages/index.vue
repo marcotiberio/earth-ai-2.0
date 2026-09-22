@@ -112,7 +112,7 @@
           </h3>
           <div
             v-if="descriptionsHtml[i]"
-            class="max-w-screen-desktop 
+            class="max-w-screen-tablet 
                     mt-xs lg:mt-xs 
                     font-sansLight font-small leading-[1.2]
                     [&_strong]:font-sans [&_strong]:font-normal [&_em]:font-serifItalic [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:text-orange"

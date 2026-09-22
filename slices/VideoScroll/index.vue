@@ -7,7 +7,6 @@
     :image-mobile="slice.primary.image_mobile || {}"
     :scroll-length="scrollLength"
     :tail-vh="hasDwell ? DWELL_VH : 0"
-    :scrub-start="slice.primary.scrub_start || ''"
     :section-label="slice.primary.section_label || ''"
     :align="slice.primary.title_align_vertical || 'bottom'"
     :align-x="slice.primary.title_align_horizontal || 'left'"
@@ -15,7 +14,7 @@
     overlay-class=""
   >
     <template #pinned="{ copyOpacity }">
-      <div v-if="slice.primary.gradient_top !== false" class="bg-gradient-to-b from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 top-0 h-1/4 pointer-events-none" />
+      <div v-if="slice.primary.gradient_top !== false" class="hidden bg-gradient-to-b from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 top-0 h-1/4 pointer-events-none" />
       <div v-if="slice.primary.gradient_bottom !== false" class="hidden bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
 
       <div
@@ -41,7 +40,7 @@
       <video
         v-if="videoUrl"
         ref="videoRef"
-        :src="videoSrc"
+        :src="videoSrc || undefined"
         :poster="imgixUrl(activeImage?.url, { w: 1280 }) || undefined"
         class="w-full h-[40vh] md:h-[55vh] object-cover"
         muted
@@ -77,7 +76,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
+import { ref, computed, nextTick, onBeforeUnmount, onMounted } from 'vue'
 import { asHTML } from '@prismicio/client'
 
 const props = defineProps({
@@ -110,12 +109,13 @@ const videoUrl       = computed(() => mediaUrl(props.slice.primary.video_url))
 const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
 const activeImage    = useMobileImage(() => props.slice.primary.image, () => props.slice.primary.image_mobile)
 
+const PIN_VH   = 100
 const DWELL_VH = 100
 const hasDwell = computed(() =>
-  Boolean(videoUrl.value) && !props.slice.primary.scrub_start && props.slice.variation === 'overlay',
+  Boolean(videoUrl.value) && props.slice.variation === 'overlay',
 )
 const scrollLength = computed(
-  () => (props.slice.primary.scroll_length || 300) + (hasDwell.value ? DWELL_VH : 0),
+  () => (props.slice.primary.scroll_length || 300) + PIN_VH + (hasDwell.value ? DWELL_VH : 0),
 )
 
 const subtitleAlignClass = computed(() => ({
@@ -132,25 +132,39 @@ const subtitleAlignXClass = computed(() => ({
 
 const rootRef  = ref(null)
 const videoRef = ref(null)
-const videoSrc = ref(videoUrl.value)
+const videoSrc = ref('')
 
 let stopWarmObserve = null
+let attached = false
+
+let resolveReady = null
+const videoReady = new Promise((resolve) => { resolveReady = resolve })
+
+const isMobile = typeof window !== 'undefined'
+  && window.matchMedia('(max-width: 767px)').matches
+const sourceUrl = () => (MOBILE_VIDEO_ENABLED && isMobile && videoUrlMobile.value) ? videoUrlMobile.value : videoUrl.value
+
+const attachSrc = async () => {
+  if (attached) return
+  attached = true
+  videoSrc.value = sourceUrl()
+  await nextTick()
+  const v = videoRef.value
+  if (!v) return
+  await primeScrubVideo(v)
+  resolveReady()
+}
 
 if (props.slice.variation !== 'overlay' && props.slice.primary.video_url) {
   onMounted(() => {
-    if (MOBILE_VIDEO_ENABLED
-      && typeof window !== 'undefined'
-      && window.matchMedia('(max-width: 767px)').matches
-      && videoUrlMobile.value) {
-      videoSrc.value = videoUrlMobile.value
-    }
     if (PERF_MODE) {
-      stopWarmObserve = observeNear(rootRef.value, () => prefetchScrubVideo(videoSrc.value), scrubLeadMargin(200))
+      stopWarmObserve = observeNear(rootRef.value, attachSrc, scrubLeadMargin(200))
     } else {
-      prefetchScrubVideo(videoSrc.value)
+      prefetchScrubVideo(sourceUrl())
+      attachSrc()
     }
   })
   onBeforeUnmount(() => stopWarmObserve?.())
-  useScrubVideo(videoRef, rootRef, { startAt: props.slice.primary.scrub_start })
+  useScrubVideo(videoRef, rootRef, { startAt: props.slice.primary.scrub_start, ready: videoReady })
 }
 </script>

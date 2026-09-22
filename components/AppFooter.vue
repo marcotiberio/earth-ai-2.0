@@ -1,7 +1,7 @@
 <template>
-  <footer class="sticky bottom-0 z-0 h-dvh w-full overflow-hidden bg-darkblue text-darkblue">
+  <footer class="relative z-0 min-h-dvh w-full bg-darkblue text-darkblue lg:sticky lg:bottom-0 lg:h-dvh lg:min-h-0 lg:overflow-hidden">
     <div
-      class="h-full overflow-y-auto"
+      class="lg:h-full lg:overflow-y-auto"
       data-lenis-prevent
       :style="{ opacity: footerOpacity, transform: footerLift ? `translate3d(0, ${footerLift}dvh, 0)` : undefined }"
     >

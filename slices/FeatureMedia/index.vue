@@ -5,7 +5,6 @@
     :image="slice.primary.image || {}"
     :image-mobile="slice.primary.image_mobile || {}"
     :scroll-length="slice.primary.scroll_length || 300"
-    :scrub-start="slice.primary.scrub_start || ''"
     align="bottom"
     overlay-class="bg-gradient-to-t from-darkblue via-darkblue/50 to-transparent"
   >

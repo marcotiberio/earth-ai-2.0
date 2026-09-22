@@ -75,7 +75,6 @@ const props = defineProps({
   sectionLabel: { type: String, default: '' },
   align:        { type: String, default: 'bottom' },
   alignX:       { type: String, default: 'left' },
-  scrubStart:   { type: String, default: '' },
   tailVh:       { type: Number, default: 0 },
   scrubUntilExit: { type: Boolean, default: false },
   overlayClass: { type: String, default: 'bg-darkblue/40' },
@@ -92,6 +91,10 @@ const copyOpacity = useFooterRevealCopy(rootRef)
 
 const videoSrc = ref('')
 let stopObserve = null
+let attached = false
+
+let resolveReady = null
+const videoReady = new Promise((resolve) => { resolveReady = resolve })
 
 const isMobile = typeof window !== 'undefined'
   && window.matchMedia('(max-width: 767px)').matches
@@ -99,16 +102,15 @@ const sourceUrl = () => (MOBILE_VIDEO_ENABLED && isMobile && props.videoUrlMobil
 
 const activeImage = useMobileImage(() => props.image, () => props.imageMobile)
 
-const attachSrc = () => {
+const attachSrc = async () => {
+  if (attached) return
+  attached = true
   videoSrc.value = sourceUrl()
-  nextTick(() => {
-    const v = videoRef.value
-    if (!v) return
-    v.muted = true
-    try { v.load() } catch {}
-    const p = v.play()
-    if (p && p.then) p.then(() => v.pause()).catch(() => {})
-  })
+  await nextTick()
+  const v = videoRef.value
+  if (!v) return
+  await primeScrubVideo(v)
+  resolveReady()
 }
 
 const alignClass = computed(() => ({
@@ -136,16 +138,13 @@ onMounted(() => {
 onBeforeUnmount(() => stopObserve?.())
 
 if (props.videoUrl && !inSimulator) {
-  const defaultEnd = props.tailVh > 0
-    ? () => `+=${rootRef.value.offsetHeight - window.innerHeight * (1 + props.tailVh / 100)}`
-    : props.scrubUntilExit ? 'bottom top' : 'bottom bottom'
-  useScrubVideo(
-    videoRef,
-    rootRef,
-    props.scrubStart
-      ? { startAt: props.scrubStart }
-      : { start: 'top top', end: defaultEnd },
-  )
+  useScrubVideo(videoRef, rootRef, {
+    ready: videoReady,
+    start: 'top top',
+    end: props.scrubUntilExit
+      ? 'bottom top'
+      : () => `+=${rootRef.value.offsetHeight - window.innerHeight * (1 + props.tailVh / 100)}`,
+  })
 }
 
 defineExpose({ root: rootRef })

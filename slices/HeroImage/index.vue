@@ -6,7 +6,6 @@
     :image="slice.primary.image || {}"
     :image-mobile="slice.primary.image_mobile || {}"
     :scroll-length="slice.primary.scroll_length || 300"
-    :scrub-start="slice.primary.scrub_start || ''"
     align="bottom"
     overlay-class=""
     scrub-until-exit
@@ -14,6 +13,8 @@
   >
 
     <template #pinned>
+      <div class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
+
       <div
         class="hidden pointer-events-none absolute inset-x-xs md:inset-x-sm top-[22%] bottom-[14%] flex-col justify-between"
       >
