@@ -58,6 +58,7 @@
 
         <div
           v-if="bottom.value"
+          ref="bottomRef"
           class="grid overflow-hidden rounded will-change-[opacity]"
           :style="{ opacity: bottomReveal }"
         >
@@ -83,7 +84,7 @@
         </div>
       </div>
     </div>
-    <div v-if="pinned" aria-hidden="true" :style="{ height: `${HOLD_VH}vh` }" />
+    <div v-if="pinned" aria-hidden="true" :style="{ height: `${holdVh}vh` }" />
   </section>
 </template>
 
@@ -132,6 +133,7 @@ const rootRef   = ref(null)
 const innerRef  = ref(null)
 const topRef    = ref(null)
 const cardsRef  = ref(null)
+const bottomRef = ref(null)
 
 const { progress, tall } = inSimulator
   ? { progress: ref(1), tall: ref(false) }
@@ -139,19 +141,25 @@ const { progress, tall } = inSimulator
 
 const pinned = computed(() => tall.value)
 
-const HOLD_VH     = 220
+const HOLD_ROW_VH = 170
 const DWELL_VH    = 40
 const LEAD_VH     = 0.1
 const GAP_VH      = 0.12
 const TOP_VH      = 0.5
 const REVEAL_VH   = 0.3
 const FILL_VH     = 0.65
-const CARD_DELAY  = 0.25
-const CARD_STAGGER_VH = 0.24
-const CARD_FADE_VH    = 0.48
 const CARD_SLIDE  = 3
 
-const box = ref({ vh: 0, sectionH: 0, innerH: 0, top: 0, cardTops: [], cardH: 0 })
+const CARD_DELAY      = 0.25
+const CARD_STAGGER_VH = 0.24
+const CARD_FADE_VH    = 0.48
+
+const CARD_ENTER_VH         = 1
+const CARD_STAGGER_STACK_VH = 0.15
+const CARD_FADE_STACK_VH    = 0.3
+const BAR_ENTER_VH          = 1
+
+const box = ref({ vh: 0, sectionH: 0, innerH: 0, top: 0, cardTops: [], cardH: 0, bottom: 0 })
 
 function measure() {
   const root  = rootRef.value
@@ -164,33 +172,92 @@ function measure() {
     top:      topRef.value?.offsetTop ?? 0,
     cardTops: cardsRef.value ? [...cardsRef.value.children].map((el) => el.offsetTop) : [],
     cardH:    cardsRef.value?.firstElementChild?.offsetHeight ?? 0,
+    bottom:   bottomRef.value?.offsetTop ?? 0,
   }
 }
 
 const stickyTop = computed(() => Math.min(0, box.value.vh - box.value.innerH))
 
-const timeline = computed(() => {
-  const { vh, innerH, top, cardTops, cardH } = box.value
-  const lead   = LEAD_VH * vh
-  const gap    = GAP_VH * vh
-  const pinEnd = Math.max(vh, innerH) + (vh * HOLD_VH) / 100
+const oneRow = computed(() => {
+  const tops = box.value.cardTops
+  return tops.length > 1 && tops.every((t) => Math.abs(t - tops[0]) < 2)
+})
 
-  const fillEnd   = pinEnd - (vh * DWELL_VH) / 100
-  const fillStart = fillEnd - FILL_VH * vh
-  const barStart  = fillStart - REVEAL_VH * vh
-  const headEnd   = barStart - gap
-
-  const topStart  = lead + top
-  const topEnd    = Math.min(topStart + TOP_VH * vh, headEnd)
+const cardTiming = computed(() => {
+  const { vh, top, cardTops, cardH } = box.value
+  const first = cardTops[0] ?? 0
+  if (!oneRow.value) {
+    return {
+      base:    first + (1 - CARD_ENTER_VH) * vh,
+      stagger: CARD_STAGGER_STACK_VH * vh,
+      fade:    CARD_FADE_STACK_VH * vh,
+    }
+  }
+  const topEnd    = LEAD_VH * vh + top + TOP_VH * vh
   const cardShift = CARD_DELAY * (0.2 * vh + cardH)
-  const cardBase  = Math.max(lead + (cardTops[0] ?? 0) + cardShift, topEnd + gap)
+  return {
+    base:    Math.max(LEAD_VH * vh + first + cardShift, topEnd + GAP_VH * vh),
+    stagger: CARD_STAGGER_VH * vh,
+    fade:    CARD_FADE_VH * vh,
+  }
+})
+
+function cardWindow(i) {
+  const { cardTops } = box.value
+  const { base, stagger, fade } = cardTiming.value
+  const row  = cardTops[i] ?? 0
+  const col  = i - cardTops.findIndex((t) => Math.abs(t - row) < 2)
+  const from = base + (row - (cardTops[0] ?? 0)) + stagger * col
+  return [from, from + fade]
+}
+
+const cardsEnd = computed(() => {
+  let end = cardTiming.value.base
+  for (let i = 0; i < box.value.cardTops.length; i += 1) {
+    end = Math.max(end, cardWindow(i)[1])
+  }
+  return end
+})
+
+const stackBar = computed(() => {
+  const { vh, bottom } = box.value
+  const barStart  = Math.max(bottom + (1 - BAR_ENTER_VH) * vh, cardsEnd.value)
+  const fillStart = barStart + REVEAL_VH * vh
+  return { barStart, fillStart, fillEnd: fillStart + FILL_VH * vh }
+})
+
+const holdVh = computed(() => {
+  if (oneRow.value) return HOLD_ROW_VH
+  const { vh, innerH } = box.value
+  if (!vh) return DWELL_VH
+  const pinStart = Math.max(vh, innerH)
+  return Math.max(DWELL_VH, ((stackBar.value.fillEnd - pinStart) / vh) * 100 + DWELL_VH)
+})
+
+const timeline = computed(() => {
+  const { vh, innerH, top } = box.value
+  const pinEnd   = Math.max(vh, innerH) + (vh * holdVh.value) / 100
+  const dwellEnd = pinEnd - (vh * DWELL_VH) / 100
+
+  const topStart = LEAD_VH * vh + top
+  const topEnd   = topStart + TOP_VH * vh
+
+  if (oneRow.value) {
+    return {
+      top:     [topStart, topEnd],
+      reveal:  [topStart, topEnd],
+      fill:    null,
+      headEnd: dwellEnd,
+    }
+  }
+
+  const { barStart, fillStart, fillEnd } = stackBar.value
 
   return {
-    top:    [topStart, topEnd],
-    reveal: [barStart, fillStart],
-    fill:   [fillStart, fillEnd],
-    cardBase,
-    headEnd,
+    top:     [topStart, topEnd],
+    reveal:  [barStart, fillStart],
+    fill:    [fillStart, fillEnd],
+    headEnd: barStart,
   }
 })
 
@@ -210,12 +277,8 @@ const topProgress = computed(() => easeInOut(phase('top')))
 
 function cardProgress(i) {
   if (!pinned.value) return 1
-  const { vh, cardTops } = box.value
-  const { cardBase, headEnd } = timeline.value
-  const row   = cardTops[i] ?? 0
-  const col   = i - cardTops.findIndex((t) => Math.abs(t - row) < 2)
-  const from  = cardBase + (row - (cardTops[0] ?? 0)) + CARD_STAGGER_VH * vh * col
-  const to    = Math.min(from + CARD_FADE_VH * vh, headEnd)
+  const [from, span] = cardWindow(i)
+  const to = Math.min(span, timeline.value.headEnd)
   if (to <= from) return scrolled.value > from ? 1 : 0
   return easeInOut(clamp01((scrolled.value - from) / (to - from)))
 }
@@ -226,7 +289,15 @@ function cardStyle(i) {
 }
 
 const bottomReveal = computed(() => easeInOut(phase('reveal')))
-const bottomFill   = computed(() => phase('fill'))
+
+const bottomFill = computed(() => {
+  if (timeline.value.fill) return phase('fill')
+  const n = cards.value.length
+  if (!n) return pinned.value ? 0 : 1
+  let sum = 0
+  for (let i = 0; i < n; i += 1) sum += cardProgress(i)
+  return sum / n
+})
 
 let resizeObserver = null
 onMounted(() => {
@@ -235,6 +306,7 @@ onMounted(() => {
   if (typeof ResizeObserver === 'undefined') return
   resizeObserver = new ResizeObserver(measure)
   resizeObserver.observe(innerRef.value)
+  resizeObserver.observe(rootRef.value)
 })
 onUnmounted(() => {
   window.removeEventListener('resize', measure)
