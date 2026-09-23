@@ -2,7 +2,7 @@
   <section ref="rootRef" class="relative w-full overflow-x-clip bg-darkblue text-beige">
     <div
       ref="innerRef"
-      class="boxed lg:flex lg:min-h-svh lg:flex-col lg:pb-[clamp(2rem,5vh,4rem)] lg:pt-[clamp(3rem,7vh,8rem)]"
+      class="boxed lg:flex lg:min-h-svh lg:flex-col lg:pb-[clamp(2rem,5vh,4rem)] lg:pt-[clamp(3rem,8rem,8rem)]"
       :class="pinned ? 'sticky' : ''"
       :style="pinned ? { top: `${stickyTop}px` } : null"
     >
