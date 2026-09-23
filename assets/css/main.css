@@ -75,6 +75,10 @@ html.lenis body {
       font-size: 5.25rem;  
     }
 
+    @screen lg {
+      font-size: 4.25rem;  
+    }
+
     @screen xl {
       font-size: 6.25rem;  
     }
