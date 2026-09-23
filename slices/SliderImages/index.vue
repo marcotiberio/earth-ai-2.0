@@ -211,6 +211,8 @@ const scrollIndex = computed(() =>
   Math.min(slides.value.length - 1, Math.floor(progress.value * slides.value.length)),
 )
 
+const LANDING = 0.05
+
 const selected = ref(0)
 
 const held = ref(null)
@@ -232,7 +234,7 @@ function goTo(i) {
   const vh     = window.innerHeight
   const start  = root.getBoundingClientRect().top + window.scrollY + vh * LEAD_VH / 100
   const runway = root.offsetHeight - vh * (1 + (LEAD_VH + DWELL_VH) / 100)
-  const top    = start + (i / slides.value.length) * runway
+  const top    = start + ((i + LANDING) / slides.value.length) * runway
 
   held.value = i === scrollIndex.value ? null : i
   if ($lenis) $lenis.scrollTo(top)
