@@ -9,7 +9,7 @@
       :class="tall ? 'sticky top-0 flex h-screen items-center' : 'flex min-h-screen items-center py-lg'"
     >
       <div class="flex h-full w-full flex-col gap-xs lg:flex-row lg:items-stretch md:gap-sm lg:gap-lg">
-        <div class="w-full h-full flex flex-col justify-start lg:justify-between gap-xs md:gap-sm lg:gap-lg lg:w-5/12">
+        <div class="w-full h-full flex flex-col justify-start lg:justify-between gap-xs md:gap-0 lg:w-5/12">
           <div class="flex flex-col gap-xs">
             <SectionLabel v-if="sectionLabel" :text="sectionLabel" />
             <h2

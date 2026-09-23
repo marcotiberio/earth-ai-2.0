@@ -1,0 +1,46 @@
+{
+  "section_label": "The Solution",
+  "title": "Our vertically integrated operations dramatically accelerate mine development",
+  "top": [
+    {
+      "label": "AI",
+      "value": "160x",
+      "caption": "MORE ACCURATE",
+      "description": "Accurately predicts Tier 1 deposits other conventional methods cannot detect."
+    }
+  ],
+  "cards": [
+    {
+      "label": "GEOLOGY",
+      "value": "2x",
+      "caption": "FASTER",
+      "description": "Validates AI targets and creates drill targets"
+    },
+    {
+      "label": "DRILLING",
+      "value": "2-3x",
+      "caption": "FASTER",
+      "description": "Validates the AI and geology with raw data from the ground"
+    },
+    {
+      "label": "LAB",
+      "value": "18x",
+      "caption": "FASTER",
+      "description": "Feeds assay results back to geology for new drill hypotheses"
+    },
+    {
+      "label": "OPS/PERMITTING",
+      "value": "2x",
+      "caption": "FASTER",
+      "description": "Parallel permitting fast tracks mine development"
+    }
+  ],
+  "bottom": [
+    {
+      "label": "DEVELOPMENT",
+      "value": "6.5x",
+      "caption": "FASTER",
+      "description": "3 year development timeline instead of the industry standard of 20 years"
+    }
+  ]
+}

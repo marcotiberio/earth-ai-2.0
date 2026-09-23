@@ -56,6 +56,25 @@
             @error="videoFailed[i] = true"
           />
         </div>
+
+        <template v-if="slides.length > 1">
+          <button
+            type="button"
+            class="absolute inset-y-0 left-0 z-10 w-1/3 disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-beige/50"
+            :disabled="activeIndex === 0"
+            :style="{ cursor: CURSOR_PREV }"
+            aria-label="Previous slide"
+            @click="goTo(activeIndex - 1)"
+          />
+          <button
+            type="button"
+            class="absolute inset-y-0 right-0 z-10 w-1/3 disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-beige/50"
+            :disabled="activeIndex === slides.length - 1"
+            :style="{ cursor: CURSOR_NEXT }"
+            aria-label="Next slide"
+            @click="goTo(activeIndex + 1)"
+          />
+        </template>
       </div>
 
       <nav v-if="slides.length > 1" aria-label="Slides">
@@ -67,7 +86,6 @@
               :class="scrubbable(i) ? 'touch-pan-y' : ''"
               :aria-label="slide.title ? `Slide ${i + 1}: ${slide.title}` : `Slide ${i + 1}`"
               :aria-current="i === activeIndex ? 'step' : undefined"
-              @click="onBarClick(i)"
               @keydown="onBarKey($event, i)"
               @pointerdown="onBarPointerDown($event, i)"
               @pointermove="onBarPointerMove"
@@ -82,9 +100,9 @@
                 ]"
               >
                 <span
-                  class="absolute inset-0 rounded-full bg-beige"
+                  class="absolute inset-0 origin-left rounded-full bg-beige"
                   :class="scrubbing || pinned ? '' : 'transition-transform duration-300 ease-out motion-reduce:transition-none'"
-                  :style="{ transform: `translateX(${(barFill(i) - 1) * 100}%)` }"
+                  :style="{ transform: `scaleX(${barFill(i)})` }"
                 />
               </span>
               <span
@@ -156,6 +174,16 @@ const descriptionsHtml = computed(() =>
     return isFilled.richText(description) ? asHTML(description) : ''
   }),
 )
+
+const arrowCursor = (d) => {
+  const stroke = (color, width, extra = '') =>
+    `<path d="${d}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"${extra}/>`
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32">${stroke('#050F23', 8, ' stroke-opacity=".35"')}${stroke('#FAF3E4', 3.2)}</svg>`
+  return `url("data:image/svg+xml,${encodeURIComponent(svg)}") 10 10, pointer`
+}
+
+const CURSOR_PREV = arrowCursor('M26 16H6m8-8-8 8 8 8')
+const CURSOR_NEXT = arrowCursor('M6 16h20m-8-8 8 8-8 8')
 
 const inSimulator = inject('inSliceSimulator', false)
 
@@ -343,10 +371,6 @@ function onBarPointerUp(e) {
 function onBarPointerCancel() {
   if (press && scrubbing.value) finishScrub(press.i)
   press = null
-}
-
-function onBarClick(i) {
-  if (!scrubbable(i)) goTo(i)
 }
 
 function onBarKey(e, i) {

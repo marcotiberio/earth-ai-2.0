@@ -2,7 +2,7 @@
   <section ref="rootRef" class="relative w-full overflow-x-clip bg-darkblue text-beige">
     <div
       ref="innerRef"
-      class="boxed"
+      class="boxed lg:flex lg:min-h-svh lg:flex-col lg:pb-[clamp(2rem,5vh,4rem)] lg:pt-[clamp(3rem,7vh,8rem)]"
       :class="pinned ? 'sticky' : ''"
       :style="pinned ? { top: `${stickyTop}px` } : null"
     >
@@ -15,18 +15,18 @@
         />
       </div>
 
-      <div class="mt-sm flex flex-col gap-xs lg:mt-[4.5rem] lg:gap-[1.3rem]">
+      <div class="mt-sm flex flex-col gap-xs lg:mt-[clamp(1.5rem,4vh,4.5rem)] lg:flex-1 lg:gap-[clamp(0.75rem,1.5vh,1.3rem)]">
         <div
           v-if="top.value"
           ref="topRef"
-          class="flex flex-col gap-sm rounded bg-beige p-xs text-black will-change-[opacity] md:min-h-[11.5rem] md:flex-row md:items-end md:justify-between md:gap-xs lg:justify-start"
+          class="flex flex-col gap-sm rounded bg-beige p-xs text-black will-change-[opacity] md:min-h-[11.5rem] md:flex-row md:items-end md:justify-between md:gap-xs lg:min-h-fit lg:flex-1 lg:justify-start lg:p-[clamp(0.75rem,1.6vh,1rem)]"
           :style="{ opacity: topProgress }"
         >
           <div class="flex flex-col self-stretch md:w-[13.4rem] md:shrink-0">
             <p v-if="top.label" class="font-mono font-caption uppercase">
               <span :class="squareClass" />{{ top.label }}
             </p>
-            <p class="mt-auto pt-xs font-serif text-[3.5rem] leading-[1.1] xl:text-[5rem]">{{ top.value }}</p>
+            <p class="mt-auto pt-xs font-serif text-[3.5rem] leading-[1.1] lg:text-[min(3.5rem,7vh)] xl:text-[min(5rem,9vh)]">{{ top.value }}</p>
             <p v-if="top.caption" class="font-mono font-caption uppercase">{{ top.caption }}</p>
           </div>
           <p v-if="top.description" class="max-w-[28rem] font-sansLight font-body leading-[1.2]">
@@ -37,20 +37,20 @@
         <ul
           v-if="cards.length"
           ref="cardsRef"
-          class="grid grid-cols-1 gap-xs md:grid-cols-2 lg:grid-cols-4 lg:gap-[1.3rem]"
+          class="grid grid-cols-1 gap-xs md:grid-cols-2 lg:flex-[1.4] lg:grid-cols-4 lg:gap-[clamp(0.75rem,1.5vh,1.3rem)]"
         >
           <li
             v-for="(card, i) in cards"
             :key="i"
-            class="flex flex-col rounded-[6px] bg-[#152238]/50 p-xs will-change-[opacity,transform] md:min-h-[15rem] lg:min-h-[17.4rem]"
+            class="flex flex-col rounded-[6px] bg-[#152238]/50 p-xs will-change-[opacity,transform] md:min-h-[15rem] lg:min-h-fit lg:p-[clamp(0.75rem,1.6vh,1rem)]"
             :style="cardStyle(i)"
           >
             <p v-if="card.label" class="font-mono font-caption uppercase">
               <span :class="squareClass" />{{ card.label }}
             </p>
-            <p class="mt-[0.35rem] font-serif text-[3.5rem] leading-[1.1] xl:text-[5rem]">{{ card.value }}</p>
+            <p class="mt-[0.35rem] font-serif text-[3.5rem] leading-[1.1] lg:text-[min(3.5rem,7vh)] xl:text-[min(5rem,9vh)]">{{ card.value }}</p>
             <p v-if="card.caption" class="font-mono font-caption uppercase">{{ card.caption }}</p>
-            <p v-if="card.description" class="mt-auto max-w-[22rem] pt-sm font-sansLight font-body leading-[1.2]">
+            <p v-if="card.description" class="mt-auto max-w-[22rem] pt-sm font-sansLight font-body leading-[1.2] lg:pt-[clamp(0.75rem,2vh,2.5rem)]">
               {{ card.description }}
             </p>
           </li>
@@ -59,13 +59,13 @@
         <div
           v-if="bottom.value"
           ref="bottomRef"
-          class="grid overflow-hidden rounded will-change-[opacity]"
+          class="grid overflow-hidden rounded will-change-[opacity] lg:flex-1"
           :style="{ opacity: bottomReveal }"
         >
           <div
             v-for="layer in bottomLayers"
             :key="layer.key"
-            class="flex flex-col gap-sm p-xs [grid-area:1/1] md:min-h-[11.5rem] md:flex-row md:items-end md:justify-between md:gap-xs lg:justify-start"
+            class="flex flex-col gap-sm p-xs [grid-area:1/1] md:min-h-[11.5rem] md:flex-row md:items-end md:justify-between md:gap-xs lg:min-h-fit lg:justify-start lg:p-[clamp(0.75rem,1.6vh,1rem)]"
             :class="layer.class"
             :style="layer.style"
             :aria-hidden="layer.hidden ? 'true' : undefined"
@@ -74,7 +74,7 @@
               <p v-if="bottom.label" class="font-mono font-caption uppercase">
                 <span :class="squareClass" />{{ bottom.label }}
               </p>
-              <p class="mt-auto pt-xs font-serif text-[3.5rem] leading-[1.1] tabular-nums xl:text-[5rem]">{{ bottomCount }}</p>
+              <p class="mt-auto pt-xs font-serif text-[3.5rem] leading-[1.1] tabular-nums lg:text-[min(3.5rem,7vh)] xl:text-[min(5rem,9vh)]">{{ bottomCount }}</p>
               <p v-if="bottom.caption" class="font-mono font-caption uppercase">{{ bottom.caption }}</p>
             </div>
             <p v-if="bottom.description" class="max-w-[28rem] font-sansLight font-body leading-[1.2]">
