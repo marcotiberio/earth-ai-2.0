@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Lenis smooth scroll (plugins/lenis.client.js). Recommended base styles:
-   keep native scroll-behaviour off while Lenis drives, let [data-lenis-prevent]
-   regions scroll independently (e.g. modals), and freeze the page when stopped. */
 html.lenis,
 html.lenis body {
   height: auto;
@@ -22,11 +19,18 @@ html.lenis body {
   pointer-events: none;
 }
 
-/* Earth AI licensed typefaces (served from /public/fonts). */
 @font-face {
   font-family: 'Beausite Classic';
   src: url('/fonts/BeausiteClassic-Regular.woff2') format('woff2');
   font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Beausite Classic Light';
+  src: url('/fonts/BeausiteClassic-Light.woff2') format('woff2');
+  font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
@@ -54,17 +58,14 @@ html.lenis body {
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Scrollbar */
   ::-webkit-scrollbar { width: 0; }
 }
 
 @layer components {
-  /* Shared slice padding: vertical rhythm + responsive gutters. */
   .boxed {
     @apply pt-md lg:pt-lg pb-[4rem] px-xs md:px-sm;
   }
 
-  /* Typography */
   .font-h1 {
     font-size: 2.5rem;
     line-height: 1.15;
@@ -72,6 +73,10 @@ html.lenis body {
 
     @screen sm {
       font-size: 5.25rem;  
+    }
+
+    @screen lg {
+      font-size: 4.25rem;  
     }
 
     @screen xl {
@@ -121,6 +126,10 @@ html.lenis body {
     }
   }
 
+  .font-small {
+    font-size: 1rem;
+  }
+
   .font-label,
   .font-caption {
     font-size: 0.875rem;
@@ -136,7 +145,6 @@ html.lenis body {
     }
   }
 
-  /* Display headlines render in the serif; <em> is the italic accent. */
   .wysiwyg h1, .wysiwyg h2, .wysiwyg h3 {
     @apply font-serif font-normal leading-[1.05] tracking-tight;
   }
@@ -148,20 +156,28 @@ html.lenis body {
     @apply font-serifItalic;
   }
 
-  /* Reusable button. Base + variants (.btn-primary / .btn-outline). */
   .btn {
+    --btn-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12.8386 12.8386' fill='none'%3E%3Cpath d='M0.75 12.0886L12.0886 0.75M12.0886 9.68038V0.75H2.15478' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+
     @apply inline-flex items-start justify-start gap-2 w-fit
-           rounded px-6 py-3
-           font-sans text-sm tracking-tight leading-none
+           rounded px-3 py-3
+           font-mono uppercase text-sm tracking-tight leading-none
            transition-colors duration-200
            cursor-pointer
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-beige/50
            disabled:opacity-50 disabled:pointer-events-none
            no-underline hover:no-underline !important;
   }
+
+  .btn::after {
+    content: '';
+    @apply block shrink-0 self-center w-[11px] h-[11px] bg-current ml-4;
+    mask: var(--btn-arrow) center / contain no-repeat;
+    -webkit-mask: var(--btn-arrow) center / contain no-repeat;
+  }
   .btn-primary {
     @apply text-darkblue hover:text-darkblue group-hover:text-darkblue
-           bg-beige hover:bg-orange group-hover:bg-orange
+           bg-beige hover:bg-yellow group-hover:bg-yellow
            border-beige hover:no-underline !important;
   }
   .btn-outline {

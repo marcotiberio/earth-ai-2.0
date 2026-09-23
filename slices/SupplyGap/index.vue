@@ -1,13 +1,4 @@
 <template>
-  <!--
-    Pinned demand-vs-supply scene. The section is tall so its inner panel sticks
-    and scrubs progress 0→1 as you
-    scroll: the demand curve draws + counts up first (0→0.45), then the supply
-    curve (0.45→0.9), each revealed with a left→right clip wipe. The deficit reads
-    as the band between the rising demand curve and the falling supply curve.
-    Geometry is mapped into the live pixel bounds of the plot so the lines fill
-    their box and the dots stay round. Reduced motion shows the finished chart.
-  -->
   <section
     ref="rootRef"
     class="relative w-full bg-darkblue"
@@ -17,7 +8,6 @@
       class="w-full boxed"
       :class="tall ? 'sticky top-0 flex h-screen flex-col justify-between overflow-hidden' : 'flex min-h-screen flex-col justify-between md:justify-center py-24'"
     >
-      <!-- Heading + intro -->
       <div class="flex shrink-0 flex-col gap-6 md:gap-8 md:flex-row md:items-start md:justify-start lg:gap-sm">
         <h2
           class="ea-display font-serif text-beige font-h2 w-full md:w-1/2"
@@ -31,7 +21,6 @@
         </p>
       </div>
 
-      <!-- Chart -->
       <div
         ref="chartRef"
         class="relative mt-10 h-[50vh] w-full overflow-visible md:mt-16"
@@ -49,7 +38,6 @@
             </linearGradient>
           </defs>
 
-          <!-- gridlines + y labels (with an extra dotted cap line on top) -->
           <g>
             <line :x1="mapX(0)" :y1="mapY(capY)" :x2="mapX(1000)" :y2="mapY(capY)" stroke="#FAF3E4" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 15" />
             <g v-for="(g, i) in gridLines" :key="i">
@@ -58,7 +46,6 @@
             </g>
           </g>
 
-          <!-- x axis + labels -->
           <line :x1="mapX(0)" :y1="mapY(400)" :x2="mapX(1000)" :y2="mapY(400)" stroke="#FAF3E4" stroke-width="1" opacity="0.35" />
           <text
             v-for="(x, i) in xLabels"
@@ -71,14 +58,12 @@
             :text-anchor="i === 0 ? 'start' : i === xLabels.length - 1 ? 'end' : 'middle'"
           >{{ x }}</text>
 
-          <!-- demand curve (draws first, 0→0.45) -->
           <g :style="{ clipPath: clipDemand }">
             <path :d="demandArea" fill="url(#sg-demand-fill)" />
             <path :d="demandLine" fill="none" stroke="#FAF3E4" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
             <circle v-for="(p, i) in mappedDemand" :key="`dd-${i}`" :cx="p[0]" :cy="p[1]" r="4.5" fill="#FAF3E4" />
           </g>
 
-          <!-- supply curve (draws second, 0.45→0.9) -->
           <g :style="{ clipPath: clipSupply }">
             <path :d="supplyArea" fill="url(#sg-supply-fill)" />
             <path :d="supplyLine" fill="none" :stroke="ORANGE" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
@@ -86,7 +71,6 @@
           </g>
         </svg>
 
-        <!-- endpoint figures (HTML overlay, counting up) -->
         <div
           class="absolute flex flex-col items-end text-right leading-none"
           :style="{ top: `${mapY(capY) - demandOffset}px`, right: `${rightOffset}px`, opacity: fadeDemand, color: BEIGE }"
@@ -120,44 +104,26 @@ const props = defineProps({
 const ORANGE = '#E66F3E'
 const BEIGE  = '#FAF3E4'
 
-// --- Content (tolerate static-string and live Prismic shapes) ----------------
 const inlineSerializer = { paragraph: ({ children }) => children }
 const toHtml = (field) => {
   if (!field) return ''
   return typeof field === 'string' ? field : asHTML(field, { serializer: inlineSerializer }) || ''
 }
-// A repeatable Prismic Group arrives as [{ value: '…' }], while a plain static
-// shape passes a plain array/object — accept both.
 const obj   = (g) => (Array.isArray(g) ? g[0] : g) || {}
 const items = (g) => (Array.isArray(g) ? g : []).map((it) => (it && typeof it === 'object' ? it.value : it))
 
 const headingHtml = computed(() => toHtml(props.slice.primary.heading))
 const body    = computed(() => props.slice.primary.body || '')
-// Pinned scroll distance (vh) — editable per section; defaults to 300.
 const scrollLength = computed(() => Number(props.slice.primary.scroll_length) || 300)
 
-// Pinned scrub progress 0→1 (see useScrollProgress); the chart geometry and the
-// reveal below read `progress`. `tall` starts true so SSR/first paint match;
-// reduced-motion clients collapse the section and show the finished chart.
 const rootRef = ref(null)
 const { progress, tall, coarse } = useScrollProgress(rootRef, {
-  // Start at the pin (not 'top center'): the section's scroll-in is the momentum
-  // buffer after the video sections — the chart waits at 0% while a flick decays
-  // instead of drawing half off-screen.
   start: 'top top',
-  // Finish `dwellVh` before the pin releases (cf. ScrubScene's tailVh), as a
-  // `+=` px offset from the start so the end can't overshoot the scrollable max.
   end: (trigger) => `+=${trigger.offsetHeight - window.innerHeight * (1 + dwellVh.value / 100)}`,
   scrub: { fine: 1.2, coarse: 3 },
-  // Let the coarse multiplier reach the section height before measuring.
   waitForLayout: true,
 })
 
-// Touch scrolling is native (Lenis only smooths wheel input), so a momentum
-// flick out of the tall pinned video sections rips through this scene. On
-// coarse pointers the same animation is stretched over more scroll, and on every
-// device it finishes `dwellVh` of pinned scroll before the sticky releases,
-// holding the completed chart + figures on screen so they can be digested.
 const COARSE_LENGTH_MULT = 1.4
 const dwellVh = computed(() => (coarse.value ? 100 : 60))
 const totalVh = computed(
@@ -175,10 +141,6 @@ const fmt = (n) => n.toLocaleString('en-US')
 const clamp01 = (n) => Math.max(0, Math.min(1, n))
 const lerp = (a, b, t) => a + (b - a) * clamp01(t)
 
-// --- Geometry ----------------------------------------------------------------
-// Editorial point series in a fixed 0–1000 × 0–480 space (y grows downward, so a
-// small y sits high on the chart). Demand climbs to the top; supply slips down,
-// opening the deficit between them.
 const demandPoints = [
   [0, 96], [100, 96], [200, 80], [300, 80], [400, 80],
   [500, 56], [600, 40], [700, 40], [800, 24], [900, 8], [1000, 8],
@@ -187,9 +149,6 @@ const supplyPoints = [
   [0, 160], [100, 168], [200, 184], [300, 192], [400, 192],
   [500, 192], [600, 200], [700, 240], [800, 240], [900, 248], [1000, 252],
 ]
-// Gridline rows. Labels come from the editable `y_ticks` group (entered low →
-// high in Prismic); the plot's top is the highest value, so we reverse them to
-// read top → bottom and space them evenly across the chart's 0–320 band.
 const Y_TOP = 0
 const Y_BOTTOM = 320
 const Y_LINE_COUNT = 5
@@ -197,7 +156,6 @@ const gridLines = computed(() => {
   const raw = props.slice.primary.y_ticks || []
   const ticks = (Array.isArray(raw) && raw.some((v) => v && typeof v === 'object') ? items(raw) : raw)
     .filter((v) => v != null && String(v).trim() !== '')
-  // Always render the dotted rows; labels (when set) read top → bottom.
   const labels = ticks.length ? [...ticks].reverse() : Array(Y_LINE_COUNT).fill('')
   const n = labels.length
   return labels.map((label, i) => ({
@@ -206,7 +164,6 @@ const gridLines = computed(() => {
   }))
 })
 
-// Extra dotted cap line, one grid-gap above the topmost line.
 const capY = computed(() => {
   const rows = gridLines.value
   const gap = rows.length > 1 ? rows[1].y - rows[0].y : Y_BOTTOM - Y_TOP
@@ -215,14 +172,11 @@ const capY = computed(() => {
 
 const PAD_TOP = 36
 const PAD_BOTTOM = 64
-const bounds = ref({ width: 1000, height: 460 }) // SSR/first-paint default
+const bounds = ref({ width: 1000, height: 460 })
 
-// Span the full chart width: x=0 maps to the left edge, x=1000 to the right edge.
 const mapX = (x) => (x / 1000) * bounds.value.width
 const mapY = (y) => PAD_TOP + ((y + 40) / 480) * (bounds.value.height - PAD_TOP - PAD_BOTTOM)
 
-// Lift the demand curve so its peak lands on the dotted cap line, widening the
-// deficit band between demand and supply.
 const demandPeak = Math.min(...demandPoints.map((p) => p[1]))
 const demandLift = computed(() => capY.value - demandPeak)
 const mappedDemand = computed(() => demandPoints.map((p) => [mapX(p[0]), mapY(p[1] + demandLift.value)]))
@@ -236,18 +190,13 @@ const supplyLine = computed(() => toPath(mappedSupply.value))
 const demandArea = computed(() => toPolygon(mappedDemand.value))
 const supplyArea = computed(() => toPolygon(mappedSupply.value))
 
-// Endpoint-label lift above its data point. The figures use a smaller font on
-// mobile (font-h3) and a larger one on desktop (md:font-h2), so each breakpoint
-// gets its own tuned offset. `isMobile` tracks Tailwind's `md` breakpoint.
 const isMobile = ref(false)
 const demandOffset = computed(() => (isMobile.value ? 60 : 50))
 const supplyOffset = computed(() => (isMobile.value ? 100 : 55))
 
-// Inset of the endpoint figures from the chart's right edge, tuned per breakpoint.
 const rightInset = computed(() => (isMobile.value ? 10 : 20))
 const rightOffset = computed(() => bounds.value.width - mapX(1000) + rightInset.value)
 
-// --- Progress-driven reveal (sequential: demand, then supply) ----------------
 const dProg = computed(() => clamp01(progress.value / 0.45))
 const sProg = computed(() => clamp01((progress.value - 0.45) / 0.45))
 
@@ -260,9 +209,6 @@ const supplyTotal = computed(() => fmt(Math.round(num(supply.value.value) * sPro
 const fadeDemand = computed(() => lerp(0, 1, (progress.value - 0.40) / 0.06))
 const fadeSupply = computed(() => lerp(0, 1, (progress.value - 0.85) / 0.05))
 
-// --- Chart measurement -------------------------------------------------------
-// Geometry maps into the chart's live pixel box, so track its size. Scroll
-// progress and the reduced-motion fallback are owned by useScrollProgress above.
 const chartRef = ref(null)
 let ro = null
 let mqlMobile = null
@@ -278,7 +224,6 @@ onMounted(() => {
   ro = new ResizeObserver(measure)
   if (chartRef.value) ro.observe(chartRef.value)
 
-  // Track Tailwind's `md` breakpoint (768px) so label offsets match font size.
   mqlMobile = window.matchMedia('(max-width: 767px)')
   isMobile.value = mqlMobile.matches
   mqlMobile.addEventListener('change', onMobileChange)

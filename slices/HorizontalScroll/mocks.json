@@ -1,0 +1,267 @@
+[
+	{
+		"__TYPE__": "SharedSliceContent",
+		"variation": "default",
+		"primary": {
+			"section_label": {
+				"__TYPE__": "FieldContent",
+				"type": "Text",
+				"value": "The Challenge"
+			},
+			"title": {
+				"__TYPE__": "StructuredTextContent",
+				"value": [
+					{
+						"type": "paragraph",
+						"content": {
+							"text": "We need 3x more mines than we have today.",
+							"spans": []
+						},
+						"direction": "ltr"
+					}
+				]
+			},
+			"cards": {
+				"__TYPE__": "GroupContentType",
+				"value": [
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"title",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "AI Data Centers"
+								}
+							],
+							[
+								"subtitle",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "Copper | Indium | Germanium"
+								}
+							],
+							[
+								"image",
+								{
+									"url": "https://images.unsplash.com/photo-1504711434969-e33886168f5c",
+									"origin": {
+										"id": "main",
+										"url": "https://images.unsplash.com/photo-1504711434969-e33886168f5c",
+										"width": 1600,
+										"height": 1100
+									},
+									"width": 1600,
+									"height": 1100,
+									"edit": {
+										"zoom": 1,
+										"crop": {
+											"x": 0,
+											"y": 0
+										},
+										"background": "transparent"
+									},
+									"alt": "AI Data Centers",
+									"credits": null,
+									"__TYPE__": "ImageContent",
+									"thumbnails": {}
+								}
+							]
+						]
+					},
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"title",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "eVTOLs"
+								}
+							],
+							[
+								"subtitle",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "Lithium | Nickel | Rare Earths"
+								}
+							],
+							[
+								"image",
+								{
+									"url": "https://images.unsplash.com/photo-1541807084-5c52b6b3adef",
+									"origin": {
+										"id": "main",
+										"url": "https://images.unsplash.com/photo-1541807084-5c52b6b3adef",
+										"width": 1600,
+										"height": 1100
+									},
+									"width": 1600,
+									"height": 1100,
+									"edit": {
+										"zoom": 1,
+										"crop": {
+											"x": 0,
+											"y": 0
+										},
+										"background": "transparent"
+									},
+									"alt": "eVTOLs",
+									"credits": null,
+									"__TYPE__": "ImageContent",
+									"thumbnails": {}
+								}
+							]
+						]
+					},
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"title",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "Electric Vehicles"
+								}
+							],
+							[
+								"subtitle",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "Lithium | Cobalt | Graphite"
+								}
+							],
+							[
+								"image",
+								{
+									"url": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6",
+									"origin": {
+										"id": "main",
+										"url": "https://images.unsplash.com/photo-1545239351-1141bd82e8a6",
+										"width": 1600,
+										"height": 1100
+									},
+									"width": 1600,
+									"height": 1100,
+									"edit": {
+										"zoom": 1,
+										"crop": {
+											"x": 0,
+											"y": 0
+										},
+										"background": "transparent"
+									},
+									"alt": "Electric Vehicles",
+									"credits": null,
+									"__TYPE__": "ImageContent",
+									"thumbnails": {}
+								}
+							]
+						]
+					},
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"title",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "Grid Storage"
+								}
+							],
+							[
+								"subtitle",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "Lithium | Vanadium | Manganese"
+								}
+							],
+							[
+								"image",
+								{
+									"url": "https://images.unsplash.com/photo-1504711434969-e33886168f5c",
+									"origin": {
+										"id": "main",
+										"url": "https://images.unsplash.com/photo-1504711434969-e33886168f5c",
+										"width": 1600,
+										"height": 1100
+									},
+									"width": 1600,
+									"height": 1100,
+									"edit": {
+										"zoom": 1,
+										"crop": {
+											"x": 0,
+											"y": 0
+										},
+										"background": "transparent"
+									},
+									"alt": "Grid Storage",
+									"credits": null,
+									"__TYPE__": "ImageContent",
+									"thumbnails": {}
+								}
+							]
+						]
+					},
+					{
+						"__TYPE__": "GroupItemContent",
+						"value": [
+							[
+								"title",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "Defense"
+								}
+							],
+							[
+								"subtitle",
+								{
+									"__TYPE__": "FieldContent",
+									"type": "Text",
+									"value": "Tungsten | Antimony | Rare Earths"
+								}
+							],
+							[
+								"image",
+								{
+									"url": "https://images.unsplash.com/photo-1541807084-5c52b6b3adef",
+									"origin": {
+										"id": "main",
+										"url": "https://images.unsplash.com/photo-1541807084-5c52b6b3adef",
+										"width": 1600,
+										"height": 1100
+									},
+									"width": 1600,
+									"height": 1100,
+									"edit": {
+										"zoom": 1,
+										"crop": {
+											"x": 0,
+											"y": 0
+										},
+										"background": "transparent"
+									},
+									"alt": "Defense",
+									"credits": null,
+									"__TYPE__": "ImageContent",
+									"thumbnails": {}
+								}
+							]
+						]
+					}
+				]
+			}
+		},
+		"items": []
+	}
+]

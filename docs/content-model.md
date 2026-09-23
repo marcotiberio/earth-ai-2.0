@@ -14,7 +14,7 @@ The homepage. One document, not repeatable.
 
 | Tab | Field | Type |
 |-----|-------|------|
-| Main | `slices` | Slice zone — choices: `hero_image, video_scroll, video_scroll_titles, drilled_stats, race_bars, supply_gap, map_targets, splasher` |
+| Main | `slices` | Slice zone — choices: `hero_image, video_scroll, video_scroll_titles, drilled_stats, race_bars, supply_gap, map_targets, horizontal_scroll, slider_images, stats_solution, splasher` |
 | SEO & Metadata | `meta_title`, `meta_description`, `meta_image` | Text / Text / Image |
 
 ### `page` (repeatable)
@@ -23,7 +23,7 @@ Any URL-addressable page (`/:uid`) — legal pages and richer marketing pages.
 | Tab | Field | Type |
 |-----|-------|------|
 | Main | `uid` | UID (the URL slug) |
-| Main | `slices` | Slice zone — choices: `hero_image, video_scroll, video_scroll_titles, race_bars, supply_gap, drilled_stats, map_targets, text_content, press_quotes, splasher` |
+| Main | `slices` | Slice zone — choices: `hero_image, video_scroll, video_scroll_titles, race_bars, supply_gap, drilled_stats, map_targets, horizontal_scroll, slider_images, stats_solution, text_content, press_quotes, splasher` |
 | SEO & Metadata | `meta_title`, `meta_description`, `meta_image` | Text / Text / Image |
 
 ### `footer` (single)
@@ -46,9 +46,12 @@ holds only `press_quotes`.
 - **`primary.is_hidden`** (Boolean) — an editor toggle to hide a section without
   deleting it. [`visibleSlices`](../utils/slices.js) filters these out before
   render. Absent/false ⇒ shown.
-- **Scrub controls** — the scrolly slices expose `scroll_length` (Number, pinned
-  travel in vh) and `scrub_start` (Select: `top`/`middle`) so editors tune the
-  interaction per section without code changes.
+- **Scrub controls** — the scrolly slices expose `scroll_length` (Number, vh of
+  scroll the video is scrubbed over) and, on `video_scroll`, `scrub_lead_in`
+  (Number, 0-100 vh before the section pins that the clip starts on, default 50)
+  so editors tune the interaction per section without code changes. A pinned
+  scene sizes itself from those two plus its dwell, so the clip always finishes
+  while still pinned whatever the lead-in.
 
 ### Video field pairing
 Video slices carry `video_url` (desktop, a Prismic Link-to-media) and

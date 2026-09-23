@@ -23,10 +23,10 @@
           />
         </figure>
         <p
-          class="text-beige font-h3"
-          :class="linkHref ? 'transition-colors group-hover:text-orange' : ''"
+          class="text-beige font-h3 font-sansLight"
+          :class="linkHref ? 'transition-colors group-hover:text-yellow' : ''"
         >
-          &ldquo;<span v-html="titleHtml" />&rdquo;
+          &ldquo;{{ titleText }}&rdquo;
         </p>
       </div>
       <a
@@ -34,7 +34,7 @@
         :href="linkHref"
         :target="linkTarget || undefined"
         :rel="linkTarget === '_blank' ? 'noopener noreferrer' : undefined"
-        class="btn btn-primary mt-auto font-label"
+        class="btn btn-primary mt-auto"
         :alt="linkLabel"
       >{{ linkLabel }}</a>
     </component>
@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import { asHTML } from '@prismicio/client'
+import { asText } from '@prismicio/client'
 
 const props = defineProps({
   slice:   { type: Object, required: true },
@@ -51,32 +51,18 @@ const props = defineProps({
   slices:  { type: Array },
 })
 
-// Strip the block wrapper so rich text renders inline inside our styled <p>,
-// keeping bold/italic from the Prismic field.
-const inlineSerializer = {
-  paragraph: ({ children }) => children,
-}
-
-// Tolerate both the static string shape (the footer fallback) and real Prismic
-// rich text (the simulator and the live API).
-const toHtml = (field) => {
+const toText = (field) => {
   if (!field) return ''
-  return typeof field === 'string'
-    ? field
-    : asHTML(field, { serializer: inlineSerializer }) || ''
+  return typeof field === 'string' ? field : asText(field) || ''
 }
 
-// Image fields come back as an object ({ url, alt, ... }); static content may
-// pass a plain string url.
 const mediaUrl = (field) =>
   typeof field === 'string' ? field : field?.url || ''
 
-// Link fields come back as an object ({ url, target, ... }); static content may
-// pass a plain string url.
 const linkUrl = (field) =>
   typeof field === 'string' ? field : field?.url || ''
 
-const titleHtml  = computed(() => toHtml(props.slice.primary.title))
+const titleText  = computed(() => toText(props.slice.primary.title))
 const imageUrl   = computed(() => mediaUrl(props.slice.primary.image))
 const imageAlt   = computed(() => resolveImageAlt(props.slice.primary.image, 'Press coverage'))
 const dateValue  = computed(() => props.slice.primary.date || '')

@@ -200,7 +200,11 @@ type HomePageDocumentDataSlicesSlice =
   | DrilledStatsSlice
   | RaceBarsSlice
   | SupplyGapSlice
-  | MapTargetsSlice;
+  | MapTargetsSlice
+  | HorizontalScrollSlice
+  | SliderImagesSlice
+  | StatsSolutionSlice
+  | SplasherSlice;
 
 /**
  * Content for Home Page documents
@@ -273,8 +277,12 @@ type PageDocumentDataSlicesSlice =
   | SupplyGapSlice
   | DrilledStatsSlice
   | MapTargetsSlice
+  | HorizontalScrollSlice
+  | SliderImagesSlice
+  | StatsSolutionSlice
   | TextContentSlice
-  | PressQuotesSlice;
+  | PressQuotesSlice
+  | SplasherSlice;
 
 /**
  * Content for Page documents
@@ -338,11 +346,11 @@ export type PageDocument<Lang extends string = string> =
 export type AllDocumentTypes = FooterDocument | HomePageDocument | PageDocument;
 
 /**
- * Item in *DrilledStats → Default → Primary → Stats (max 4)*
+ * Item in *DrilledStats → Default → Primary → Stats (max 6)*
  */
 export interface DrilledStatsSliceDefaultPrimaryStatsItem {
   /**
-   * Title field in *DrilledStats → Default → Primary → Stats (max 4)*
+   * Title field in *DrilledStats → Default → Primary → Stats (max 6)*
    *
    * - **Field Type**: Text
    * - **Placeholder**: e.g. Deposits
@@ -352,7 +360,7 @@ export interface DrilledStatsSliceDefaultPrimaryStatsItem {
   label: prismic.KeyTextField;
 
   /**
-   * Number field in *DrilledStats → Default → Primary → Stats (max 4)*
+   * Number field in *DrilledStats → Default → Primary → Stats (max 6)*
    *
    * - **Field Type**: Text
    * - **Placeholder**: e.g. 6 or 4.1 mil (counts up on scroll)
@@ -398,6 +406,16 @@ export interface DrilledStatsSliceDefaultPrimary {
   scrub_start: prismic.SelectField<"top" | "middle">;
 
   /**
+   * Section label field in *DrilledStats → Default → Primary*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Small label above the title (e.g. The Challenge)
+   * - **API ID Path**: drilled_stats.default.primary.section_label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  section_label: prismic.KeyTextField;
+
+  /**
    * Title field in *DrilledStats → Default → Primary*
    *
    * - **Field Type**: Rich Text
@@ -408,27 +426,47 @@ export interface DrilledStatsSliceDefaultPrimary {
   title: prismic.RichTextField;
 
   /**
-   * Feet drilled — value field in *DrilledStats → Default → Primary*
+   * Scrub video field in *DrilledStats → Default → Primary*
    *
-   * - **Field Type**: Text
-   * - **Placeholder**: e.g. 96,000 (counts up on scroll)
-   * - **API ID Path**: drilled_stats.default.primary.feet_value
-   * - **Documentation**: https://prismic.io/docs/fields/text
+   * - **Field Type**: Link to Media
+   * - **Placeholder**: Upload or select a video from the Media Library
+   * - **API ID Path**: drilled_stats.default.primary.video_url
+   * - **Documentation**: https://prismic.io/docs/fields/link-to-media
    */
-  feet_value: prismic.KeyTextField;
+  video_url: prismic.LinkToMediaField<prismic.FieldState, never>;
 
   /**
-   * Feet drilled — label field in *DrilledStats → Default → Primary*
+   * Scrub video (mobile) field in *DrilledStats → Default → Primary*
    *
-   * - **Field Type**: Text
-   * - **Placeholder**: e.g. Feet Drilled
-   * - **API ID Path**: drilled_stats.default.primary.feet_label
-   * - **Documentation**: https://prismic.io/docs/fields/text
+   * - **Field Type**: Link to Media
+   * - **Placeholder**: Optional lighter encode served to phones (falls back to the desktop video)
+   * - **API ID Path**: drilled_stats.default.primary.video_url_mobile
+   * - **Documentation**: https://prismic.io/docs/fields/link-to-media
    */
-  feet_label: prismic.KeyTextField;
+  video_url_mobile: prismic.LinkToMediaField<prismic.FieldState, never>;
 
   /**
-   * Stats (max 4) field in *DrilledStats → Default → Primary*
+   * Poster / fallback image field in *DrilledStats → Default → Primary*
+   *
+   * - **Field Type**: Image
+   * - **Placeholder**: *None*
+   * - **API ID Path**: drilled_stats.default.primary.image
+   * - **Documentation**: https://prismic.io/docs/fields/image
+   */
+  image: prismic.ImageField<never>;
+
+  /**
+   * Mobile image (alt crop) field in *DrilledStats → Default → Primary*
+   *
+   * - **Field Type**: Image
+   * - **Placeholder**: *None*
+   * - **API ID Path**: drilled_stats.default.primary.image_mobile
+   * - **Documentation**: https://prismic.io/docs/fields/image
+   */
+  image_mobile: prismic.ImageField<never>;
+
+  /**
+   * Stats (max 6) field in *DrilledStats → Default → Primary*
    *
    * - **Field Type**: Group
    * - **Placeholder**: *None*
@@ -460,7 +498,7 @@ type DrilledStatsSliceVariation = DrilledStatsSliceDefault;
  * DrilledStats Shared Slice
  *
  * - **API ID**: `drilled_stats`
- * - **Description**: Pinned light scene: a WYSIWYG title with count-up metrics beside a drilling arrow that grows skyward on scroll. Add up to 4 stat rows.
+ * - **Description**: Pinned scene: a WYSIWYG title with count-up metrics beside an in-frame video that scrubs on scroll. Add up to 4 stat rows.
  * - **Documentation**: https://prismic.io/docs/slices
  */
 export type DrilledStatsSlice = prismic.SharedSlice<
@@ -484,6 +522,17 @@ export interface HeroImageSliceDefaultPrimary {
   is_hidden: prismic.BooleanField;
 
   /**
+   * Bottom gradient field in *HeroImage → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: true
+   * - **API ID Path**: hero_image.default.primary.gradient_bottom
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  gradient_bottom: prismic.BooleanField;
+
+  /**
    * Background video field in *HeroImage → Default → Primary*
    *
    * - **Field Type**: Link to Media
@@ -494,6 +543,16 @@ export interface HeroImageSliceDefaultPrimary {
   video_url: prismic.LinkToMediaField<prismic.FieldState, never>;
 
   /**
+   * Background video (mobile) field in *HeroImage → Default → Primary*
+   *
+   * - **Field Type**: Link to Media
+   * - **Placeholder**: Optional lighter encode served to phones (falls back to the desktop video)
+   * - **API ID Path**: hero_image.default.primary.video_url_mobile
+   * - **Documentation**: https://prismic.io/docs/fields/link-to-media
+   */
+  video_url_mobile: prismic.LinkToMediaField<prismic.FieldState, never>;
+
+  /**
    * Background image field in *HeroImage → Default → Primary*
    *
    * - **Field Type**: Image
@@ -502,6 +561,16 @@ export interface HeroImageSliceDefaultPrimary {
    * - **Documentation**: https://prismic.io/docs/fields/image
    */
   image: prismic.ImageField<never>;
+
+  /**
+   * Mobile image (alt crop) field in *HeroImage → Default → Primary*
+   *
+   * - **Field Type**: Image
+   * - **Placeholder**: *None*
+   * - **API ID Path**: hero_image.default.primary.image_mobile
+   * - **Documentation**: https://prismic.io/docs/fields/image
+   */
+  image_mobile: prismic.ImageField<never>;
 
   /**
    * Title field in *HeroImage → Default → Primary*
@@ -572,6 +641,149 @@ type HeroImageSliceVariation = HeroImageSliceDefault;
 export type HeroImageSlice = prismic.SharedSlice<
   "hero_image",
   HeroImageSliceVariation
+>;
+
+/**
+ * Item in *HorizontalScroll → Default → Primary → Cards*
+ */
+export interface HorizontalScrollSliceDefaultPrimaryCardsItem {
+  /**
+   * Video field in *HorizontalScroll → Default → Primary → Cards*
+   *
+   * - **Field Type**: Link to Media
+   * - **Placeholder**: Optional clip, scrubbed by the scroll while its card is fully in view (encode like the other scrub clips). The image shows while it loads, and in its place when empty
+   * - **API ID Path**: horizontal_scroll.default.primary.cards[].video_url
+   * - **Documentation**: https://prismic.io/docs/fields/link-to-media
+   */
+  video_url: prismic.LinkToMediaField<prismic.FieldState, never>;
+
+  /**
+   * Video (mobile) field in *HorizontalScroll → Default → Primary → Cards*
+   *
+   * - **Field Type**: Link to Media
+   * - **Placeholder**: Optional lighter encode served to phones (falls back to the desktop video)
+   * - **API ID Path**: horizontal_scroll.default.primary.cards[].video_url_mobile
+   * - **Documentation**: https://prismic.io/docs/fields/link-to-media
+   */
+  video_url_mobile: prismic.LinkToMediaField<prismic.FieldState, never>;
+
+  /**
+   * Image (video fallback) field in *HorizontalScroll → Default → Primary → Cards*
+   *
+   * - **Field Type**: Image
+   * - **Placeholder**: *None*
+   * - **API ID Path**: horizontal_scroll.default.primary.cards[].image
+   * - **Documentation**: https://prismic.io/docs/fields/image
+   */
+  image: prismic.ImageField<never>;
+
+  /**
+   * Title field in *HorizontalScroll → Default → Primary → Cards*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. AI Data Centers
+   * - **API ID Path**: horizontal_scroll.default.primary.cards[].title
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  title: prismic.KeyTextField;
+
+  /**
+   * Subtitle field in *HorizontalScroll → Default → Primary → Cards*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. Copper | Indium | Germanium
+   * - **API ID Path**: horizontal_scroll.default.primary.cards[].subtitle
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  subtitle: prismic.KeyTextField;
+}
+
+/**
+ * Primary content in *HorizontalScroll → Default → Primary*
+ */
+export interface HorizontalScrollSliceDefaultPrimary {
+  /**
+   * Hide slice field in *HorizontalScroll → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: horizontal_scroll.default.primary.is_hidden
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  is_hidden: prismic.BooleanField;
+
+  /**
+   * Scroll length (vh) field in *HorizontalScroll → Default → Primary*
+   *
+   * - **Field Type**: Number
+   * - **Placeholder**: Optional pinned scroll distance in vh. Leave empty to match the cards' horizontal travel 1:1.
+   * - **API ID Path**: horizontal_scroll.default.primary.scroll_length
+   * - **Documentation**: https://prismic.io/docs/fields/number
+   */
+  scroll_length: prismic.NumberField;
+
+  /**
+   * Section label field in *HorizontalScroll → Default → Primary*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Small label above the title (e.g. The Challenge)
+   * - **API ID Path**: horizontal_scroll.default.primary.section_label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  section_label: prismic.KeyTextField;
+
+  /**
+   * Title field in *HorizontalScroll → Default → Primary*
+   *
+   * - **Field Type**: Rich Text
+   * - **Placeholder**: Headline (e.g. We need 3x more mines than we have today.)
+   * - **API ID Path**: horizontal_scroll.default.primary.title
+   * - **Documentation**: https://prismic.io/docs/fields/rich-text
+   */
+  title: prismic.RichTextField;
+
+  /**
+   * Cards field in *HorizontalScroll → Default → Primary*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: horizontal_scroll.default.primary.cards[]
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  cards: prismic.GroupField<
+    Simplify<HorizontalScrollSliceDefaultPrimaryCardsItem>
+  >;
+}
+
+/**
+ * Default variation for HorizontalScroll Slice
+ *
+ * - **API ID**: `default`
+ * - **Description**: Default
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type HorizontalScrollSliceDefault = prismic.SharedSliceVariation<
+  "default",
+  Simplify<HorizontalScrollSliceDefaultPrimary>,
+  never
+>;
+
+/**
+ * Slice variation for *HorizontalScroll*
+ */
+type HorizontalScrollSliceVariation = HorizontalScrollSliceDefault;
+
+/**
+ * HorizontalScroll Shared Slice
+ *
+ * - **API ID**: `horizontal_scroll`
+ * - **Description**: Pinned section: a label + headline over a row of image cards (title, subtitle, image) that slide horizontally as the page scrolls down. The section only scrolls away once the last card is in view. Designed for 5 cards.
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type HorizontalScrollSlice = prismic.SharedSlice<
+  "horizontal_scroll",
+  HorizontalScrollSliceVariation
 >;
 
 /**
@@ -734,12 +946,12 @@ export interface PressQuotesSliceDefaultPrimary {
   /**
    * Title field in *PressQuotes → Default → Primary*
    *
-   * - **Field Type**: Rich Text
+   * - **Field Type**: Text
    * - **Placeholder**: Quote or headline
    * - **API ID Path**: press_quotes.default.primary.title
-   * - **Documentation**: https://prismic.io/docs/fields/rich-text
+   * - **Documentation**: https://prismic.io/docs/fields/text
    */
-  title: prismic.RichTextField;
+  title: prismic.KeyTextField;
 
   /**
    * Link field in *PressQuotes → Default → Primary*
@@ -750,6 +962,16 @@ export interface PressQuotesSliceDefaultPrimary {
    * - **Documentation**: https://prismic.io/docs/fields/link
    */
   link: prismic.LinkField<string, string, unknown, prismic.FieldState, never>;
+
+  /**
+   * Link Label field in *PressQuotes → Default → Primary*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Read More
+   * - **API ID Path**: press_quotes.default.primary.link_label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  link_label: prismic.KeyTextField;
 }
 
 /**
@@ -874,7 +1096,7 @@ export interface RaceBarsSliceDefaultPrimary {
    * Scroll length (vh) field in *RaceBars → Default → Primary*
    *
    * - **Field Type**: Number
-   * - **Placeholder**: Pinned scroll distance in vh (default: 360)
+   * - **Placeholder**: Desktop pinned scroll distance in vh (default: 360). Mobile is scaled up automatically.
    * - **API ID Path**: race_bars.default.primary.scroll_length
    * - **Documentation**: https://prismic.io/docs/fields/number
    */
@@ -939,6 +1161,430 @@ type RaceBarsSliceVariation = RaceBarsSliceDefault;
 export type RaceBarsSlice = prismic.SharedSlice<
   "race_bars",
   RaceBarsSliceVariation
+>;
+
+/**
+ * Item in *SliderImages → Default → Primary → Slides*
+ */
+export interface SliderImagesSliceDefaultPrimarySlidesItem {
+  /**
+   * Video field in *SliderImages → Default → Primary → Slides*
+   *
+   * - **Field Type**: Link to Media
+   * - **Placeholder**: Optional looping clip. The image shows while it loads, and in its place when empty
+   * - **API ID Path**: slider_images.default.primary.slides[].video_url
+   * - **Documentation**: https://prismic.io/docs/fields/link-to-media
+   */
+  video_url: prismic.LinkToMediaField<prismic.FieldState, never>;
+
+  /**
+   * Video (mobile) field in *SliderImages → Default → Primary → Slides*
+   *
+   * - **Field Type**: Link to Media
+   * - **Placeholder**: Optional lighter encode served to phones (falls back to the desktop video)
+   * - **API ID Path**: slider_images.default.primary.slides[].video_url_mobile
+   * - **Documentation**: https://prismic.io/docs/fields/link-to-media
+   */
+  video_url_mobile: prismic.LinkToMediaField<prismic.FieldState, never>;
+
+  /**
+   * Image (video fallback) field in *SliderImages → Default → Primary → Slides*
+   *
+   * - **Field Type**: Image
+   * - **Placeholder**: *None*
+   * - **API ID Path**: slider_images.default.primary.slides[].image
+   * - **Documentation**: https://prismic.io/docs/fields/image
+   */
+  image: prismic.ImageField<never>;
+
+  /**
+   * Title field in *SliderImages → Default → Primary → Slides*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. AI Prediction & Selection
+   * - **API ID Path**: slider_images.default.primary.slides[].title
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  title: prismic.KeyTextField;
+
+  /**
+   * Description field in *SliderImages → Default → Primary → Slides*
+   *
+   * - **Field Type**: Rich Text
+   * - **Placeholder**: e.g. MTP predicts multiple high-potential sites.
+   * - **API ID Path**: slider_images.default.primary.slides[].description
+   * - **Documentation**: https://prismic.io/docs/fields/rich-text
+   */
+  description: prismic.RichTextField;
+}
+
+/**
+ * Primary content in *SliderImages → Default → Primary*
+ */
+export interface SliderImagesSliceDefaultPrimary {
+  /**
+   * Hide slice field in *SliderImages → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: slider_images.default.primary.is_hidden
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  is_hidden: prismic.BooleanField;
+
+  /**
+   * Section label field in *SliderImages → Default → Primary*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Small label above the slider (e.g. Our Process)
+   * - **API ID Path**: slider_images.default.primary.section_label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  section_label: prismic.KeyTextField;
+
+  /**
+   * Title field in *SliderImages → Default → Primary*
+   *
+   * - **Field Type**: Rich Text
+   * - **Placeholder**: Optional headline under the section label
+   * - **API ID Path**: slider_images.default.primary.title
+   * - **Documentation**: https://prismic.io/docs/fields/rich-text
+   */
+  title: prismic.RichTextField;
+
+  /**
+   * Slides field in *SliderImages → Default → Primary*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: slider_images.default.primary.slides[]
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  slides: prismic.GroupField<
+    Simplify<SliderImagesSliceDefaultPrimarySlidesItem>
+  >;
+}
+
+/**
+ * Default variation for SliderImages Slice
+ *
+ * - **API ID**: `default`
+ * - **Description**: Default
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type SliderImagesSliceDefault = prismic.SharedSliceVariation<
+  "default",
+  Simplify<SliderImagesSliceDefaultPrimary>,
+  never
+>;
+
+/**
+ * Slice variation for *SliderImages*
+ */
+type SliderImagesSliceVariation = SliderImagesSliceDefault;
+
+/**
+ * SliderImages Shared Slice
+ *
+ * - **API ID**: `slider_images`
+ * - **Description**: Pinned image slider: a label (+ optional headline) over one image at a time, a numbered bar navigation and the active slide's title and description. Scrolling steps through the slides, then the section scrolls away once the last one is shown; the navigation jumps straight to a slide.
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type SliderImagesSlice = prismic.SharedSlice<
+  "slider_images",
+  SliderImagesSliceVariation
+>;
+
+/**
+ * Primary content in *Splasher → Default → Primary*
+ */
+export interface SplasherSliceDefaultPrimary {
+  /**
+   * Hide slice field in *Splasher → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: splasher.default.primary.is_hidden
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  is_hidden: prismic.BooleanField;
+
+  /**
+   * Label field in *Splasher → Default → Primary*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. New website coming soon.
+   * - **API ID Path**: splasher.default.primary.label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  label: prismic.KeyTextField;
+}
+
+/**
+ * Default variation for Splasher Slice
+ *
+ * - **API ID**: `default`
+ * - **Description**: Full-screen gate: logomark with an editable label.
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type SplasherSliceDefault = prismic.SharedSliceVariation<
+  "default",
+  Simplify<SplasherSliceDefaultPrimary>,
+  never
+>;
+
+/**
+ * Slice variation for *Splasher*
+ */
+type SplasherSliceVariation = SplasherSliceDefault;
+
+/**
+ * Splasher Shared Slice
+ *
+ * - **API ID**: `splasher`
+ * - **Description**: Site gate — a fixed full-screen overlay with the Earth AI logomark and a short label, same design as the launch loader. While this slice is present and visible, it hides the whole site; flip "Hide slice" (or remove it) to reveal the site.
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type SplasherSlice = prismic.SharedSlice<
+  "splasher",
+  SplasherSliceVariation
+>;
+
+/**
+ * Item in *StatsSolution → Default → Primary → Top bar*
+ */
+export interface StatsSolutionSliceDefaultPrimaryTopItem {
+  /**
+   * Label field in *StatsSolution → Default → Primary → Top bar*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Small label at the top of the bar (e.g. AI)
+   * - **API ID Path**: stats_solution.default.primary.top[].label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  label: prismic.KeyTextField;
+
+  /**
+   * Value field in *StatsSolution → Default → Primary → Top bar*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Big figure (e.g. 160x)
+   * - **API ID Path**: stats_solution.default.primary.top[].value
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  value: prismic.KeyTextField;
+
+  /**
+   * Caption field in *StatsSolution → Default → Primary → Top bar*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Small caption under the figure (e.g. MORE ACCURATE)
+   * - **API ID Path**: stats_solution.default.primary.top[].caption
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  caption: prismic.KeyTextField;
+
+  /**
+   * Description field in *StatsSolution → Default → Primary → Top bar*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Short sentence next to the figure
+   * - **API ID Path**: stats_solution.default.primary.top[].description
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  description: prismic.KeyTextField;
+}
+
+/**
+ * Item in *StatsSolution → Default → Primary → Cards*
+ */
+export interface StatsSolutionSliceDefaultPrimaryCardsItem {
+  /**
+   * Label field in *StatsSolution → Default → Primary → Cards*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. GEOLOGY
+   * - **API ID Path**: stats_solution.default.primary.cards[].label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  label: prismic.KeyTextField;
+
+  /**
+   * Value field in *StatsSolution → Default → Primary → Cards*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. 2x
+   * - **API ID Path**: stats_solution.default.primary.cards[].value
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  value: prismic.KeyTextField;
+
+  /**
+   * Caption field in *StatsSolution → Default → Primary → Cards*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: e.g. FASTER
+   * - **API ID Path**: stats_solution.default.primary.cards[].caption
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  caption: prismic.KeyTextField;
+
+  /**
+   * Description field in *StatsSolution → Default → Primary → Cards*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Short sentence at the bottom of the card
+   * - **API ID Path**: stats_solution.default.primary.cards[].description
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  description: prismic.KeyTextField;
+}
+
+/**
+ * Item in *StatsSolution → Default → Primary → Bottom bar*
+ */
+export interface StatsSolutionSliceDefaultPrimaryBottomItem {
+  /**
+   * Label field in *StatsSolution → Default → Primary → Bottom bar*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Small label at the top of the bar (e.g. DEVELOPMENT)
+   * - **API ID Path**: stats_solution.default.primary.bottom[].label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  label: prismic.KeyTextField;
+
+  /**
+   * Value field in *StatsSolution → Default → Primary → Bottom bar*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Big figure (e.g. 6.5x). Its number counts up as the bar fills
+   * - **API ID Path**: stats_solution.default.primary.bottom[].value
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  value: prismic.KeyTextField;
+
+  /**
+   * Caption field in *StatsSolution → Default → Primary → Bottom bar*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Small caption under the figure (e.g. FASTER)
+   * - **API ID Path**: stats_solution.default.primary.bottom[].caption
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  caption: prismic.KeyTextField;
+
+  /**
+   * Description field in *StatsSolution → Default → Primary → Bottom bar*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Short sentence next to the figure
+   * - **API ID Path**: stats_solution.default.primary.bottom[].description
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  description: prismic.KeyTextField;
+}
+
+/**
+ * Primary content in *StatsSolution → Default → Primary*
+ */
+export interface StatsSolutionSliceDefaultPrimary {
+  /**
+   * Hide slice field in *StatsSolution → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: false
+   * - **API ID Path**: stats_solution.default.primary.is_hidden
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  is_hidden: prismic.BooleanField;
+
+  /**
+   * Section label field in *StatsSolution → Default → Primary*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Small label above the title (e.g. The Solution)
+   * - **API ID Path**: stats_solution.default.primary.section_label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  section_label: prismic.KeyTextField;
+
+  /**
+   * Title field in *StatsSolution → Default → Primary*
+   *
+   * - **Field Type**: Rich Text
+   * - **Placeholder**: Headline (e.g. Our vertically integrated operations dramatically accelerate mine development)
+   * - **API ID Path**: stats_solution.default.primary.title
+   * - **Documentation**: https://prismic.io/docs/fields/rich-text
+   */
+  title: prismic.RichTextField;
+
+  /**
+   * Top bar field in *StatsSolution → Default → Primary*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: stats_solution.default.primary.top[]
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  top: prismic.GroupField<Simplify<StatsSolutionSliceDefaultPrimaryTopItem>>;
+
+  /**
+   * Cards field in *StatsSolution → Default → Primary*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: stats_solution.default.primary.cards[]
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  cards: prismic.GroupField<
+    Simplify<StatsSolutionSliceDefaultPrimaryCardsItem>
+  >;
+
+  /**
+   * Bottom bar field in *StatsSolution → Default → Primary*
+   *
+   * - **Field Type**: Group
+   * - **Placeholder**: *None*
+   * - **API ID Path**: stats_solution.default.primary.bottom[]
+   * - **Documentation**: https://prismic.io/docs/fields/repeatable-group
+   */
+  bottom: prismic.GroupField<
+    Simplify<StatsSolutionSliceDefaultPrimaryBottomItem>
+  >;
+}
+
+/**
+ * Default variation for StatsSolution Slice
+ *
+ * - **API ID**: `default`
+ * - **Description**: Default
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type StatsSolutionSliceDefault = prismic.SharedSliceVariation<
+  "default",
+  Simplify<StatsSolutionSliceDefaultPrimary>,
+  never
+>;
+
+/**
+ * Slice variation for *StatsSolution*
+ */
+type StatsSolutionSliceVariation = StatsSolutionSliceDefault;
+
+/**
+ * StatsSolution Shared Slice
+ *
+ * - **API ID**: `stats_solution`
+ * - **Description**: Stat cards revealed on scroll: a label + headline, a beige top bar that fades in, a row of blue cards that fade in left to right, then a bar that fills yellow left to right while its figure counts up with the fill.
+ * - **Documentation**: https://prismic.io/docs/slices
+ */
+export type StatsSolutionSlice = prismic.SharedSlice<
+  "stats_solution",
+  StatsSolutionSliceVariation
 >;
 
 /**
@@ -1040,7 +1686,7 @@ export interface SupplyGapSliceDefaultPrimary {
    * Scroll length (vh) field in *SupplyGap → Default → Primary*
    *
    * - **Field Type**: Number
-   * - **Placeholder**: Pinned scroll distance in vh (default: 300)
+   * - **Placeholder**: Desktop pinned scroll distance in vh (default: 300). Mobile is scaled up automatically.
    * - **API ID Path**: supply_gap.default.primary.scroll_length
    * - **Documentation**: https://prismic.io/docs/fields/number
    */
@@ -1252,6 +1898,28 @@ export interface VideoScrollSliceOverlayPrimary {
   frame: prismic.BooleanField;
 
   /**
+   * Top gradient field in *VideoScroll → Overlay → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: true
+   * - **API ID Path**: video_scroll.overlay.primary.gradient_top
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  gradient_top: prismic.BooleanField;
+
+  /**
+   * Bottom gradient field in *VideoScroll → Overlay → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: true
+   * - **API ID Path**: video_scroll.overlay.primary.gradient_bottom
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  gradient_bottom: prismic.BooleanField;
+
+  /**
    * Background video field in *VideoScroll → Overlay → Primary*
    *
    * - **Field Type**: Link to Media
@@ -1260,6 +1928,16 @@ export interface VideoScrollSliceOverlayPrimary {
    * - **Documentation**: https://prismic.io/docs/fields/link-to-media
    */
   video_url: prismic.LinkToMediaField<prismic.FieldState, never>;
+
+  /**
+   * Background video (mobile) field in *VideoScroll → Overlay → Primary*
+   *
+   * - **Field Type**: Link to Media
+   * - **Placeholder**: Optional lighter encode served to phones (falls back to the desktop video)
+   * - **API ID Path**: video_scroll.overlay.primary.video_url_mobile
+   * - **Documentation**: https://prismic.io/docs/fields/link-to-media
+   */
+  video_url_mobile: prismic.LinkToMediaField<prismic.FieldState, never>;
 
   /**
    * Background image field in *VideoScroll → Overlay → Primary*
@@ -1272,6 +1950,16 @@ export interface VideoScrollSliceOverlayPrimary {
   image: prismic.ImageField<never>;
 
   /**
+   * Mobile image (alt crop) field in *VideoScroll → Overlay → Primary*
+   *
+   * - **Field Type**: Image
+   * - **Placeholder**: *None*
+   * - **API ID Path**: video_scroll.overlay.primary.image_mobile
+   * - **Documentation**: https://prismic.io/docs/fields/image
+   */
+  image_mobile: prismic.ImageField<never>;
+
+  /**
    * Scroll length (vh) field in *VideoScroll → Overlay → Primary*
    *
    * - **Field Type**: Number
@@ -1282,16 +1970,6 @@ export interface VideoScrollSliceOverlayPrimary {
   scroll_length: prismic.NumberField;
 
   /**
-   * Title field in *VideoScroll → Overlay → Primary*
-   *
-   * - **Field Type**: Rich Text
-   * - **Placeholder**: Headline
-   * - **API ID Path**: video_scroll.overlay.primary.title
-   * - **Documentation**: https://prismic.io/docs/fields/rich-text
-   */
-  title: prismic.RichTextField;
-
-  /**
    * Scrub start field in *VideoScroll → Overlay → Primary*
    *
    * - **Field Type**: Select
@@ -1300,6 +1978,26 @@ export interface VideoScrollSliceOverlayPrimary {
    * - **Documentation**: https://prismic.io/docs/fields/select
    */
   scrub_start: prismic.SelectField<"top" | "middle">;
+
+  /**
+   * Section label field in *VideoScroll → Overlay → Primary*
+   *
+   * - **Field Type**: Text
+   * - **Placeholder**: Small label above the title (e.g. The Challenge)
+   * - **API ID Path**: video_scroll.overlay.primary.section_label
+   * - **Documentation**: https://prismic.io/docs/fields/text
+   */
+  section_label: prismic.KeyTextField;
+
+  /**
+   * Title field in *VideoScroll → Overlay → Primary*
+   *
+   * - **Field Type**: Rich Text
+   * - **Placeholder**: Headline
+   * - **API ID Path**: video_scroll.overlay.primary.title
+   * - **Documentation**: https://prismic.io/docs/fields/rich-text
+   */
+  title: prismic.RichTextField;
 
   /**
    * Title vertical position field in *VideoScroll → Overlay → Primary*
@@ -1325,6 +2023,44 @@ export interface VideoScrollSliceOverlayPrimary {
    * - **Documentation**: https://prismic.io/docs/fields/select
    */
   title_align_horizontal: prismic.SelectField<
+    "left" | "center" | "right",
+    "filled"
+  >;
+
+  /**
+   * Subtitle field in *VideoScroll → Overlay → Primary*
+   *
+   * - **Field Type**: Rich Text
+   * - **Placeholder**: Supporting caption
+   * - **API ID Path**: video_scroll.overlay.primary.subtitle
+   * - **Documentation**: https://prismic.io/docs/fields/rich-text
+   */
+  subtitle: prismic.RichTextField;
+
+  /**
+   * Subtitle vertical position field in *VideoScroll → Overlay → Primary*
+   *
+   * - **Field Type**: Select
+   * - **Placeholder**: Vertical position (default: bottom)
+   * - **Default Value**: bottom
+   * - **API ID Path**: video_scroll.overlay.primary.subtitle_align_vertical
+   * - **Documentation**: https://prismic.io/docs/fields/select
+   */
+  subtitle_align_vertical: prismic.SelectField<
+    "top" | "center" | "bottom",
+    "filled"
+  >;
+
+  /**
+   * Subtitle horizontal position field in *VideoScroll → Overlay → Primary*
+   *
+   * - **Field Type**: Select
+   * - **Placeholder**: Horizontal position (default: left)
+   * - **Default Value**: left
+   * - **API ID Path**: video_scroll.overlay.primary.subtitle_align_horizontal
+   * - **Documentation**: https://prismic.io/docs/fields/select
+   */
+  subtitle_align_horizontal: prismic.SelectField<
     "left" | "center" | "right",
     "filled"
   >;
@@ -1391,6 +2127,28 @@ export interface VideoScrollTitlesSliceDefaultPrimary {
   is_hidden: prismic.BooleanField;
 
   /**
+   * Top gradient field in *VideoScrollTitles → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: true
+   * - **API ID Path**: video_scroll_titles.default.primary.gradient_top
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  gradient_top: prismic.BooleanField;
+
+  /**
+   * Bottom gradient field in *VideoScrollTitles → Default → Primary*
+   *
+   * - **Field Type**: Boolean
+   * - **Placeholder**: *None*
+   * - **Default Value**: true
+   * - **API ID Path**: video_scroll_titles.default.primary.gradient_bottom
+   * - **Documentation**: https://prismic.io/docs/fields/boolean
+   */
+  gradient_bottom: prismic.BooleanField;
+
+  /**
    * Background video field in *VideoScrollTitles → Default → Primary*
    *
    * - **Field Type**: Link to Media
@@ -1401,6 +2159,16 @@ export interface VideoScrollTitlesSliceDefaultPrimary {
   video_url: prismic.LinkToMediaField<prismic.FieldState, never>;
 
   /**
+   * Background video (mobile) field in *VideoScrollTitles → Default → Primary*
+   *
+   * - **Field Type**: Link to Media
+   * - **Placeholder**: Optional lighter encode served to phones (falls back to the desktop video)
+   * - **API ID Path**: video_scroll_titles.default.primary.video_url_mobile
+   * - **Documentation**: https://prismic.io/docs/fields/link-to-media
+   */
+  video_url_mobile: prismic.LinkToMediaField<prismic.FieldState, never>;
+
+  /**
    * Background image (poster / fallback) field in *VideoScrollTitles → Default → Primary*
    *
    * - **Field Type**: Image
@@ -1409,6 +2177,16 @@ export interface VideoScrollTitlesSliceDefaultPrimary {
    * - **Documentation**: https://prismic.io/docs/fields/image
    */
   image: prismic.ImageField<never>;
+
+  /**
+   * Mobile image (alt crop) field in *VideoScrollTitles → Default → Primary*
+   *
+   * - **Field Type**: Image
+   * - **Placeholder**: *None*
+   * - **API ID Path**: video_scroll_titles.default.primary.image_mobile
+   * - **Documentation**: https://prismic.io/docs/fields/image
+   */
+  image_mobile: prismic.ImageField<never>;
 
   /**
    * Scroll length (vh) field in *VideoScrollTitles → Default → Primary*
@@ -1545,6 +2323,11 @@ declare module "@prismicio/client" {
       HeroImageSliceDefaultPrimary,
       HeroImageSliceVariation,
       HeroImageSliceDefault,
+      HorizontalScrollSlice,
+      HorizontalScrollSliceDefaultPrimaryCardsItem,
+      HorizontalScrollSliceDefaultPrimary,
+      HorizontalScrollSliceVariation,
+      HorizontalScrollSliceDefault,
       MapTargetsSlice,
       MapTargetsSliceDefaultPrimaryStatsItem,
       MapTargetsSliceDefaultPrimary,
@@ -1560,6 +2343,22 @@ declare module "@prismicio/client" {
       RaceBarsSliceDefaultPrimary,
       RaceBarsSliceVariation,
       RaceBarsSliceDefault,
+      SliderImagesSlice,
+      SliderImagesSliceDefaultPrimarySlidesItem,
+      SliderImagesSliceDefaultPrimary,
+      SliderImagesSliceVariation,
+      SliderImagesSliceDefault,
+      SplasherSlice,
+      SplasherSliceDefaultPrimary,
+      SplasherSliceVariation,
+      SplasherSliceDefault,
+      StatsSolutionSlice,
+      StatsSolutionSliceDefaultPrimaryTopItem,
+      StatsSolutionSliceDefaultPrimaryCardsItem,
+      StatsSolutionSliceDefaultPrimaryBottomItem,
+      StatsSolutionSliceDefaultPrimary,
+      StatsSolutionSliceVariation,
+      StatsSolutionSliceDefault,
       SupplyGapSlice,
       SupplyGapSliceDefaultPrimaryYTicksItem,
       SupplyGapSliceDefaultPrimaryXLabelsItem,

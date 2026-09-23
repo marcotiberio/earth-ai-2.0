@@ -32,6 +32,15 @@
             "map_targets": {
               "type": "SharedSlice"
             },
+            "horizontal_scroll": {
+              "type": "SharedSlice"
+            },
+            "slider_images": {
+              "type": "SharedSlice"
+            },
+            "stats_solution": {
+              "type": "SharedSlice"
+            },
             "splasher": {
               "type": "SharedSlice"
             }

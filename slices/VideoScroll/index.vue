@@ -1,5 +1,4 @@
 <template>
-  <!-- variation: "overlay" — pinned full-bleed video; the headline scrolls over it -->
   <ScrubScene
     v-if="slice.variation === 'overlay'"
     :video-url="videoUrl"
@@ -8,20 +7,17 @@
     :image-mobile="slice.primary.image_mobile || {}"
     :scroll-length="scrollLength"
     :tail-vh="hasDwell ? DWELL_VH : 0"
-    :scrub-start="slice.primary.scrub_start || ''"
+    :lead-vh="leadVh"
+    :section-label="slice.primary.section_label || ''"
     :align="slice.primary.title_align_vertical || 'bottom'"
     :align-x="slice.primary.title_align_horizontal || 'left'"
     :frame="slice.primary.frame || false"
     overlay-class=""
   >
-    <!-- Top and bottom fades (each a quarter of the section height) so the
-         pinned video feathers into the sections above and below. -->
     <template #pinned>
       <div v-if="slice.primary.gradient_top !== false" class="bg-gradient-to-b from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 top-0 h-1/4 pointer-events-none" />
       <div v-if="slice.primary.gradient_bottom !== false" class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
 
-      <!-- Subtitle: an independently-aligned caption layer over the video. Its
-           own vertical/horizontal alignment lets it sit apart from the title. -->
       <div
         v-if="subtitleHtml"
         class="absolute inset-x-0 inset-y-sm z-10 flex px-xs md:px-sm pointer-events-none"
@@ -34,18 +30,17 @@
       </div>
     </template>
     <h2
-      class="ea-display font-serif text-beige font-h2 w-full md:w-screen-md"
+      class="ea-display font-serif text-beige font-h2 w-full"
       v-html="titleHtml"
     />
   </ScrubScene>
 
-  <!-- variation: "default" — media band with the headline set beneath it -->
   <section v-else ref="rootRef" class="relative w-full bg-darkblue px-6 py-20 md:px-10 md:py-28">
     <div class="relative w-full overflow-hidden">
       <video
         v-if="videoUrl"
         ref="videoRef"
-        :src="videoSrc"
+        :src="videoSrc || undefined"
         :poster="imgixUrl(activeImage?.url, { w: 1280 }) || undefined"
         class="w-full h-[40vh] md:h-[55vh] object-cover"
         muted
@@ -61,9 +56,6 @@
         :alt="resolveImageAlt(activeImage)"
         class="w-full h-[40vh] md:h-[55vh] object-cover"
       />
-      <!-- Top and bottom fades (each a quarter of the band height) so the media
-           band feathers into the darkblue page background, blending each section
-           into its neighbours. -->
       <div v-if="slice.primary.gradient_top !== false" class="bg-gradient-to-b from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 top-0 h-1/4 pointer-events-none" />
       <div v-if="slice.primary.gradient_bottom !== false" class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
     </div>
@@ -84,7 +76,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
+import { ref, computed, nextTick, onBeforeUnmount, onMounted } from 'vue'
 import { asHTML } from '@prismicio/client'
 
 const props = defineProps({
@@ -94,9 +86,6 @@ const props = defineProps({
   slices:  { type: Array },
 })
 
-// Map each heading level chosen in the Prismic editor to a responsive size, so
-// the "font size" picked in the WYSIWYG actually drives the rendered headline.
-// Bold/italic (and links) from the field are preserved inside each block.
 const inlineSerializer = {
   heading1:  ({ children }) => `<span class="block leading-[1.1] font-h1">${children}</span>`,
   heading2:  ({ children }) => `<span class="block leading-[1.1] font-h2">${children}</span>`,
@@ -104,8 +93,6 @@ const inlineSerializer = {
   paragraph: ({ children }) => children,
 }
 
-// Tolerate both a plain static string shape and real Prismic rich text
-// (the live API).
 const toHtml = (field) => {
   if (!field) return ''
   return typeof field === 'string'
@@ -113,8 +100,6 @@ const toHtml = (field) => {
     : asHTML(field, { serializer: inlineSerializer }) || ''
 }
 
-// Link-to-Media fields come back as an object ({ url, ... }); static content
-// passes a plain string.
 const mediaUrl = (field) =>
   typeof field === 'string' ? field : field?.url || ''
 
@@ -124,22 +109,23 @@ const videoUrl       = computed(() => mediaUrl(props.slice.primary.video_url))
 const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
 const activeImage    = useMobileImage(() => props.slice.primary.image, () => props.slice.primary.image_mobile)
 
-// Hold the pin for an extra screen after the scrub completes, so the video
-// reaches its last frame (the play-chase catch-up lags behind fast scrolls)
-// and dwells there before the section wipes away. The section grows by the
-// same amount so the dwell is added scroll distance, not a compressed scrub
-// (cf. VideoScrollTitles). A `scrub_start` preset scrubs through the unpin
-// wipe by design, so the dwell only applies to the default scrub.
+const PIN_VH   = 100
 const DWELL_VH = 100
+const LEAD_VH  = 50
 const hasDwell = computed(() =>
-  Boolean(videoUrl.value) && !props.slice.primary.scrub_start && props.slice.variation === 'overlay',
+  Boolean(videoUrl.value) && props.slice.variation === 'overlay',
 )
+const leadVh = computed(() => {
+  const value = props.slice.primary.scrub_lead_in
+  return Math.min(Math.max(Number.isFinite(value) ? value : LEAD_VH, 0), 100)
+})
 const scrollLength = computed(
-  () => (props.slice.primary.scroll_length || 300) + (hasDwell.value ? DWELL_VH : 0),
+  () => (props.slice.primary.scroll_length || 300)
+    + PIN_VH
+    + (hasDwell.value ? DWELL_VH : 0)
+    - leadVh.value,
 )
 
-// Subtitle resting position over the pinned video. Mirrors ScrubScene's own
-// alignment mapping so the subtitle can be placed independently of the title.
 const subtitleAlignClass = computed(() => ({
   top:    'items-start pt-[5vh]',
   center: 'items-center',
@@ -152,36 +138,41 @@ const subtitleAlignXClass = computed(() => ({
   right:  'justify-end text-right',
 }[props.slice.primary.subtitle_align_horizontal] || 'justify-start text-left'))
 
-// Only used by the non-pinned "default" band variation.
 const rootRef  = ref(null)
 const videoRef = ref(null)
-// SSR renders this src; onMounted queues the background warm-up.
-const videoSrc = ref(videoUrl.value)
+const videoSrc = ref('')
 
 let stopWarmObserve = null
+let attached = false
+
+let resolveReady = null
+const videoReady = new Promise((resolve) => { resolveReady = resolve })
+
+const isMobile = typeof window !== 'undefined'
+  && window.matchMedia('(max-width: 767px)').matches
+const sourceUrl = () => (MOBILE_VIDEO_ENABLED && isMobile && videoUrlMobile.value) ? videoUrlMobile.value : videoUrl.value
+
+const attachSrc = async () => {
+  if (attached) return
+  attached = true
+  videoSrc.value = sourceUrl()
+  await nextTick()
+  const v = videoRef.value
+  if (!v) return
+  await primeScrubVideo(v)
+  resolveReady()
+}
 
 if (props.slice.variation !== 'overlay' && props.slice.primary.video_url) {
   onMounted(() => {
-    // Swap to the lighter mobile encode on phones (a post-hydration reactive
-    // update from the SSR-rendered desktop src, so no markup mismatch).
-    if (MOBILE_VIDEO_ENABLED
-      && typeof window !== 'undefined'
-      && window.matchMedia('(max-width: 767px)').matches
-      && videoUrlMobile.value) {
-      videoSrc.value = videoUrlMobile.value
-    }
-    // The element is preload="metadata", so the clip body is only fetched by
-    // this warm-up. Under PERF_MODE hold it until the band nears the viewport —
-    // warming at mount downloads the whole clip for visitors who never scroll
-    // this far, which is what runs up the CDN bill.
     if (PERF_MODE) {
-      stopWarmObserve = observeNear(rootRef.value, () => prefetchScrubVideo(videoSrc.value), scrubLeadMargin(200))
+      stopWarmObserve = observeNear(rootRef.value, attachSrc, scrubLeadMargin(200))
     } else {
-      prefetchScrubVideo(videoSrc.value)
+      prefetchScrubVideo(sourceUrl())
+      attachSrc()
     }
   })
   onBeforeUnmount(() => stopWarmObserve?.())
-  // `scrub_start` ('top' | 'middle') is set per section in the Prismic field.
-  useScrubVideo(videoRef, rootRef, { startAt: props.slice.primary.scrub_start })
+  useScrubVideo(videoRef, rootRef, { startAt: props.slice.primary.scrub_start, ready: videoReady })
 }
 </script>

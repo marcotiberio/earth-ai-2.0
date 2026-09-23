@@ -1,23 +1,10 @@
 <template>
-  <!-- Sticky reveal: the footer is a viewport-high panel pinned behind the
-       page (z-0, under app.vue's z-10 content) and uncovered in place as the
-       last pinned section scrolls away. `bottom-0` rather than `top-0`: with a
-       panel exactly viewport-high the two pin to the same place, but only the
-       bottom pin engages while the panel is still covered — a top pin never
-       sticks for the document's last element, so the footer would scroll in
-       normally and snap in after the pinned section, the original problem. -->
-  <footer class="sticky bottom-0 z-0 h-dvh w-full bg-darkblue text-darkblue">
-    <!-- Content taller than the panel (the stacked press quotes on phones)
-         scrolls inside it; min-h-full + justify-end keeps shorter content at
-         the page bottom. -->
-    <div class="h-full overflow-y-auto" data-lenis-prevent>
-    <div class="min-h-full flex flex-col justify-start boxed !pb-sm !pt-[62px]">
-    <!-- Top Bar -->
+  <footer class="relative z-0 min-h-dvh w-full bg-darkblue text-darkblue">
+    <div class="min-h-full flex flex-col justify-between boxed !pb-sm !pt-[62px]">
     <div class="flex flex-col items-start justify-between gap-sm mb-sm w-full">
       <div class="flex flex-row items-start justify-between gap-sm w-full">
         <div class="flex flex-col items-start justify-between gap-sm w-full md:w-1/2">
           <span class="font-h2 font-serif text-beige">{{ mainTitle }}</span>
-          <!-- ToDo: Add contact link -->
           <a
             href="mailto:contact@earth-ai.com"
             class="btn btn-primary mt-auto font-label text-darkblue hover:underline"
@@ -38,34 +25,34 @@
       </div>
       <ul v-if="footer?.data?.social_media_links?.length" class="flex gap-xs">
         <li v-for="(item, i) in footer.data.social_media_links" :key="i">
-          <PrismicLink :field="item.link" class="block text-beige hover:text-orange hover:cursor-pointer transition-colors">
-            <img
-              :src="`/icons/${item.social.toLowerCase()}.svg`"
-              :alt="item.social"
-              class="h-6 w-6"
+          <PrismicLink :field="item.link" :aria-label="item.social" class="block text-beige hover:text-yellow hover:cursor-pointer transition-colors">
+            <span
+              aria-hidden="true"
+              class="block h-6 w-6 bg-current"
+              :style="{
+                mask: `url(/icons/${item.social.toLowerCase()}.svg) center / contain no-repeat`,
+                WebkitMask: `url(/icons/${item.social.toLowerCase()}.svg) center / contain no-repeat`,
+              }"
             />
           </PrismicLink>
         </li>
       </ul>
     </div>
 
-    <!-- Press quotes -->
     <div class="grid gap-8 border-t border-beige pt-10 md:grid-cols-3">
       <SliceZone :slices="visibleSlices(press)" :components="components" />
     </div>
 
-    <!-- Bottom bar -->
     <div class="mt-sm flex flex-col justify-start sm:flex-row sm:items-center sm:justify-end gap-sm border-t border-beige pt-sm font-label text-beige">
       <nav v-if="footer?.data?.legal_links?.length" class="w-full flex justify-center sm:justify-end gap-sm">
         <PrismicLink
           v-for="(item, i) in footer.data.legal_links"
           :key="i"
           :field="item.link"
-          class="hover:text-orange hover:cursor-pointer transition-colors"
+          class="font-mono uppercase hover:text-yellow hover:cursor-pointer transition-colors"
         />
       </nav>
-      <span class="whitespace-nowrap flex justify-center">© EARTH AI – {{ new Date().getFullYear() }}</span>
-    </div>
+      <span class="font-mono uppercase whitespace-nowrap flex justify-center">© EARTH AI – {{ new Date().getFullYear() }}</span>
     </div>
     </div>
   </footer>
@@ -74,11 +61,8 @@
 <script setup>
 import { components } from '~/slices'
 
-// The footer is driven by a single `footer` page document in Prismic: each
-// press quote is a `press_quotes` slice in its slice zone.
 const route = useRoute()
 
-// On the homepage, smooth-scroll to top instead of triggering a no-op navigation.
 function scrollToTop(e) {
   if (route.path === '/') {
     e.preventDefault()

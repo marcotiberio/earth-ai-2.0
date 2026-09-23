@@ -1,7 +1,6 @@
 <template>
   <section class="boxed bg-darkblue text-beige">
     <div class="max-w-screen-xl">
-      <!-- Heading + optional sub-line -->
       <header v-if="slice.primary.title || slice.primary.subtitle" class="mb-md">
         <h1
           v-if="slice.primary.title"
@@ -14,7 +13,6 @@
         </p>
       </header>
 
-      <!-- Rich-text body -->
       <div class="text-content font-body">
         <PrismicRichText :field="slice.primary.content" />
       </div>
@@ -32,10 +30,6 @@ defineProps({
 </script>
 
 <style scoped>
-/* Readable vertical rhythm for a long-form text page. Headings use the brand
-   serif; body, lists and links inherit the beige palette. (Plain CSS here —
-   the project's `.font-*` sizes are component classes, not @apply-able
-   utilities.) */
 .text-content :deep(h2) {
   font-size: 2rem;
   line-height: 1.1;

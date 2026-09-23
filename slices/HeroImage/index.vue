@@ -1,21 +1,23 @@
 <template>
   <ScrubScene
+    ref="sceneRef"
     :video-url="videoUrl"
     :video-url-mobile="videoUrlMobile"
     :image="slice.primary.image || {}"
     :image-mobile="slice.primary.image_mobile || {}"
     :scroll-length="slice.primary.scroll_length || 300"
-    :scrub-start="slice.primary.scrub_start || ''"
     align="bottom"
-    overlay-class="bg-darkblue/40"
+    overlay-class=""
+    scrub-until-exit
     eager
   >
 
     <template #pinned>
+      <div v-if="slice.primary.gradient_bottom !== false" class="bg-gradient-to-t from-darkblue via-darkblue/20 to-transparent absolute inset-x-0 bottom-0 h-1/4 pointer-events-none" />
+
       <div
         class="hidden pointer-events-none absolute inset-x-xs md:inset-x-sm top-[22%] bottom-[14%] flex-col justify-between"
       >
-        <!-- Dashed telemetry-style guide lines. -->
         <div
           v-for="li in LINE_COUNT"
           :key="`line-${li}`"
@@ -35,7 +37,6 @@
       </span>
     </template>
 
-    <!-- Content that scrolls over the pinned hero video -->
     <div class="w-full flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-start">
       <h1
         class="ea-display font-serif text-beige font-h1 w-full lg:w-1/2"
@@ -60,16 +61,12 @@ const props = defineProps({
   slices:  { type: Array },
 })
 
-// Strip block wrappers so rich text renders as inline markup inside our own
-// styled <h1>/<p>, keeping bold/italic (and links) from the Prismic field.
 const inlineSerializer = {
   heading1:  ({ children }) => children,
   heading2:  ({ children }) => children,
   paragraph: ({ children }) => children,
 }
 
-// Tolerate both a plain static string shape and real Prismic rich text
-// (the simulator and the live API).
 const toHtml = (field) => {
   if (!field) return ''
   return typeof field === 'string'
@@ -77,8 +74,6 @@ const toHtml = (field) => {
     : asHTML(field, { serializer: inlineSerializer }) || ''
 }
 
-// Link-to-Media fields come back as an object ({ url, ... }); static content
-// passes a plain string.
 const mediaUrl = (field) =>
   typeof field === 'string' ? field : field?.url || ''
 
@@ -87,6 +82,10 @@ const subtitleHtml   = computed(() => toHtml(props.slice.primary.subtitle))
 const videoUrl       = computed(() => mediaUrl(props.slice.primary.video_url))
 const videoUrlMobile = computed(() => mediaUrl(props.slice.primary.video_url_mobile))
 
-// Number of dashed telemetry-style guide lines drawn over the hero.
 const LINE_COUNT = 4
+
+const sceneRef = ref(null)
+if (!inject('inSliceSimulator', false)) {
+  useSmoothMouseWheel(() => sceneRef.value?.root, { speed: 1.5 })
+}
 </script>

@@ -1,0 +1,97 @@
+{
+  "id": "horizontal_scroll",
+  "type": "SharedSlice",
+  "name": "HorizontalScroll",
+  "description": "Pinned section: a label + headline over a row of image cards (title, subtitle, image) that slide horizontally as the page scrolls down. The section only scrolls away once the last card is in view. Designed for 5 cards.",
+  "variations": [
+    {
+      "id": "default",
+      "name": "Default",
+      "docURL": "...",
+      "version": "initial",
+      "description": "Default",
+      "imageUrl": "",
+      "primary": {
+        "is_hidden": {
+          "type": "Boolean",
+          "config": {
+            "label": "Hide slice",
+            "placeholder_false": "Visible",
+            "placeholder_true": "Hidden",
+            "default_value": false
+          }
+        },
+        "scroll_length": {
+          "type": "Number",
+          "config": {
+            "label": "Scroll length (vh)",
+            "placeholder": "Optional pinned scroll distance in vh. Leave empty to match the cards' horizontal travel 1:1."
+          }
+        },
+        "section_label": {
+          "type": "Text",
+          "config": {
+            "label": "Section label",
+            "placeholder": "Small label above the title (e.g. The Challenge)"
+          }
+        },
+        "title": {
+          "type": "StructuredText",
+          "config": {
+            "label": "Title",
+            "placeholder": "Headline (e.g. We need 3x more mines than we have today.)",
+            "allowTargetBlank": true,
+            "single": "paragraph,strong,em"
+          }
+        },
+        "cards": {
+          "type": "Group",
+          "config": {
+            "label": "Cards",
+            "fields": {
+              "video_url": {
+                "type": "Link",
+                "config": {
+                  "label": "Video",
+                  "placeholder": "Optional clip, scrubbed by the scroll while its card is fully in view (encode like the other scrub clips). The image shows while it loads, and in its place when empty",
+                  "select": "media"
+                }
+              },
+              "video_url_mobile": {
+                "type": "Link",
+                "config": {
+                  "label": "Video (mobile)",
+                  "placeholder": "Optional lighter encode served to phones (falls back to the desktop video)",
+                  "select": "media"
+                }
+              },
+              "image": {
+                "type": "Image",
+                "config": {
+                  "label": "Image (video fallback)",
+                  "constraint": {},
+                  "thumbnails": []
+                }
+              },
+              "title": {
+                "type": "Text",
+                "config": {
+                  "label": "Title",
+                  "placeholder": "e.g. AI Data Centers"
+                }
+              },
+              "subtitle": {
+                "type": "Text",
+                "config": {
+                  "label": "Subtitle",
+                  "placeholder": "e.g. Copper | Indium | Germanium"
+                }
+              }
+            }
+          }
+        }
+      },
+      "items": {}
+    }
+  ]
+}

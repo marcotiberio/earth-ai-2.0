@@ -1,12 +1,4 @@
 <template>
-  <!--
-    A pinned two-column scene (a sibling of `drilled_stats`): a WYSIWYG title +
-    count-up metrics on the left with a supporting paragraph anchored to the
-    bottom-left, and a continental target map on the right whose orange markers
-    wipe in left→right as the panel scrubs. The outer section is tall so the
-    inner sticky panel has scroll distance to scrub against; under reduced motion
-    we drop the height and show the finished state.
-  -->
   <section
     ref="rootRef"
     class="relative w-full bg-darkblue text-beige"
@@ -17,7 +9,6 @@
       :class="tall ? 'sticky top-0 flex h-screen items-center' : 'flex min-h-screen items-center py-lg'"
     >
       <div class="flex h-full w-full flex-col gap-sm lg:flex-row lg:items-stretch lg:gap-0">
-        <!-- Text column -->
         <div class="flex h-full w-full flex-col justify-start md:justify-between flex-wrap gap-sm md:gap-lg lg:w-6/12">
           
             <h2
@@ -40,7 +31,6 @@
                 <span class="font-caption">{{ stat.label }}</span>
               </li>
             </ul>
-            <!-- Supporting paragraph, anchored bottom-left -->
             <p
               v-if="body"
               class="mt-0 md:mt-sm max-w-md font-body text-beige lg:mt-0"
@@ -50,7 +40,6 @@
           </div>
         </div>
 
-        <!-- Target map -->
         <div class="flex w-full items-center justify-center lg:w-6/12 lg:justify-end">
           <svg
             viewBox="0 0 933 822"
@@ -61,12 +50,7 @@
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <!-- Grey continental landmass (base layer, viewBox 933×822) -->
             <g v-html="AUSTRALIA" />
-            <!-- Orange target markers. Each fades in on its own as the panel
-                 scrubs, in a scattered (pseudo-random) order. The markers were
-                 exported in their own 1005×926 box, so we scale them uniformly
-                 (822/926) and re-centre onto the map's box. -->
             <g transform="translate(-70 -50) scale(1)">
               <g
                 v-for="(m, i) in markers"
@@ -95,7 +79,6 @@ const props = defineProps({
   slices:  { type: Array },
 })
 
-// --- Content (tolerate both static-string and live Prismic shapes) ----------
 const inlineSerializer = { paragraph: ({ children }) => children }
 const toHtml = (field) => {
   if (!field) return ''
@@ -106,20 +89,13 @@ const toHtml = (field) => {
 
 const titleHtml = computed(() => toHtml(props.slice.primary.title))
 const body      = computed(() => props.slice.primary.body || '')
-// Group field lives in primary; cap at 4 rows (the design only has room for four).
 const stats     = computed(() => (props.slice.primary.stats || []).slice(0, 4))
-// Pinned scroll distance (vh) — editable per section; defaults to 220. (The
-// scrub still finishes 50vh before unpin for the end-state dwell; tune the
-// length up if the reveal feels rushed — this slice previously used 270.)
 const scrollLength = computed(() => Number(props.slice.primary.scroll_length) || 300)
 
 const mapLabel = computed(() =>
   stats.value.map((s) => `${counter(s.value)} ${s.label}`).join(', ') || 'Continental target map'
 )
 
-// --- Count-up formatting -----------------------------------------------------
-// Parse the leading number out of a label like "1,500" or "83%" so we can
-// animate it from zero while keeping any prefix/suffix and decimal precision.
 function parseValue(str) {
   const s = String(str ?? '')
   const m = s.match(/-?[\d,]*\.?\d+/)
@@ -146,37 +122,19 @@ function counter(value) {
   return `${p.prefix}${num}${p.suffix}`
 }
 
-// --- Scroll-driven progress (pinned scrub) -----------------------------------
-// `tall` starts true so SSR and client render identically; reduced-motion
-// clients drop to a normal-height section showing the finished map.
 const rootRef = ref(null)
 const { progress, tall } = useScrollProgress(rootRef, {
   start: 'top center',
-  // Touch scrolling is native (Lenis only smooths wheel input), so a momentum
-  // flick after the heavy pinned video sections rips through this scene. A
-  // heavier scrub lerp and a longer end dwell keep the wipe readable and hold
-  // the finished map on screen.
   end: (_, coarse) => `bottom bottom+=${window.innerHeight * (coarse ? 0.75 : 0.5)}`,
   scrub: { fine: 1, coarse: 3 },
 })
 
-// --- Map assets ------------------------------------------------------------
-// The grey landmass (australia.svg, viewBox 933×822) and the orange target
-// glyphs (map.svg, viewBox 1005×926) are imported raw and stripped of their
-// outer <svg> wrapper so they can be composited into one inline SVG above.
 const inner = (s) => s.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '')
 const AUSTRALIA = inner(australiaRaw)
 const MARKERS   = inner(markersRaw)
 
-// Split the markers layer into individual target glyphs so each can fade in on
-// its own. Every marker gets a stable pseudo-random "appear" threshold — keyed
-// off its index so SSR and client agree (no hydration mismatch) — and as
-// `progress` passes that threshold the marker ramps from 0→1 opacity over a
-// short band. The result reads as targets lighting up in scattered order
-// rather than a left→right sweep.
 const markers = MARKERS.match(/<g opacity="0.85">[\s\S]*?<\/g>/g) || []
 
-// Deterministic [0,1) hash from an integer index (mulberry-style mixing).
 const seededRand = (i) => {
   let t = Math.imul(i + 1, 2654435761) >>> 0
   t ^= t >>> 15; t = Math.imul(t, 2246822519)
@@ -185,8 +143,8 @@ const seededRand = (i) => {
   return (t >>> 0) / 4294967296
 }
 
-const REVEAL_SPREAD = 0.82 // last markers begin appearing around here
-const REVEAL_BAND   = 0.12 // each marker's individual fade length (progress units)
+const REVEAL_SPREAD = 0.82
+const REVEAL_BAND   = 0.12
 const thresholds = markers.map((_, i) => seededRand(i) * REVEAL_SPREAD)
 const markerOpacity = (i) =>
   Math.max(0, Math.min(1, (progress.value - thresholds[i]) / REVEAL_BAND))

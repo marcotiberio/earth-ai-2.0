@@ -7,10 +7,6 @@
 <script setup>
 import { components } from '~/slices'
 
-// Fetch a repeatable `page` document by its URL slug (UID). Any page built in
-// Prismic (Terms of Service, Privacy Policy, or richer marketing pages) renders
-// here from its slice zone — every slice in the library is available. Unknown
-// slugs 404.
 const prismic = usePrismic()
 const route = useRoute()
 const uid = computed(() => route.params.uid)
@@ -24,14 +20,12 @@ if (!page.value) {
   throw createError({ statusCode: 404, statusMessage: 'Page not found', fatal: true })
 }
 
-// Build absolute URLs (Open Graph requires them) from the configured site URL.
 const { public: { siteUrl } } = useRuntimeConfig()
 const canonical = computed(() => new URL(route.path, siteUrl).href)
 
 const title       = computed(() => page.value?.data.meta_title || page.value?.data.slices?.[0]?.primary?.title || 'Earth AI')
 const description = computed(() => page.value?.data.meta_description || '')
 
-// Social share image: the Prismic `meta_image` field if set, else the hero.
 const ogImage = computed(() => {
   const field = page.value?.data.meta_image
   const src = field?.url || '/images/EAI_Landscape-Hero.jpg'
@@ -47,7 +41,6 @@ useSeoMeta({
   title,
   description,
 
-  // Open Graph
   ogTitle:       title,
   ogDescription: description,
   ogUrl:         canonical,
@@ -56,7 +49,6 @@ useSeoMeta({
   ogImageHeight: ogImageHeight,
   ogImageAlt:    ogImageAlt,
 
-  // Twitter
   twitterTitle:       title,
   twitterDescription: description,
   twitterImage:       ogImage,
