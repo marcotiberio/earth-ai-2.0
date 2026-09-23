@@ -79,25 +79,23 @@
 
       <nav v-if="slides.length > 1" aria-label="Slides">
         <ol class="flex gap-[0.75rem] md:gap-[1.45rem]">
-          <li v-for="(slide, i) in slides" :key="i" class="min-w-0 flex-1">
-            <button
-              type="button"
-              class="group block w-full select-none pt-xs text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-beige/50"
+          <li
+            v-for="(slide, i) in slides"
+            :key="i"
+            class="min-w-0 flex-1"
+            :aria-current="i === activeIndex ? 'step' : undefined"
+          >
+            <div
+              class="block w-full select-none pt-xs text-left"
               :class="scrubbable(i) ? 'touch-pan-y' : ''"
-              :aria-label="slide.title ? `Slide ${i + 1}: ${slide.title}` : `Slide ${i + 1}`"
-              :aria-current="i === activeIndex ? 'step' : undefined"
-              @keydown="onBarKey($event, i)"
               @pointerdown="onBarPointerDown($event, i)"
               @pointermove="onBarPointerMove"
               @pointerup="onBarPointerUp"
               @pointercancel="onBarPointerCancel"
             >
               <span
-                class="relative block h-[4px] overflow-hidden rounded-full transition-[background-color,transform] duration-300 motion-reduce:transition-none"
-                :class="[
-                  i === activeIndex ? 'bg-beige/20' : 'bg-beige/20 group-hover:bg-beige/50',
-                  scrubbable(i) ? (scrubbing ? 'scale-y-150' : '[@media(hover:hover)]:group-hover:scale-y-150') : '',
-                ]"
+                class="relative block h-[4px] overflow-hidden rounded-full bg-beige/20 transition-transform duration-300 motion-reduce:transition-none"
+                :class="scrubbable(i) && scrubbing ? 'scale-y-150' : ''"
               >
                 <span
                   class="absolute inset-0 origin-left rounded-full bg-beige"
@@ -107,9 +105,9 @@
               </span>
               <span
                 class="mt-[0.35rem] block font-mono font-body leading-[1.2] transition-opacity duration-300 motion-reduce:transition-none"
-                :class="barFill(i) > 0 ? 'opacity-100' : 'opacity-25 group-hover:opacity-60'"
+                :class="barFill(i) > 0 ? 'opacity-100' : 'opacity-25'"
               >{{ i + 1 }}</span>
-            </button>
+            </div>
           </li>
         </ol>
       </nav>
@@ -302,8 +300,6 @@ const scrubFraction = ref(0)
 const seekers       = []
 let press = null
 
-const KEY_STEP = 0.1
-
 const scrubbable = (i) =>
   i === activeIndex.value && Boolean(videoSrcs.value[i]) && !videoFailed.value[i] && !reduceMotion.value
 
@@ -373,14 +369,6 @@ function onBarPointerUp(e) {
 function onBarPointerCancel() {
   if (press && scrubbing.value) finishScrub(press.i)
   press = null
-}
-
-function onBarKey(e, i) {
-  const step = { ArrowLeft: -KEY_STEP, ArrowRight: KEY_STEP }[e.key]
-  const v = videoEls[i]
-  if (!step || !scrubbable(i) || !v?.duration) return
-  e.preventDefault()
-  seekClip(i, v.currentTime / v.duration + step)
 }
 
 let stopNear     = null
